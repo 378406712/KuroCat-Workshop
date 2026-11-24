@@ -1,0 +1,115 @@
+{
+  "generatedAt": "2026-11-24T15:05:51.168Z",
+  "count": 4,
+  "keyboards": [
+    {
+      "slug": "sakura-milk",
+      "title": "樱花奶盖 65%",
+      "author": "chanke17",
+      "authorUrl": "https://github.com/chanke17",
+      "description": "奶白微粉键帽搭配莓果玫瑰金底座与樱花粉 ESC/回车键，配白猫、布偶猫和三花猫超绝配！",
+      "tags": [
+        "樱花粉",
+        "温柔风",
+        "浅色键盘",
+        "官方示例"
+      ],
+      "createdAt": "2026-11-24",
+      "keyboardPath": "./community-keyboards/sakura-milk/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#FFF6F8",
+        "mouseBorder": "#6B4252",
+        "wheel": "#F28BA8",
+        "base": "#5C3A48",
+        "deck": "#7D5264",
+        "key": "#FFF9FA",
+        "keyBorder": "#EBC8D4",
+        "accent": "#F28BA8",
+        "darkText": true
+      },
+      "sizeBytes": 322
+    },
+    {
+      "slug": "matcha-latte",
+      "title": "抹茶拿铁 65%",
+      "author": "chanke17",
+      "authorUrl": "https://github.com/chanke17",
+      "description": "清爽森系抹茶绿撞燕麦奶白键帽，长时间码字护眼又治愈。",
+      "tags": [
+        "抹茶绿",
+        "小清新",
+        "护眼"
+      ],
+      "createdAt": "2026-11-23",
+      "keyboardPath": "./community-keyboards/matcha-latte/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#F5F7F0",
+        "mouseBorder": "#364A37",
+        "wheel": "#78A86C",
+        "base": "#2A3B2B",
+        "deck": "#415B43",
+        "key": "#F7F8F2",
+        "keyBorder": "#CDD8C6",
+        "accent": "#78A86C",
+        "darkText": true
+      },
+      "sizeBytes": 322
+    },
+    {
+      "slug": "cyber-vapor",
+      "title": "赛博电青 65%",
+      "author": "KuroCat 皮肤工坊",
+      "authorUrl": "https://github.com/chanke17/KuroCat-Workshop",
+      "description": "深邃午夜蓝黑机身点缀高能电青色主键，配小黑猫和像素墨镜气场拉满。",
+      "tags": [
+        "暗色键盘",
+        "赛博风",
+        "极客"
+      ],
+      "createdAt": "2026-11-22",
+      "keyboardPath": "./community-keyboards/cyber-vapor/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#23283A",
+        "mouseBorder": "#111521",
+        "wheel": "#3EE4E8",
+        "base": "#0E121E",
+        "deck": "#1A2033",
+        "key": "#2C344D",
+        "keyBorder": "#171C2C",
+        "accent": "#3EE4E8",
+        "darkText": false
+      },
+      "sizeBytes": 398
+    },
+    {
+      "slug": "gameboy-retro",
+      "title": "复古掌机 DMG",
+      "author": "KuroCat 皮肤工坊",
+      "authorUrl": "https://github.com/chanke17/KuroCat-Workshop",
+      "description": "致敬 1989 经典灰白掌机的暖灰键帽与酒红 A/B 功能键，满满复古情怀。",
+      "tags": [
+        "复古",
+        "怀旧灰",
+        "掌机"
+      ],
+      "createdAt": "2026-11-21",
+      "keyboardPath": "./community-keyboards/gameboy-retro/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#DCD9CE",
+        "mouseBorder": "#3E3D3A",
+        "wheel": "#9B2948",
+        "base": "#494844",
+        "deck": "#6C6B66",
+        "key": "#DFDDD3",
+        "keyBorder": "#B8B5AA",
+        "accent": "#9B2948",
+        "darkText": true
+      },
+      "sizeBytes": 334
+    }
+  ]
+}

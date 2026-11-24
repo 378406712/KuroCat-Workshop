@@ -1761,7 +1761,9 @@
     ['bodyWidth', '身宽圆润度'],
     ['headScale', '头部大小'],
     ['cheekFullness', '腮帮饱满度'],
+    ['neckWidth', '脖子宽度'],
     ['earSize', '耳朵大小'],
+    ['earBaseWidth', '耳朵底部宽度'],
     ['earPointiness', '耳尖尖度'],
     ['tailLength', '尾巴长度'],
     ['tailThickness', '尾巴粗细'],
@@ -2474,6 +2476,25 @@
     switchTab,
     showToast,
     setPose: (p) => { currentPose = p; },
+    getKeyboardThemeId: () => kbTheme,
+    applyKeyboardTheme: (id, label, colors) => {
+      if (!id || !colors) return false;
+      Renderer.registerKeyboardTheme(id, colors);
+      const sel = document.getElementById('keyboard-theme-select');
+      if (sel) {
+        let opt = Array.from(sel.options).find((o) => o.value === id);
+        if (!opt) {
+          opt = document.createElement('option');
+          opt.value = id;
+          opt.textContent = `广场 · ${label || id}`;
+          sel.appendChild(opt);
+        }
+        sel.value = id;
+      }
+      kbTheme = id;
+      showToast(`已应用键盘配色「${label || id}」`);
+      return true;
+    },
     // face (optional): { noseX, noseY, cheek } as fractions of the image width/height/width
     analyzeImageUrl: (url, name, overrides, face) => new Promise((resolve, reject) => {
       const img = new Image();

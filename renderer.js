@@ -434,6 +434,14 @@
       tip = { x: around(tip.x, mx, es), y: around(tip.y, my, es) };
     }
 
+    const ebw = skin.shape.earBaseWidth || 1;
+    if (ebw !== 1) {
+      const mx = (innerBase.x + outerBase.x) * 0.5;
+      const my = (innerBase.y + outerBase.y) * 0.5;
+      innerBase = { x: around(innerBase.x, mx, ebw), y: around(innerBase.y, my, ebw) };
+      outerBase = { x: around(outerBase.x, mx, ebw), y: around(outerBase.y, my, ebw) };
+    }
+
     const ep = skin.shape.earPointiness;
     const tipSpread = bd.earTipSpread / ep;
     const tipLeft = { x: tip.x - sign * tipSpread, y: tip.y + 2.8 };
@@ -529,14 +537,20 @@
     const lCheek = H(leftCheekX, bd.cheekY);
 
     const traceSilhouette = () => {
+      const nw = skin.shape.neckWidth || 1;
+      const neckCenter = cheekShift * 0.4;
+      const rNeckX = neckCenter + (rightCheekX - bd.neckPinchX - neckCenter) * nw;
+      const lNeckX = neckCenter + (leftCheekX + bd.neckPinchX - neckCenter) * nw;
+      const neckWaistW = bd.waistCtrlW * (1 + (nw - 1) * 0.32);
+
       ctx.beginPath();
       ctx.moveTo(crown.x, crown.y);
       const c1a = H(bd.crownCtrlW + cheekShift * 0.3, bd.crownBaseY + crownDrop);
       const c1b = H(rightCheekX + 1.5, bd.cheekCtrlTopY);
       ctx.bezierCurveTo(c1a.x, c1a.y, c1b.x, c1b.y, rCheek.x, rCheek.y);
 
-      const c2a = H(rightCheekX - bd.neckPinchX, bd.neckCtrlY);
-      const c2b = B(bd.waistCtrlW, bd.waistCtrlY + breath * 0.5);
+      const c2a = H(rNeckX, bd.neckCtrlY);
+      const c2b = B(neckWaistW, bd.waistCtrlY + breath * 0.5);
       ctx.bezierCurveTo(c2a.x, c2a.y, c2b.x, c2b.y, rHip.x, rHip.y);
 
       const c3a = B(bd.botOuterW, 5), c3b = B(bd.botInnerW, 12);
@@ -546,8 +560,8 @@
       const c4a = B(-bd.botInnerW, 12), c4b = B(-bd.botOuterW, 5);
       ctx.bezierCurveTo(c4a.x, c4a.y, c4b.x, c4b.y, lHip.x, lHip.y);
 
-      const c5a = B(-bd.waistCtrlW, bd.waistCtrlY + breath * 0.5);
-      const c5b = H(leftCheekX + bd.neckPinchX, bd.neckCtrlY);
+      const c5a = B(-neckWaistW, bd.waistCtrlY + breath * 0.5);
+      const c5b = H(lNeckX, bd.neckCtrlY);
       ctx.bezierCurveTo(c5a.x, c5a.y, c5b.x, c5b.y, lCheek.x, lCheek.y);
 
       const c6a = H(leftCheekX - 1.5, bd.cheekCtrlTopY);
@@ -1589,6 +1603,44 @@
     return dataUrl.replace(/^data:image\/png;base64,/, '');
   }
 
+  function registerKeyboardTheme(id, colors) {
+    if (!id || !colors) return;
+    KB_THEMES[id] = {
+      mouseBody: colors.mouseBody || '#F4F2EC',
+      mouseBorder: colors.mouseBorder || '#242429',
+      wheel: colors.wheel || '#F5B029',
+      base: colors.base || '#1A1A1F',
+      deck: colors.deck || '#242429',
+      key: colors.key || '#F7F6F0',
+      keyBorder: colors.keyBorder || 'rgba(199,196,189,0.75)',
+      accent: colors.accent || '#F7B329',
+      darkText: colors.darkText !== false
+    };
+  }
+
+  function getKeyboardThemeColors(id) {
+    return KB_THEMES[id] || KB_THEMES.classicMilk;
+  }
+
+  // Dedicated zoomed-in 2.5D keyboard + mouse card renderer for Keyboard Plaza
+  function drawKeyboardCardPreview(ctx, colors, glowId) {
+    const tempId = '__plaza_kb_preview__';
+    registerKeyboardTheme(tempId, colors);
+    const cw = ctx.canvas.width;
+    const ch = ctx.canvas.height;
+    ctx.save();
+    ctx.clearRect(0, 0, cw, ch);
+    // Zoom into the lower-left mouse (x~64..92) + keyboard (x~100..290, y~230..298)
+    const scale = Math.min(cw / 254, ch / 114);
+    ctx.translate(cw * 0.5 - 176 * scale, ch * 0.5 - 264 * scale);
+    ctx.scale(scale, scale);
+    const st = createDefaultState();
+    if (glowId) st.keyGlow[glowId] = 0.85;
+    drawMouse(ctx, st, tempId);
+    drawKeyboard(ctx, st, tempId, 'warmAmber');
+    ctx.restore();
+  }
+
   global.KuroRenderer = {
     SEAT_ANCHOR,
     LEFT_PAW_REST,
@@ -1605,6 +1657,9 @@
     preloadDecorations,
     getDecorationTransform,
     getDecorationOverlayGeometry,
-    renderPreviewBase64
+    renderPreviewBase64,
+    registerKeyboardTheme,
+    getKeyboardThemeColors,
+    drawKeyboardCardPreview
   };
 })(window);

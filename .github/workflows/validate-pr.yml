@@ -5,6 +5,7 @@ on:
     paths:
       - "community/**"
       - "community-accessories/**"
+      - "community-keyboards/**"
 
 permissions:
   contents: read

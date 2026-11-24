@@ -13,6 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const COMMUNITY_DIR = path.join(ROOT, 'community');
 const ACCESSORIES_DIR = path.join(ROOT, 'community-accessories');
+const KEYBOARDS_DIR = path.join(ROOT, 'community-keyboards');
 
 const VALID_SPACES = new Set(['head', 'skull', 'body', 'tail', 'leftEar', 'rightEar']);
 const PALETTE_KEYS = new Set([
@@ -26,12 +27,15 @@ const SHAPE_RANGES = {
   bodyWidth: [0.85, 1.35],
   headScale: [0.90, 1.15],
   cheekFullness: [0.85, 1.25],
+  neckWidth: [0.65, 1.40],
   earSize: [0.80, 1.25],
+  earBaseWidth: [0.65, 1.40],
   earPointiness: [0.50, 1.50],
   tailLength: [0.70, 1.30],
   tailThickness: [0.70, 1.50],
   pawStagger: [0.0, 1.0]
 };
+const KB_COLOR_KEYS = ['mouseBody', 'mouseBorder', 'wheel', 'base', 'deck', 'key', 'keyBorder', 'accent'];
 const ALLOWED_PREVIEWS = ['preview.gif', 'preview.webp', 'preview.png', 'preview.jpg', 'preview.jpeg'];
 const MAX_SKIN_BYTES = 2 * 1024 * 1024;
 const MAX_PREVIEW_BYTES = 5 * 1024 * 1024;
@@ -331,15 +335,112 @@ export function scanAndValidateAccessories() {
   return { entries, errors };
 }
 
+export function scanAndValidateKeyboards() {
+  const errors = [];
+  const entries = [];
+  if (!fs.existsSync(KEYBOARDS_DIR)) return { entries, errors };
+
+  for (const d of fs.readdirSync(KEYBOARDS_DIR, { withFileTypes: true })) {
+    if (!d.isDirectory()) {
+      if (d.name !== 'index.json' && d.name !== 'README.md' && d.name !== '.DS_Store') {
+        errors.push(`community-keyboards/${d.name}: 请放进单独子目录 community-keyboards/<英文短名>/`);
+      }
+      continue;
+    }
+    const slug = d.name;
+    const dirPath = path.join(KEYBOARDS_DIR, slug);
+    if (!SLUG_RE.test(slug)) {
+      errors.push(`community-keyboards/${slug}: 目录名仅支持小写字母、数字和连字符（2–49 字符）`);
+      continue;
+    }
+    const files = fs.readdirSync(dirPath).filter((f) => f !== '.DS_Store');
+    const kbFile = path.join(dirPath, 'keyboard.json');
+    const metaFile = path.join(dirPath, 'meta.json');
+    if (!fs.existsSync(kbFile)) { errors.push(`community-keyboards/${slug}: 缺少 keyboard.json`); continue; }
+    if (!fs.existsSync(metaFile)) { errors.push(`community-keyboards/${slug}: 缺少 meta.json`); continue; }
+
+    let previewFile = null;
+    for (const f of files) {
+      if (f === 'keyboard.json' || f === 'meta.json') continue;
+      if (ALLOWED_PREVIEWS.includes(f)) {
+        if (previewFile) errors.push(`community-keyboards/${slug}: 只能提供一个额外预览文件`);
+        previewFile = f;
+      } else {
+        errors.push(`community-keyboards/${slug}/${f}: 不允许的额外文件`);
+      }
+    }
+
+    const kbStat = fs.statSync(kbFile);
+    if (kbStat.size > 128 * 1024) {
+      errors.push(`community-keyboards/${slug}/keyboard.json: 超过 128 KB 上限`);
+      continue;
+    }
+    let kbObj;
+    try { kbObj = JSON.parse(fs.readFileSync(kbFile, 'utf8')); }
+    catch (e) { errors.push(`community-keyboards/${slug}/keyboard.json: JSON 解析失败 (${e.message})`); continue; }
+
+    if (!kbObj || typeof kbObj !== 'object' || kbObj.formatVersion !== 1) {
+      errors.push(`community-keyboards/${slug}/keyboard.json: formatVersion 必须为 1`);
+      continue;
+    }
+    if (!kbObj.colors || typeof kbObj.colors !== 'object') {
+      errors.push(`community-keyboards/${slug}/keyboard.json: 缺少 colors 对象`);
+      continue;
+    }
+    let colorOk = true;
+    for (const key of KB_COLOR_KEYS) {
+      if (!HEX_RE.test(kbObj.colors[key] || '')) {
+        errors.push(`community-keyboards/${slug}/keyboard.json: colors.${key} 必须是 #RRGGBB 或 #RRGGBBAA`);
+        colorOk = false;
+      }
+    }
+    if (!colorOk) continue;
+
+    let rawMeta;
+    try { rawMeta = JSON.parse(fs.readFileSync(metaFile, 'utf8')); }
+    catch (e) { errors.push(`community-keyboards/${slug}/meta.json: JSON 解析失败 (${e.message})`); continue; }
+    const meta = validateCommonMeta(rawMeta, `community-keyboards/${slug}`, errors);
+    if (!meta) continue;
+
+    if (previewFile) {
+      const pStat = fs.statSync(path.join(dirPath, previewFile));
+      if (pStat.size > MAX_PREVIEW_BYTES) errors.push(`community-keyboards/${slug}/${previewFile}: 超过 5 MB 上限`);
+    }
+
+    entries.push({
+      slug,
+      ...meta,
+      keyboardPath: `./community-keyboards/${slug}/keyboard.json`,
+      previewPath: previewFile ? `./community-keyboards/${slug}/${previewFile}` : null,
+      colors: {
+        mouseBody: kbObj.colors.mouseBody,
+        mouseBorder: kbObj.colors.mouseBorder,
+        wheel: kbObj.colors.wheel,
+        base: kbObj.colors.base,
+        deck: kbObj.colors.deck,
+        key: kbObj.colors.key,
+        keyBorder: kbObj.colors.keyBorder,
+        accent: kbObj.colors.accent,
+        darkText: kbObj.colors.darkText !== false
+      },
+      sizeBytes: kbStat.size
+    });
+  }
+
+  entries.sort((a, b) => (b.createdAt.localeCompare(a.createdAt) || a.slug.localeCompare(b.slug)));
+  return { entries, errors };
+}
+
 // CLI execution
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const skins = scanAndValidateCommunity();
   const accs = scanAndValidateAccessories();
-  const allErrors = [...skins.errors, ...accs.errors];
+  const kbs = scanAndValidateKeyboards();
+  const allErrors = [...skins.errors, ...accs.errors, ...kbs.errors];
   if (allErrors.length > 0) {
     console.error('❌ 广场投稿校验失败：\n');
     for (const err of allErrors) console.error('  - ' + err);
     process.exit(1);
   }
-  console.log(`✅ 校验通过！共 ${skins.entries.length} 款皮肤 + ${accs.entries.length} 款饰品符合 KuroCat v1 规范。`);
+  console.log(`✅ 校验通过！共 ${skins.entries.length} 款皮肤 + ${accs.entries.length} 款饰品 + ${kbs.entries.length} 款键盘符合 KuroCat v1 规范。`);
 }

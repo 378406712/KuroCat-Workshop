@@ -3,563 +3,803 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KuroCat 皮肤工坊 · 皮肤与饰品广场 · 照片/手绘一键生成你的桌面小猫</title>
+  <title>KuroCat 皮肤工坊 · 皮肤、饰品与键盘社区广场</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <!-- Top Studio Header -->
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-paw" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="24" height="24" fill="currentColor">
-            <ellipse cx="9.2" cy="11.2" rx="2.9" ry="3.6" transform="rotate(-14 9.2 11.2)"/>
-            <ellipse cx="15.9" cy="8.6" rx="2.9" ry="3.7"/>
-            <ellipse cx="22.8" cy="11.2" rx="2.9" ry="3.6" transform="rotate(14 22.8 11.2)"/>
-            <path d="M16 14.4c-4.9 0-8.4 3.5-8.4 7.1 0 2.6 2 4.3 4.6 4.3 1.5 0 2.6-.6 3.8-.6s2.3.6 3.8.6c2.6 0 4.6-1.7 4.6-4.3 0-3.6-3.5-7.1-8.4-7.1z"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          <h1>KuroCat 皮肤工坊</h1>
-          <span class="brand-sub">支持照片/手绘生成 · 配饰 DIY · 社区皮肤与饰品广场</span>
-        </div>
+  <div class="studio-shell">
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar" id="sidebar" aria-label="主导航">
+      <div class="sidebar-brand">
+        <a href="#workshop" class="brand-link" data-nav="workshop">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="18" height="18" fill="currentColor">
+              <ellipse cx="9.2" cy="11.2" rx="2.9" ry="3.6" transform="rotate(-14 9.2 11.2)"/>
+              <ellipse cx="15.9" cy="8.6" rx="2.9" ry="3.7"/>
+              <ellipse cx="22.8" cy="11.2" rx="2.9" ry="3.6" transform="rotate(14 22.8 11.2)"/>
+              <path d="M16 14.4c-4.9 0-8.4 3.5-8.4 7.1 0 2.6 2 4.3 4.6 4.3 1.5 0 2.6-.6 3.8-.6s2.3.6 3.8.6c2.6 0 4.6-1.7 4.6-4.3 0-3.6-3.5-7.1-8.4-7.1z"/>
+            </svg>
+          </span>
+          <span class="brand-name">KuroCat</span>
+          <span class="brand-tag">Workshop</span>
+        </a>
+        <button type="button" class="icon-btn sidebar-close-btn" id="btn-sidebar-close" aria-label="收起导航">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+        </button>
       </div>
 
-      <nav class="view-switcher" role="tablist" aria-label="主视图切换">
-        <button type="button" class="view-switch-btn active" data-view="workshop" role="tab">🎨 皮肤工坊</button>
-        <button type="button" class="view-switch-btn" data-view="plaza" role="tab">✨ 皮肤 &amp; 饰品广场</button>
+      <nav class="sidebar-nav">
+        <div class="nav-group">
+          <div class="nav-group-label">创作工具</div>
+          <button type="button" class="nav-item active" data-nav="workshop">
+            <svg class="nav-icon" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14.5 3.5a2.12 2.12 0 0 1 3 3L8 16l-4 1 1-4 9.5-9.5Z"/>
+            </svg>
+            <span class="nav-label">皮肤工坊</span>
+          </button>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-label">社区广场</div>
+          <button type="button" class="nav-item" data-nav="plaza-skins">
+            <svg class="nav-icon" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4.5 8.5 5 3.5l3.3 2.5a6.5 6.5 0 0 1 3.4 0L15 3.5l.5 5A6 6 0 0 1 16 11a6 6 0 1 1-12 0c0-.9.18-1.74.5-2.5Z"/>
+              <circle cx="8" cy="11" r="0.8" fill="currentColor" stroke="none"/>
+              <circle cx="12" cy="11" r="0.8" fill="currentColor" stroke="none"/>
+            </svg>
+            <span class="nav-label">皮肤广场</span>
+            <span class="nav-count" id="nav-count-skins">0</span>
+          </button>
+          <button type="button" class="nav-item" data-nav="plaza-accessories">
+            <svg class="nav-icon" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m3.5 14.5 1.2-7.5 3.8 3.2L10 5l1.5 5.2 3.8-3.2 1.2 7.5H3.5Z"/>
+            </svg>
+            <span class="nav-label">饰品广场</span>
+            <span class="nav-count" id="nav-count-accessories">0</span>
+          </button>
+          <button type="button" class="nav-item" data-nav="plaza-keyboards">
+            <svg class="nav-icon" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2.5" y="5" width="15" height="10" rx="2"/>
+              <path d="M5.5 8.5h1M8.5 8.5h1M11.5 8.5h1M14.5 8.5h0M6.5 12h7"/>
+            </svg>
+            <span class="nav-label">键盘广场</span>
+            <span class="nav-count" id="nav-count-keyboards">0</span>
+          </button>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-label">参与共建</div>
+          <button type="button" class="nav-item" data-nav="guide">
+            <svg class="nav-icon" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3.5 4.5h5a2.5 2.5 0 0 1 2.5 2.5v9.5a2 2 0 0 0-2-2H3.5v-10Z"/>
+              <path d="M16.5 4.5h-5A2.5 2.5 0 0 0 9 7v9.5a2 2 0 0 1 2-2h5.5v-10Z"/>
+            </svg>
+            <span class="nav-label">投稿指南</span>
+          </button>
+        </div>
       </nav>
 
-      <div class="meta-fields" id="topbar-meta-fields">
-        <label class="inline-field">
-          <span>皮肤名</span>
-          <input id="skin-name" type="text" maxlength="40" value="我的桌面小猫" placeholder="例如：家里的橘猫" />
-        </label>
-        <label class="inline-field inline-field-author">
-          <span>作者</span>
-          <input id="skin-author" type="text" maxlength="40" value="KuroCat 皮肤工坊" placeholder="可选" />
-        </label>
-      </div>
-
-      <div class="top-actions">
-        <span id="validation-pill" class="validation-pill ok workshop-only" title="符合 .kurocat v1 规范">✓ 规范校验通过</span>
-        <div class="history-btns workshop-only" role="group" aria-label="撤销与重做">
-          <button type="button" class="icon-btn" id="btn-undo" title="撤销 (Ctrl/⌘+Z)" aria-label="撤销" disabled>
-            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 5 3.5 9l4 4M4 9h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button type="button" class="icon-btn" id="btn-redo" title="重做 (Ctrl/⌘+Shift+Z)" aria-label="重做" disabled>
-            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 5l4 4-4 4M16 9H8.5a4.5 4.5 0 0 0 0 9H11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <label class="btn btn-secondary workshop-only" for="import-kurocat-input" title="导入已有 .kurocat 文件继续编辑">
-          导入 .kurocat
-        </label>
-        <input id="import-kurocat-input" type="file" accept=".kurocat,application/json" hidden />
-        <button id="btn-open-submit" class="btn btn-secondary" type="button" title="生成投稿包，分享皮肤或饰品到社区广场">
-          投稿到广场
+      <div class="sidebar-footer">
+        <button type="button" class="sidebar-action-btn" id="btn-open-submit">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 13V4m0 0L6.5 7.5M10 4l3.5 3.5"/>
+            <path d="M3.5 13.5v1.5a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5v-1.5"/>
+          </svg>
+          <span>打包投稿文件</span>
         </button>
-        <button id="btn-export" class="btn btn-primary workshop-only" type="button">
-          导出 .kurocat
-        </button>
+
+        <a class="sidebar-github-link" href="https://github.com/chanke17/KuroCat-Workshop" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z"/>
+          </svg>
+          <span>GitHub 开源仓库</span>
+          <svg class="ext-arrow" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 11 11 5M6 5h5v5"/>
+          </svg>
+        </a>
       </div>
-    </header>
+    </aside>
 
-    <!-- Main Workbench -->
-    <main class="workbench" id="workshop-view">
-      <!-- Left: Interactive 2.5D Cat Stage -->
-      <section class="stage-column">
-        <div class="stage-card">
-          <div class="stage-header">
-            <div class="stage-title-group">
-              <span class="stage-badge" id="stage-coat-badge">实时 2.5D 预览</span>
-              <span class="stage-hint" id="stage-hint">移动鼠标让小猫转头看你 · 点击键盘区域体验敲键</span>
-            </div>
-            <div class="backdrop-pills" role="group" aria-label="预览背景">
-              <button type="button" class="chip active" data-bg="cream">暖米纸</button>
-              <button type="button" class="chip" data-bg="slate">浅灰</button>
-              <button type="button" class="chip" data-bg="dark">暗夜</button>
-              <button type="button" class="chip" data-bg="checker">透明</button>
-            </div>
+    <!-- Main Right Column -->
+    <div class="studio-main">
+      <!-- Unified Aligned Single-Row Topbar (56px) -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="icon-btn mobile-menu-btn" id="btn-sidebar-open" aria-label="打开导航">
+            <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13"/></svg>
+          </button>
+
+          <!-- Workshop Mode Header Fields -->
+          <div class="meta-fields" id="topbar-workshop-left">
+            <label class="inline-field">
+              <span>皮肤名</span>
+              <input id="skin-name" type="text" maxlength="40" value="我的桌面小猫" placeholder="例如：家里的橘猫" />
+            </label>
+            <label class="inline-field inline-field-author">
+              <span>作者</span>
+              <input id="skin-author" type="text" maxlength="40" value="KuroCat 皮肤工坊" placeholder="可选" />
+            </label>
+            <span id="validation-pill" class="validation-pill ok" title="符合 .kurocat v1 规范">✓ v1 规范</span>
           </div>
 
-          <div class="canvas-frame bg-cream" id="canvas-frame">
-            <canvas id="cat-canvas" width="720" height="640"></canvas>
-            <div class="canvas-overlay-badge" id="edit-mode-banner" hidden>
-              <span>正在编辑曲线锚点：拖动圆点调形状，拖动小菱形调弧度</span>
-              <button type="button" id="btn-exit-region-edit" class="mini-btn">完成编辑</button>
-            </div>
-            <div class="canvas-overlay-badge pen-banner" id="pen-banner" hidden>
-              <span id="pen-banner-text">钢笔：点一下放锚点</span>
-              <span class="pen-banner-actions">
-                <button type="button" id="btn-pen-back" class="mini-btn">撤一个点</button>
-                <button type="button" id="btn-pen-finish" class="mini-btn pen-finish">完成</button>
-                <button type="button" id="btn-pen-cancel" class="mini-btn">退出</button>
-              </span>
-            </div>
-            <div class="canvas-overlay-badge" id="deco-banner" hidden>
-              <span>调整配饰：拖动移动位置 · 拖右下角缩放 · 拖顶部圆点旋转</span>
-              <button type="button" id="btn-exit-deco-edit" class="mini-btn">完成调整</button>
-            </div>
-          </div>
-
-          <div class="stage-controls">
-            <div class="pose-bar" role="group" aria-label="动作测试">
-              <button type="button" class="pose-btn active" data-pose="idle">待机</button>
-              <button type="button" class="pose-btn" data-pose="typing">敲键盘</button>
-              <button type="button" class="pose-btn" data-pose="hunt">捕猎大眼</button>
-              <button type="button" class="pose-btn" data-pose="petHead">摸头闭眼</button>
-              <button type="button" class="pose-btn" data-pose="petBody">半眯享受</button>
-              <button type="button" class="pose-btn" data-pose="hindFoot">三键踢脚</button>
-              <button type="button" class="pose-btn" data-pose="sleep">打瞌睡</button>
-            </div>
-
-            <div class="stage-subbar">
-              <div class="mini-group">
-                <span class="mini-label">键盘配色</span>
-                <select id="keyboard-theme-select">
-                  <option value="classicMilk">经典奶白暖黄</option>
-                  <option value="midnightHacker">暗夜极客黑</option>
-                  <option value="retroCream">复古奶油灰</option>
-                </select>
-              </div>
-              <div class="mini-group">
-                <span class="mini-label">默认瞳色（无自定虹膜时）</span>
-                <select id="eye-theme-select">
-                  <option value="neonChartreuse">荧光黄绿</option>
-                  <option value="siameseBlue">暹罗冰蓝</option>
-                  <option value="warmAmber">琥珀金瞳</option>
-                  <option value="softAmber">柔和琥珀</option>
-                  <option value="referenceHazel">淡金青绿</option>
-                  <option value="iceCyan">冰晶浅蓝</option>
-                </select>
-              </div>
-              <button type="button" id="btn-snapshot" class="mini-btn" title="保存当前预览 PNG">保存预览图</button>
-            </div>
+          <!-- Plaza / Guide Mode Page Heading -->
+          <div class="page-heading-bar" id="topbar-page-heading" hidden>
+            <h1 id="topbar-page-title">皮肤广场</h1>
+            <span class="page-heading-meta" id="topbar-page-meta"></span>
           </div>
         </div>
 
-        <!-- Quick Import Tip Card matching Dressing Room -->
-        <div class="usage-strip">
-          <div class="usage-step"><strong>1</strong> 上传真猫照片或选模板</div>
-          <div class="usage-arrow">→</div>
-          <div class="usage-step"><strong>2</strong> 微调毛色、花纹与体型</div>
-          <div class="usage-arrow">→</div>
-          <div class="usage-step"><strong>3</strong> 导出 .kurocat 拖进换装间</div>
+        <!-- Workshop Mode Right Actions -->
+        <div class="topbar-right" id="topbar-workshop-right">
+          <div class="history-btns" role="group" aria-label="撤销与重做">
+            <button type="button" class="icon-btn" id="btn-undo" title="撤销 (Ctrl/⌘+Z)" aria-label="撤销" disabled>
+              <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M7.5 5 3.5 9l4 4M4 9h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button type="button" class="icon-btn" id="btn-redo" title="重做 (Ctrl/⌘+Shift+Z)" aria-label="重做" disabled>
+              <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M12.5 5l4 4-4 4M16 9H8.5a4.5 4.5 0 0 0 0 9H11" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <label class="btn btn-secondary" for="import-kurocat-input" title="导入已有 .kurocat 文件继续编辑">
+            导入
+          </label>
+          <input id="import-kurocat-input" type="file" accept=".kurocat,application/json" hidden />
+          <button id="btn-export" class="btn btn-primary" type="button">
+            导出 .kurocat
+          </button>
         </div>
-      </section>
 
-      <!-- Right: Studio Inspector Tabs -->
-      <aside class="panel-column">
-        <nav class="tab-bar" role="tablist">
-          <button type="button" class="tab-btn active" data-tab="photo" role="tab">传图生成</button>
-          <button type="button" class="tab-btn" data-tab="templates" role="tab">模板库</button>
-          <button type="button" class="tab-btn" data-tab="palette" role="tab">毛色五官</button>
-          <button type="button" class="tab-btn" data-tab="shape" role="tab">体型轮廓</button>
-          <button type="button" class="tab-btn" data-tab="regions" role="tab">手绘花纹</button>
-          <button type="button" class="tab-btn" data-tab="decorations" role="tab">配饰装扮</button>
-        </nav>
+        <!-- Plaza Mode Right Actions -->
+        <div class="topbar-right" id="topbar-plaza-right" hidden>
+          <div class="search-field">
+            <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true">
+              <circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3 3"/>
+            </svg>
+            <input type="search" id="plaza-search-input" placeholder="搜索名称、作者、简介或标签…" />
+          </div>
+          <button type="button" class="btn btn-secondary" id="btn-topbar-guide">投稿指南</button>
+          <button type="button" class="btn btn-primary" id="btn-plaza-submit">打包投稿</button>
+        </div>
 
-        <div class="tab-panels">
-          <!-- TAB 1: Photo / Hand-Drawn Cat Generator -->
-          <section class="tab-panel active" id="tab-photo">
-            <div class="source-mode-bar">
-              <span class="source-mode-label">图片类型</span>
-              <div class="pill-grid" id="photo-source-pills" role="group" aria-label="上传图片类型">
-                <button type="button" class="pill active" data-source="photo">📷 真实猫照片</button>
-                <button type="button" class="pill" data-source="drawing">🎨 手绘 / 板绘猫图</button>
+        <!-- Guide Mode Right Actions -->
+        <div class="topbar-right" id="topbar-guide-right" hidden>
+          <button type="button" class="btn btn-secondary" id="btn-guide-open-submit">打开打包助手</button>
+          <a class="btn btn-primary" href="https://github.com/chanke17/KuroCat-Workshop/issues/new/choose" target="_blank" rel="noopener">去 GitHub 提 Issue</a>
+        </div>
+      </header>
+
+      <!-- VIEW 1: Workshop Workbench -->
+      <main class="workbench" id="workshop-view">
+        <!-- Left: Interactive 2.5D Cat Stage -->
+        <section class="stage-column">
+          <div class="stage-card">
+            <div class="stage-header">
+              <div class="stage-title-group">
+                <span class="stage-badge" id="stage-coat-badge">实时 2.5D 预览</span>
+                <span class="stage-hint" id="stage-hint">移动鼠标让小猫转头 · 点击键盘体验敲键</span>
               </div>
-            </div>
-            <div class="photo-dropzone" id="photo-dropzone">
-              <input id="photo-file-input" type="file" accept="image/*" hidden />
-              <div class="dropzone-empty" id="dropzone-empty">
-                <div class="drop-icon" aria-hidden="true">
-                  <svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="6" y="10" width="36" height="28" rx="6"/>
-                    <circle cx="18" cy="21" r="3.5"/>
-                    <path d="M8 33l10-9 7 6 6-5 9 8"/>
-                  </svg>
-                </div>
-                <p class="drop-title">拖入真实猫照片，或你自己画的小猫图，点击选择</p>
-                <p class="drop-sub">支持实拍照片 / 手绘插画 / 透明底板绘 PNG · 纯本地识别，不上传服务器</p>
-                <button type="button" class="btn btn-primary btn-sm" id="btn-choose-photo">选择照片 / 手绘图…</button>
-              </div>
-
-              <div class="photo-workspace" id="photo-workspace" hidden>
-                <div class="photo-canvas-wrap">
-                  <canvas id="photo-canvas" width="420" height="320"></canvas>
-                  <div class="photo-overlay-tip" id="photo-overlay-tip">橙色圈对准猫脸 · 拖动平移 · 滚轮缩放</div>
-                </div>
-                <div class="photo-toolbar">
-                  <button type="button" class="mini-btn" id="btn-recenter-frame" title="重新在照片里的猫鼻子上按住并拖到脸颊边缘">重新点猫鼻子</button>
-                  <button type="button" class="mini-btn" id="btn-skip-face" hidden title="不定位猫脸，直接按照片中间的大框分析">跳过，用整张照片</button>
-                  <button type="button" class="mini-btn" id="btn-eyedrop-iris" title="在照片中点一下猫眼虹膜，直接吸取瞳色">吸取瞳色</button>
-                  <button type="button" class="mini-btn" id="btn-eyedrop-body" title="在照片中点一下主毛色">吸取主毛色</button>
-                  <button type="button" class="mini-btn" id="btn-change-photo">换一张照片</button>
-                </div>
+              <div class="backdrop-pills" role="group" aria-label="预览背景">
+                <button type="button" class="chip active" data-bg="cream">暖米纸</button>
+                <button type="button" class="chip" data-bg="slate">浅灰</button>
+                <button type="button" class="chip" data-bg="dark">暗夜</button>
+                <button type="button" class="chip" data-bg="checker">透明</button>
               </div>
             </div>
 
-            <!-- Analysis Result & Controls -->
-            <div class="card-section" id="photo-result-card">
-              <div class="section-head">
-                <h3>照片色块向量化提取</h3>
-                <span class="status-tag" id="photo-archetype-tag">等待上传照片</span>
+            <div class="canvas-frame bg-cream" id="canvas-frame">
+              <canvas id="cat-canvas" width="720" height="640"></canvas>
+              <div class="canvas-overlay-badge" id="edit-mode-banner" hidden>
+                <span>正在编辑曲线锚点：拖动圆点调形状，拖动小菱形调弧度</span>
+                <button type="button" id="btn-exit-region-edit" class="mini-btn">完成编辑</button>
               </div>
-
-              <div id="photo-summary-box" class="analysis-placeholder">
-                上传任意猫咪照片后，会直接按照片像素位置提取真实色块轮廓并拟合为可编辑的贝塞尔曲线分区（非固定套模板），支持导出后直接拖进换装间，也支持在「分区花纹」中拖动锚点二次微调。
+              <div class="canvas-overlay-badge pen-banner" id="pen-banner" hidden>
+                <span id="pen-banner-text">钢笔：点一下放锚点</span>
+                <span class="pen-banner-actions">
+                  <button type="button" id="btn-pen-back" class="mini-btn">撤一个点</button>
+                  <button type="button" id="btn-pen-finish" class="mini-btn pen-finish">完成</button>
+                  <button type="button" id="btn-pen-cancel" class="mini-btn">退出</button>
+                </span>
               </div>
-
-              <div id="photo-controls" hidden>
-                <div class="seg-preview-bar">
-                  <img id="photo-seg-img" class="seg-thumb" alt="提取的色块分布图" />
-                  <div class="swatch-row" id="photo-swatches"></div>
-                </div>
-
-                <div class="control-block">
-                  <div class="control-label">提取毛色数量（色块聚类数）</div>
-                  <div class="pill-grid" id="color-count-pills">
-                    <button type="button" class="pill" data-k="2">2 色（纯色/双色）</button>
-                    <button type="button" class="pill active" data-k="3">3 色（推荐）</button>
-                    <button type="button" class="pill" data-k="4">4 色（精细花纹）</button>
-                    <button type="button" class="pill" data-k="5">5 色（复杂斑块）</button>
-                  </div>
-                </div>
-
-                <div class="control-block">
-                  <div class="control-label">配色风格</div>
-                  <div class="pill-grid" id="tone-pills">
-                    <button type="button" class="pill active" data-tone="balanced">柔和还原</button>
-                    <button type="button" class="pill" data-tone="vivid">萌系提亮</button>
-                    <button type="button" class="pill" data-tone="faithful">原图直取</button>
-                  </div>
-                </div>
-
-                <div class="control-block">
-                  <div class="control-label">虎斑条纹叠加</div>
-                  <div class="pill-grid" id="tabby-pills">
-                    <button type="button" class="pill active" data-tabby="auto">自动检测</button>
-                    <button type="button" class="pill" data-tabby="on">强制叠加</button>
-                    <button type="button" class="pill" data-tabby="off">关闭条纹</button>
-                  </div>
-                </div>
-
-                <div class="slider-row">
-                  <label>色块曲线平滑度</label>
-                  <input type="range" id="photo-smoothness" min="0.4" max="1.6" step="0.1" value="1.0" />
-                  <span class="slider-val" id="photo-smoothness-val">1.0</span>
-                </div>
-
-                <div class="checkbox-row">
-                  <label><input type="checkbox" id="photo-opt-colorpoint" checked /> 重点色柔焦面罩</label>
-                  <label><input type="checkbox" id="photo-opt-nose" checked /> 小鼻头与嘴巴</label>
-                  <label><input type="checkbox" id="photo-opt-pads" checked /> 匹配肉垫</label>
-                  <label><input type="checkbox" id="photo-opt-iris" checked /> 提取瞳色</label>
-                </div>
-
-                <button type="button" class="btn btn-primary btn-full" id="btn-regenerate-photo">
-                  重新提取色块并生成皮肤
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <!-- TAB 2: Built-in & Popular Breed Templates -->
-          <section class="tab-panel" id="tab-templates">
-            <div class="card-section">
-              <div class="section-head">
-                <h3>内置官方皮肤</h3>
-                <span class="muted-note">点击即可载入并二次修改</span>
-              </div>
-              <div class="template-grid" id="official-template-grid"></div>
-            </div>
-
-            <div class="card-section">
-              <div class="section-head">
-                <h3>热门猫咪预设</h3>
-                <span class="muted-note">全部采用曲线分区（v1 规范）</span>
-              </div>
-              <div class="template-grid" id="preset-template-grid"></div>
-            </div>
-          </section>
-
-          <!-- TAB 3: Palette -->
-          <section class="tab-panel" id="tab-palette">
-            <div class="card-section">
-              <div class="section-head">
-                <h3>毛色与五官调色板</h3>
-                <span class="muted-note">自动限制为 `#RRGGBB` / `#RRGGBBAA`</span>
-              </div>
-              <div id="palette-editor"></div>
-            </div>
-          </section>
-
-          <!-- TAB 4: Shape & Proportions -->
-          <section class="tab-panel" id="tab-shape">
-            <div class="card-section">
-              <div class="section-head">
-                <h3>骨架与头部投影</h3>
-                <button type="button" class="mini-btn" id="btn-reset-shape">恢复默认体型</button>
-              </div>
-
-              <div class="control-block">
-                <div class="control-label">基础骨架 (`shape.build`)</div>
-                <div class="segmented" id="build-segmented">
-                  <button type="button" class="seg-btn active" data-build="standard">圆润标准 (standard)</button>
-                  <button type="button" class="seg-btn" data-build="sleek">修长纤细 (sleek)</button>
-                </div>
-              </div>
-
-              <div class="control-block">
-                <div class="control-label">头部花纹曲面 (`headSurface`)</div>
-                <div class="segmented" id="surface-segmented">
-                  <button type="button" class="seg-btn active" data-surface="dome">3D 球面跟随 (dome)</button>
-                  <button type="button" class="seg-btn" data-surface="plane">平面贴图 (plane)</button>
-                </div>
-              </div>
-
-              <div id="shape-sliders" class="slider-list"></div>
-            </div>
-          </section>
-
-          <!-- TAB 5: Regions, Freehand Brush, Pen & JSON -->
-          <section class="tab-panel" id="tab-regions">
-            <div class="card-section pen-card">
-              <div class="section-head">
-                <h3>手绘涂色 &amp; 钢笔画分区</h3>
-                <span class="muted-note">支持自由画笔直接画在小猫身上</span>
-              </div>
-              <div class="pen-row">
-                <span class="pen-label">画在</span>
-                <div class="pill-grid" id="pen-space-pills" role="group" aria-label="画在哪个部位">
-                  <button type="button" class="pill active" data-space="head">脸</button>
-                  <button type="button" class="pill" data-space="skull">头顶</button>
-                  <button type="button" class="pill" data-space="body">身体</button>
-                  <button type="button" class="pill" data-space="tail">尾巴</button>
-                </div>
-              </div>
-              <div class="pen-row">
-                <span class="pen-label">方式</span>
-                <div class="pill-grid" id="pen-mode-pills" role="group" aria-label="画法">
-                  <button type="button" class="pill" data-mode="brushFill">🖌️ 自由画笔色块</button>
-                  <button type="button" class="pill" data-mode="brushStroke">✏️ 自由画笔线条</button>
-                  <button type="button" class="pill active" data-mode="split">分割线，点一侧上色</button>
-                  <button type="button" class="pill" data-mode="closed">钢笔闭合色块</button>
-                  <button type="button" class="pill" data-mode="stroke">钢笔条纹</button>
-                </div>
-              </div>
-              <div class="pen-row" id="pen-width-row" hidden>
-                <span class="pen-label">粗细</span>
-                <input type="range" id="pen-width" min="0.6" max="8" step="0.1" value="2.2" aria-label="条纹粗细" />
-                <span class="muted-note" id="pen-width-val">2.2</span>
-              </div>
-              <label class="pen-mirror-row">
-                <input type="checkbox" id="pen-mirror" />
-                <span class="pen-mirror-switch" aria-hidden="true"></span>
-                <span><b>左右对称</b> · 以脸 / 身体中线为轴，自动画出另一半（尾巴除外）</span>
-              </label>
-              <div class="pen-row">
-                <span class="pen-label">颜色</span>
-                <input type="color" id="pen-color" value="#FAF4EA" aria-label="分区颜色" />
-                <div class="pen-swatches" id="pen-swatches"></div>
-              </div>
-              <p class="pen-help" id="pen-help">在左边小猫身上画一条穿过部位的曲线，画好后点线的哪一侧，哪一侧就填上颜色。</p>
-              <button type="button" class="btn btn-primary btn-full" id="btn-pen-start">开始画</button>
-            </div>
-
-            <div class="card-section">
-              <div class="section-head">
-                <h3>快捷添加花纹分区</h3>
-                <span class="muted-note">自动贴合下颌线与轮廓裁切</span>
-              </div>
-              <div class="quick-add-grid">
-                <button type="button" class="mini-btn" data-add-preset="whiteBelly">+ 白肚皮/围脖</button>
-                <button type="button" class="mini-btn" data-add-preset="blazeFace">+ 八字白脸</button>
-                <button type="button" class="mini-btn" data-add-preset="muzzleWhite">+ 白嘴套</button>
-                <button type="button" class="mini-btn" data-add-preset="leftPatch">+ 左脸花斑</button>
-                <button type="button" class="mini-btn" data-add-preset="rightPatch">+ 右脸花斑</button>
-                <button type="button" class="mini-btn" data-add-preset="earTips">+ 深色耳尖</button>
-                <button type="button" class="mini-btn" data-add-preset="tabbyForehead">+ 额头 M 纹</button>
-                <button type="button" class="mini-btn" data-add-preset="tailRings">+ 尾巴环纹</button>
+              <div class="canvas-overlay-badge" id="deco-banner" hidden>
+                <span>调整配饰：拖动移动位置 · 拖右下角缩放 · 拖顶部圆点旋转</span>
+                <button type="button" id="btn-exit-deco-edit" class="mini-btn">完成调整</button>
               </div>
             </div>
 
-            <div class="card-section">
-              <div class="section-head">
-                <h3>曲线分区列表 (`regions`)</h3>
-                <span class="muted-note" id="regions-count">0 / 64</span>
+            <div class="stage-controls">
+              <div class="pose-bar" role="group" aria-label="动作测试">
+                <button type="button" class="pose-btn active" data-pose="idle">待机</button>
+                <button type="button" class="pose-btn" data-pose="typing">敲键盘</button>
+                <button type="button" class="pose-btn" data-pose="hunt">捕猎大眼</button>
+                <button type="button" class="pose-btn" data-pose="petHead">摸头闭眼</button>
+                <button type="button" class="pose-btn" data-pose="petBody">半眯享受</button>
+                <button type="button" class="pose-btn" data-pose="hindFoot">三键踢脚</button>
+                <button type="button" class="pose-btn" data-pose="sleep">打瞌睡</button>
               </div>
-              <div id="regions-list" class="layer-list"></div>
-            </div>
 
-            <div class="card-section">
-              <div class="section-head">
-                <h3>条纹与图形 (`marks`)</h3>
-                <div class="inline-actions">
-                  <span class="muted-note" id="marks-count">0 / 256</span>
-                  <button type="button" class="mini-btn danger" id="btn-clear-marks">清空条纹</button>
-                </div>
-              </div>
-              <div id="marks-list" class="layer-list"></div>
-            </div>
-
-            <details class="card-section json-details">
-              <summary>查看 / 复制 `.kurocat` JSON 源码</summary>
-              <div class="json-actions">
-                <button type="button" class="mini-btn" id="btn-copy-json">复制 JSON</button>
-                <span class="muted-note" id="json-size-note">0 KB</span>
-              </div>
-              <pre id="json-preview" class="json-code"></pre>
-            </details>
-          </section>
-
-          <!-- TAB 6: Accessories & Custom Sticker Upload -->
-          <section class="tab-panel" id="tab-decorations">
-            <!-- Worn Decorations Manager -->
-            <div class="card-section">
-              <div class="section-head">
-                <h3>已佩戴配饰</h3>
-                <div class="inline-actions">
-                  <span class="muted-note" id="decos-count">0 / 8</span>
-                  <button type="button" class="mini-btn danger" id="btn-clear-decos">全部摘下</button>
-                </div>
-              </div>
-              <div id="decos-active-list" class="layer-list"></div>
-
-              <!-- Fine-tune Inspector for Selected Decoration -->
-              <div id="deco-inspector" class="deco-inspector" hidden>
-                <div class="deco-inspector-head">
-                  <strong id="deco-inspector-title">正在微调配饰</strong>
-                  <div class="inline-actions">
-                    <button type="button" class="mini-btn" id="btn-deco-center">水平居中</button>
-                    <button type="button" class="mini-btn" id="btn-deco-reset">重置位置</button>
-                  </div>
-                </div>
-
-                <div class="control-block">
-                  <div class="control-label">佩戴部位（决定随头/身体/尾巴联动）</div>
-                  <div class="pill-grid" id="deco-anchor-pills">
-                    <button type="button" class="pill" data-anchor="headTop">头顶</button>
-                    <button type="button" class="pill" data-anchor="face">脸部</button>
-                    <button type="button" class="pill" data-anchor="neck">颈部</button>
-                    <button type="button" class="pill" data-anchor="tailTip">尾尖</button>
-                  </div>
-                </div>
-
-                <div class="slider-list deco-sliders">
-                  <div class="slider-row">
-                    <label>左右偏移</label>
-                    <input type="range" id="deco-offset-x" min="-120" max="120" step="1" value="0" />
-                    <span class="slider-val" id="deco-offset-x-val">0</span>
-                  </div>
-                  <div class="slider-row">
-                    <label>上下偏移</label>
-                    <input type="range" id="deco-offset-y" min="-120" max="120" step="1" value="0" />
-                    <span class="slider-val" id="deco-offset-y-val">0</span>
-                  </div>
-                  <div class="slider-row">
-                    <label>大小缩放</label>
-                    <input type="range" id="deco-scale" min="0.15" max="3.0" step="0.02" value="1.0" />
-                    <span class="slider-val" id="deco-scale-val">1.00</span>
-                  </div>
-                  <div class="slider-row">
-                    <label>旋转角度</label>
-                    <input type="range" id="deco-rotation" min="-180" max="180" step="1" value="0" />
-                    <span class="slider-val" id="deco-rotation-val">0°</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Custom Sticker Upload -->
-            <div class="card-section">
-              <div class="section-head">
-                <h3>上传自定义配饰 / 贴纸</h3>
-                <span class="muted-note">支持 PNG / WebP / JPG / SVG</span>
-              </div>
-              <div class="deco-upload-zone" id="deco-upload-zone">
-                <input id="deco-file-input" type="file" accept="image/png,image/webp,image/jpeg,image/gif,image/svg+xml" hidden />
-                <p class="deco-upload-title">拖入透明贴纸或任意配饰图片，或点击上传</p>
-                <p class="deco-upload-sub">自动缩放到规范尺寸并打包进 .kurocat，导入软件后直接跟着小猫动</p>
-                <button type="button" class="btn btn-primary btn-sm" id="btn-upload-deco">选择配饰图片…</button>
-              </div>
-              <div class="deco-upload-opts">
+              <div class="stage-subbar">
                 <div class="mini-group">
-                  <span class="mini-label">默认佩戴到</span>
-                  <select id="deco-upload-anchor">
-                    <option value="headTop">头顶（帽子/发卡）</option>
-                    <option value="face">脸部（眼镜/贴纸）</option>
-                    <option value="neck">颈部（项圈/围巾）</option>
-                    <option value="tailTip">尾尖（蝴蝶结/挂件）</option>
+                  <span class="mini-label">键盘配色</span>
+                  <select id="keyboard-theme-select">
+                    <option value="classicMilk">经典奶白暖黄</option>
+                    <option value="midnightHacker">暗夜极客黑</option>
+                    <option value="retroCream">复古奶油灰</option>
                   </select>
                 </div>
-                <label class="deco-bg-check">
-                  <input type="checkbox" id="deco-upload-remove-bg" />
-                  <span>自动去纯色底（适合白底图片）</span>
+                <div class="mini-group">
+                  <span class="mini-label">默认瞳色</span>
+                  <select id="eye-theme-select">
+                    <option value="neonChartreuse">荧光黄绿</option>
+                    <option value="siameseBlue">暹罗冰蓝</option>
+                    <option value="warmAmber">琥珀金瞳</option>
+                    <option value="softAmber">柔和琥珀</option>
+                    <option value="referenceHazel">淡金青绿</option>
+                    <option value="iceCyan">冰晶浅蓝</option>
+                  </select>
+                </div>
+                <button type="button" id="btn-snapshot" class="mini-btn" title="保存当前预览 PNG">保存预览图</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="usage-strip">
+            <span class="usage-step">上传照片或手绘图</span>
+            <span class="usage-sep" aria-hidden="true">/</span>
+            <span class="usage-step">调整毛色、体型与配饰</span>
+            <span class="usage-sep" aria-hidden="true">/</span>
+            <span class="usage-step">导出 .kurocat 拖进换装间</span>
+          </div>
+        </section>
+
+        <!-- Right: Studio Inspector Tabs -->
+        <aside class="panel-column">
+          <nav class="tab-bar" role="tablist">
+            <button type="button" class="tab-btn active" data-tab="photo" role="tab">传图生成</button>
+            <button type="button" class="tab-btn" data-tab="templates" role="tab">模板库</button>
+            <button type="button" class="tab-btn" data-tab="palette" role="tab">毛色五官</button>
+            <button type="button" class="tab-btn" data-tab="shape" role="tab">体型轮廓</button>
+            <button type="button" class="tab-btn" data-tab="regions" role="tab">手绘花纹</button>
+            <button type="button" class="tab-btn" data-tab="decorations" role="tab">配饰装扮</button>
+          </nav>
+
+          <div class="tab-panels">
+            <!-- TAB 1: Photo / Hand-Drawn Cat Generator -->
+            <section class="tab-panel active" id="tab-photo">
+              <div class="source-mode-bar">
+                <span class="source-mode-label">图片类型</span>
+                <div class="pill-grid" id="photo-source-pills" role="group" aria-label="上传图片类型">
+                  <button type="button" class="pill active" data-source="photo">真实猫照片</button>
+                  <button type="button" class="pill" data-source="drawing">手绘 / 板绘猫图</button>
+                </div>
+              </div>
+
+              <div class="photo-dropzone" id="photo-dropzone">
+                <input id="photo-file-input" type="file" accept="image/*" hidden />
+                <div class="dropzone-empty" id="dropzone-empty">
+                  <div class="drop-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="6" y="10" width="36" height="28" rx="6"/>
+                      <circle cx="18" cy="21" r="3.5"/>
+                      <path d="M8 33l10-9 7 6 6-5 9 8"/>
+                    </svg>
+                  </div>
+                  <p class="drop-title">拖入真实猫照片，或你自己画的小猫图</p>
+                  <p class="drop-sub">支持实拍照片 / 手绘插画 / 透明底板绘 PNG · 纯本地识别，不上传服务器</p>
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-choose-photo">选择照片 / 手绘图</button>
+                </div>
+
+                <div class="photo-workspace" id="photo-workspace" hidden>
+                  <div class="photo-canvas-wrap">
+                    <canvas id="photo-canvas" width="420" height="320"></canvas>
+                    <div class="photo-overlay-tip" id="photo-overlay-tip">橙色圈对准猫脸 · 拖动平移 · 滚轮缩放</div>
+                  </div>
+                  <div class="photo-toolbar">
+                    <button type="button" class="mini-btn" id="btn-recenter-frame">重新点猫鼻子</button>
+                    <button type="button" class="mini-btn" id="btn-skip-face" hidden>跳过，用整张图</button>
+                    <button type="button" class="mini-btn" id="btn-eyedrop-iris">吸取瞳色</button>
+                    <button type="button" class="mini-btn" id="btn-eyedrop-body">吸取主毛色</button>
+                    <button type="button" class="mini-btn" id="btn-change-photo">换一张图</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-section" id="photo-result-card">
+                <div class="section-head">
+                  <h2>色块向量化提取</h2>
+                  <span class="status-tag" id="photo-archetype-tag">等待上传图片</span>
+                </div>
+
+                <div id="photo-summary-box" class="analysis-placeholder">
+                  上传真实猫咪照片或自己手绘的小猫图后，会直接按像素位置提取色块轮廓并拟合为可编辑的贝塞尔曲线分区，支持在「手绘花纹」中拖动锚点二次微调。
+                </div>
+
+                <div id="photo-controls" hidden>
+                  <div class="seg-preview-bar">
+                    <img id="photo-seg-img" class="seg-thumb" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="提取的色块分布图" />
+                    <div class="swatch-row" id="photo-swatches"></div>
+                  </div>
+
+                  <div class="control-block">
+                    <div class="control-label">提取毛色数量</div>
+                    <div class="pill-grid" id="color-count-pills">
+                      <button type="button" class="pill" data-k="2">2 色</button>
+                      <button type="button" class="pill active" data-k="3">3 色（推荐）</button>
+                      <button type="button" class="pill" data-k="4">4 色</button>
+                      <button type="button" class="pill" data-k="5">5 色</button>
+                    </div>
+                  </div>
+
+                  <div class="control-block">
+                    <div class="control-label">配色风格</div>
+                    <div class="pill-grid" id="tone-pills">
+                      <button type="button" class="pill active" data-tone="balanced">柔和还原</button>
+                      <button type="button" class="pill" data-tone="vivid">萌系提亮</button>
+                      <button type="button" class="pill" data-tone="faithful">原图直取</button>
+                    </div>
+                  </div>
+
+                  <div class="control-block">
+                    <div class="control-label">虎斑条纹叠加</div>
+                    <div class="pill-grid" id="tabby-pills">
+                      <button type="button" class="pill active" data-tabby="auto">自动检测</button>
+                      <button type="button" class="pill" data-tabby="on">强制叠加</button>
+                      <button type="button" class="pill" data-tabby="off">关闭条纹</button>
+                    </div>
+                  </div>
+
+                  <div class="slider-row">
+                    <label>色块曲线平滑度</label>
+                    <input type="range" id="photo-smoothness" min="0.4" max="1.6" step="0.1" value="1.0" />
+                    <span class="slider-val" id="photo-smoothness-val">1.0</span>
+                  </div>
+
+                  <div class="checkbox-row">
+                    <label><input type="checkbox" id="photo-opt-colorpoint" checked /> 重点色柔焦面罩</label>
+                    <label><input type="checkbox" id="photo-opt-nose" checked /> 小鼻头与嘴巴</label>
+                    <label><input type="checkbox" id="photo-opt-pads" checked /> 匹配肉垫</label>
+                    <label><input type="checkbox" id="photo-opt-iris" checked /> 提取瞳色</label>
+                  </div>
+
+                  <button type="button" class="btn btn-primary btn-full" id="btn-regenerate-photo">
+                    重新提取色块并生成皮肤
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <!-- TAB 2: Templates -->
+            <section class="tab-panel" id="tab-templates">
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>内置官方皮肤</h2>
+                  <span class="muted-note">点击载入并二次修改</span>
+                </div>
+                <div class="template-grid" id="official-template-grid"></div>
+              </div>
+
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>热门猫咪预设</h2>
+                  <span class="muted-note">均采用 v1 曲线分区</span>
+                </div>
+                <div class="template-grid" id="preset-template-grid"></div>
+              </div>
+            </section>
+
+            <!-- TAB 3: Palette -->
+            <section class="tab-panel" id="tab-palette">
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>毛色与五官调色板</h2>
+                  <span class="muted-note">支持 #RRGGBB / #RRGGBBAA</span>
+                </div>
+                <div id="palette-editor"></div>
+              </div>
+            </section>
+
+            <!-- TAB 4: Shape & Proportions -->
+            <section class="tab-panel" id="tab-shape">
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>骨架与体型轮廓</h2>
+                  <button type="button" class="mini-btn" id="btn-reset-shape">恢复默认体型</button>
+                </div>
+
+                <div class="control-block">
+                  <div class="control-label">基础骨架 (shape.build)</div>
+                  <div class="segmented" id="build-segmented">
+                    <button type="button" class="seg-btn active" data-build="standard">圆润标准 (standard)</button>
+                    <button type="button" class="seg-btn" data-build="sleek">修长纤细 (sleek)</button>
+                  </div>
+                </div>
+
+                <div class="control-block">
+                  <div class="control-label">头部花纹曲面 (headSurface)</div>
+                  <div class="segmented" id="surface-segmented">
+                    <button type="button" class="seg-btn active" data-surface="dome">3D 球面跟随 (dome)</button>
+                    <button type="button" class="seg-btn" data-surface="plane">平面贴图 (plane)</button>
+                  </div>
+                </div>
+
+                <div id="shape-sliders" class="slider-list"></div>
+              </div>
+            </section>
+
+            <!-- TAB 5: Freehand Brush, Pen, Regions & Marks -->
+            <section class="tab-panel" id="tab-regions">
+              <div class="card-section pen-card">
+                <div class="section-head">
+                  <h2>手绘涂色与钢笔分区</h2>
+                  <span class="muted-note">支持自由画笔直接画在小猫身上</span>
+                </div>
+                <div class="pen-row">
+                  <span class="pen-label">画在</span>
+                  <div class="pill-grid" id="pen-space-pills" role="group" aria-label="画在哪个部位">
+                    <button type="button" class="pill active" data-space="head">脸</button>
+                    <button type="button" class="pill" data-space="skull">头顶</button>
+                    <button type="button" class="pill" data-space="body">身体</button>
+                    <button type="button" class="pill" data-space="tail">尾巴</button>
+                  </div>
+                </div>
+                <div class="pen-row">
+                  <span class="pen-label">方式</span>
+                  <div class="pill-grid" id="pen-mode-pills" role="group" aria-label="画法">
+                    <button type="button" class="pill" data-mode="brushFill">自由画笔色块</button>
+                    <button type="button" class="pill" data-mode="brushStroke">自由画笔线条</button>
+                    <button type="button" class="pill active" data-mode="split">分割线点一侧上色</button>
+                    <button type="button" class="pill" data-mode="closed">钢笔闭合色块</button>
+                    <button type="button" class="pill" data-mode="stroke">钢笔条纹</button>
+                  </div>
+                </div>
+                <div class="pen-row" id="pen-width-row" hidden>
+                  <span class="pen-label">粗细</span>
+                  <input type="range" id="pen-width" min="0.6" max="8" step="0.1" value="2.2" aria-label="条纹粗细" />
+                  <span class="muted-note" id="pen-width-val">2.2</span>
+                </div>
+                <label class="pen-mirror-row">
+                  <input type="checkbox" id="pen-mirror" />
+                  <span class="pen-mirror-switch" aria-hidden="true"></span>
+                  <span><strong>左右对称</strong> · 以脸 / 身体中线为轴自动画出另一半</span>
                 </label>
+                <div class="pen-row">
+                  <span class="pen-label">颜色</span>
+                  <input type="color" id="pen-color" value="#FAF4EA" aria-label="分区颜色" />
+                  <div class="pen-swatches" id="pen-swatches"></div>
+                </div>
+                <p class="pen-help" id="pen-help">在左边小猫身上画一条穿过部位的曲线，画好后点线的哪一侧，哪一侧就填上颜色。</p>
+                <button type="button" class="btn btn-primary btn-full" id="btn-pen-start">开始画</button>
+              </div>
+
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>快捷添加花纹分区</h2>
+                  <span class="muted-note">自动贴合下颌线与轮廓</span>
+                </div>
+                <div class="quick-add-grid">
+                  <button type="button" class="mini-btn" data-add-preset="whiteBelly">+ 白肚皮 / 围脖</button>
+                  <button type="button" class="mini-btn" data-add-preset="blazeFace">+ 八字白脸</button>
+                  <button type="button" class="mini-btn" data-add-preset="muzzleWhite">+ 白嘴套</button>
+                  <button type="button" class="mini-btn" data-add-preset="leftPatch">+ 左脸花斑</button>
+                  <button type="button" class="mini-btn" data-add-preset="rightPatch">+ 右脸花斑</button>
+                  <button type="button" class="mini-btn" data-add-preset="earTips">+ 深色耳尖</button>
+                  <button type="button" class="mini-btn" data-add-preset="tabbyForehead">+ 额头 M 纹</button>
+                  <button type="button" class="mini-btn" data-add-preset="tailRings">+ 尾巴环纹</button>
+                </div>
+              </div>
+
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>曲线分区列表 (regions)</h2>
+                  <span class="muted-note tabular" id="regions-count">0 / 64</span>
+                </div>
+                <div id="regions-list" class="layer-list"></div>
+              </div>
+
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>条纹与图形 (marks)</h2>
+                  <div class="inline-actions">
+                    <span class="muted-note tabular" id="marks-count">0 / 256</span>
+                    <button type="button" class="mini-btn danger" id="btn-clear-marks">清空条纹</button>
+                  </div>
+                </div>
+                <div id="marks-list" class="layer-list"></div>
+              </div>
+
+              <details class="card-section json-details">
+                <summary>查看 / 复制 .kurocat JSON 源码</summary>
+                <div class="json-actions">
+                  <button type="button" class="mini-btn" id="btn-copy-json">复制 JSON</button>
+                  <span class="muted-note tabular" id="json-size-note">0 KB</span>
+                </div>
+                <pre id="json-preview" class="json-code"></pre>
+              </details>
+            </section>
+
+            <!-- TAB 6: Decorations -->
+            <section class="tab-panel" id="tab-decorations">
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>已佩戴配饰</h2>
+                  <div class="inline-actions">
+                    <span class="muted-note tabular" id="decos-count">0 / 8</span>
+                    <button type="button" class="mini-btn danger" id="btn-clear-decos">全部摘下</button>
+                  </div>
+                </div>
+                <div id="decos-active-list" class="layer-list"></div>
+
+                <div id="deco-inspector" class="deco-inspector" hidden>
+                  <div class="deco-inspector-head">
+                    <strong id="deco-inspector-title">正在微调配饰</strong>
+                    <div class="inline-actions">
+                      <button type="button" class="mini-btn" id="btn-deco-center">水平居中</button>
+                      <button type="button" class="mini-btn" id="btn-deco-reset">重置位置</button>
+                    </div>
+                  </div>
+
+                  <div class="control-block">
+                    <div class="control-label">佩戴部位</div>
+                    <div class="pill-grid" id="deco-anchor-pills">
+                      <button type="button" class="pill" data-anchor="headTop">头顶</button>
+                      <button type="button" class="pill" data-anchor="face">脸部</button>
+                      <button type="button" class="pill" data-anchor="neck">颈部</button>
+                      <button type="button" class="pill" data-anchor="tailTip">尾尖</button>
+                    </div>
+                  </div>
+
+                  <div class="slider-list deco-sliders">
+                    <div class="slider-row">
+                      <label>左右偏移</label>
+                      <input type="range" id="deco-offset-x" min="-120" max="120" step="1" value="0" />
+                      <span class="slider-val" id="deco-offset-x-val">0</span>
+                    </div>
+                    <div class="slider-row">
+                      <label>上下偏移</label>
+                      <input type="range" id="deco-offset-y" min="-120" max="120" step="1" value="0" />
+                      <span class="slider-val" id="deco-offset-y-val">0</span>
+                    </div>
+                    <div class="slider-row">
+                      <label>大小缩放</label>
+                      <input type="range" id="deco-scale" min="0.15" max="3.0" step="0.02" value="1.0" />
+                      <span class="slider-val" id="deco-scale-val">1.00</span>
+                    </div>
+                    <div class="slider-row">
+                      <label>旋转角度</label>
+                      <input type="range" id="deco-rotation" min="-180" max="180" step="1" value="0" />
+                      <span class="slider-val" id="deco-rotation-val">0°</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>上传自定义配饰</h2>
+                  <span class="muted-note">PNG / WebP / JPG / SVG</span>
+                </div>
+                <div class="deco-upload-zone" id="deco-upload-zone">
+                  <input id="deco-file-input" type="file" accept="image/png,image/webp,image/jpeg,image/gif,image/svg+xml" hidden />
+                  <p class="deco-upload-title">拖入透明贴纸或配饰图片，或点击上传</p>
+                  <p class="deco-upload-sub">自动缩放到规范尺寸并打包进 .kurocat</p>
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-upload-deco">选择配饰图片</button>
+                </div>
+                <div class="deco-upload-opts">
+                  <div class="mini-group">
+                    <span class="mini-label">默认佩戴到</span>
+                    <select id="deco-upload-anchor">
+                      <option value="headTop">头顶（帽子 / 发卡）</option>
+                      <option value="face">脸部（眼镜 / 贴纸）</option>
+                      <option value="neck">颈部（项圈 / 围巾）</option>
+                      <option value="tailTip">尾尖（蝴蝶结 / 挂件）</option>
+                    </select>
+                  </div>
+                  <label class="deco-bg-check">
+                    <input type="checkbox" id="deco-upload-remove-bg" />
+                    <span>自动去纯色底（适合白底图片）</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>内置装扮库</h2>
+                  <span class="muted-note">点击即可佩戴 · 最多 8 件</span>
+                </div>
+                <div class="pill-grid deco-cat-pills" id="deco-category-pills">
+                  <button type="button" class="pill active" data-cat="all">全部 (18)</button>
+                  <button type="button" class="pill" data-cat="headTop">头顶</button>
+                  <button type="button" class="pill" data-cat="face">脸部</button>
+                  <button type="button" class="pill" data-cat="neck">颈部</button>
+                  <button type="button" class="pill" data-cat="tailTip">尾尖</button>
+                </div>
+                <div class="deco-gallery" id="deco-gallery"></div>
+              </div>
+            </section>
+          </div>
+        </aside>
+      </main>
+
+      <!-- VIEW 2: Community Plaza (Skins / Accessories / Keyboards) -->
+      <main class="plaza-shell" id="plaza-view" hidden>
+        <div class="plaza-subbar">
+          <div class="plaza-tabs-inline" role="tablist" aria-label="广场分类">
+            <button type="button" class="plaza-tab-pill active" data-plaza-tab="skins" role="tab">
+              皮肤广场 <span class="tabular" id="plaza-skins-count">0</span>
+            </button>
+            <button type="button" class="plaza-tab-pill" data-plaza-tab="accessories" role="tab">
+              饰品广场 <span class="tabular" id="plaza-accessories-count">0</span>
+            </button>
+            <button type="button" class="plaza-tab-pill" data-plaza-tab="keyboards" role="tab">
+              键盘广场 <span class="tabular" id="plaza-keyboards-count">0</span>
+            </button>
+          </div>
+          <div class="plaza-filter-row" id="plaza-filter-row"></div>
+        </div>
+
+        <section id="plaza-skins-panel">
+          <div class="plaza-grid" id="plaza-skins-grid"></div>
+          <div class="plaza-empty" id="plaza-skins-empty" hidden>
+            没有找到匹配的皮肤。你可以清空筛选关键词，或者点击右上角「打包投稿」分享第一只小猫。
+          </div>
+        </section>
+
+        <section id="plaza-accessories-panel" hidden>
+          <div class="plaza-acc-grid" id="plaza-accessories-grid"></div>
+          <div class="plaza-empty" id="plaza-accessories-empty" hidden>
+            没有找到匹配的饰品。试试切换佩戴部位，或投稿你的原创贴纸。
+          </div>
+        </section>
+
+        <section id="plaza-keyboards-panel" hidden>
+          <div class="plaza-kb-grid" id="plaza-keyboards-grid"></div>
+          <div class="plaza-empty" id="plaza-keyboards-empty" hidden>
+            没有找到匹配的键盘配色。你可以切换筛选标签，或投稿一套你喜欢的 65% 机械键盘配色。
+          </div>
+        </section>
+      </main>
+
+      <!-- VIEW 3: Submission Guide (Agent One-Click Prompt + Full Spec + Issue Fallback) -->
+      <main class="guide-shell" id="guide-view" hidden>
+        <article class="guide-article">
+          <!-- Top Highlight: Copy-Paste Prompt for AI Agents -->
+          <section class="agent-prompt-section">
+            <div class="guide-lead">
+              <h2>有 AI Agent？复制下面这段话发给它就能自动投稿</h2>
+              <p>
+                如果你正在使用 <strong>豆包工作、Workbuddy、Codex、Claude Code、Antigravity、Cursor、OpenClaw</strong> 等具备文件操作或 Git 能力的 AI Agent，不需要手动研究目录结构，把下方提示词和你的文件（皮肤 <code>.kurocat</code>、饰品透明 PNG 或键盘配色想法）一起发给它，Agent 会自动完成 Fork、打包、规范校验并提交 Pull Request。
+              </p>
+            </div>
+
+            <div class="prompt-toolbar">
+              <div class="prompt-mode-tabs" id="agent-prompt-tabs" role="tablist" aria-label="选择投稿类型提示词">
+                <button type="button" class="pill active" data-prompt-kind="all">全能通用版</button>
+                <button type="button" class="pill" data-prompt-kind="skin">投稿皮肤</button>
+                <button type="button" class="pill" data-prompt-kind="accessory">投稿饰品</button>
+                <button type="button" class="pill" data-prompt-kind="keyboard">投稿键盘</button>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-copy-agent-prompt">
+                <svg viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="6" y="6" width="9" height="9" rx="1.5"/>
+                  <path d="M4.5 12H4a1.5 1.5 0 0 1-1.5-1.5v-7A1.5 1.5 0 0 1 4 2h7a1.5 1.5 0 0 1 1.5 1.5V4"/>
+                </svg>
+                <span id="copy-prompt-label">复制发给 Agent</span>
+              </button>
+            </div>
+
+            <pre class="agent-prompt-box" id="agent-prompt-text"></pre>
+          </section>
+
+          <hr class="guide-divider" />
+
+          <!-- Full Technical Spec for Agents & Contributors -->
+          <section class="guide-section">
+            <h2>给 Agent 与开发者的投稿规范</h2>
+            <p class="guide-prose">
+              KuroCat 广场采用 <strong>每件作品独立目录</strong> 的零冲突架构：所有投稿只需新增自己的子目录，<strong>严禁手动修改 <code>index.json</code></strong>。提交 PR 后，GitHub Actions 会自动运行 <code>node scripts/validate-community.mjs</code> 校验格式与体积；合并进 <code>main</code> 后自动重建索引并部署到 GitHub Pages。
+            </p>
+
+            <div class="spec-grid">
+              <div class="spec-block">
+                <div class="spec-block-head">
+                  <h3>1. 投稿皮肤</h3>
+                  <code>community/&lt;slug&gt;/</code>
+                </div>
+                <ul class="spec-list">
+                  <li><strong>skin.kurocat</strong>（必填）：符合 v1 规范的皮肤 JSON，体积 ≤ 2 MB。</li>
+                  <li><strong>meta.json</strong>（必填）：包含 <code>title</code>、<code>author</code>、<code>authorUrl</code>（可选）、<code>description</code>（≤ 180 字）、<code>tags</code>（1–6 个）、<code>createdAt</code>（<code>YYYY-MM-DD</code>）。</li>
+                  <li><strong>preview.gif / .webp / .png</strong>（可选，≤ 5 MB）：展示在皮肤广场卡片上；不上传则自动使用实时 2.5D 互动渲染。</li>
+                </ul>
+                <pre class="guide-code">{
+  "title": "草莓奶油三花猫",
+  "author": "你的昵称",
+  "authorUrl": "https://github.com/your-id",
+  "description": "粉白软萌三花配浅蓝瞳，支持直接二创改花斑。",
+  "tags": ["三花猫", "原创配色", "软萌"],
+  "createdAt": "2026-11-24"
+}</pre>
+              </div>
+
+              <div class="spec-block">
+                <div class="spec-block-head">
+                  <h3>2. 投稿饰品</h3>
+                  <code>community-accessories/&lt;slug&gt;/</code>
+                </div>
+                <ul class="spec-list">
+                  <li><strong>accessory.png</strong>（必填）：透明底 PNG，体积 ≤ 1 MB，尺寸 ≤ 1024×1024（推荐 2× 透明贴纸）。</li>
+                  <li><strong>meta.json</strong>（必填）：除通用字段外，必须声明 <code>anchor</code>（<code>headTop</code> / <code>face</code> / <code>neck</code> / <code>tailTip</code>）及默认位置参数 <code>offsetX</code>、<code>offsetY</code>、<code>scale</code>、<code>rotation</code>。</li>
+                  <li><strong>preview.gif / .png</strong>（可选）：若不提供则直接展示 <code>accessory.png</code>。</li>
+                </ul>
+                <pre class="guide-code">{
+  "title": "招财小鱼发卡",
+  "author": "你的昵称",
+  "authorUrl": "https://github.com/your-id",
+  "description": "卡在耳边的元气小鱼干发卡。",
+  "anchor": "headTop",
+  "offsetX": 22,
+  "offsetY": -4,
+  "scale": 0.82,
+  "rotation": 14,
+  "tags": ["头饰", "可爱"],
+  "createdAt": "2026-11-24"
+}</pre>
+              </div>
+
+              <div class="spec-block">
+                <div class="spec-block-head">
+                  <h3>3. 投稿键盘</h3>
+                  <code>community-keyboards/&lt;slug&gt;/</code>
+                </div>
+                <ul class="spec-list">
+                  <li><strong>keyboard.json</strong>（必填，≤ 128 KB）：<code>formatVersion: 1</code>，含 <code>colors</code> 对象（<code>mouseBody</code>、<code>mouseBorder</code>、<code>wheel</code>、<code>base</code>、<code>deck</code>、<code>key</code>、<code>keyBorder</code>、<code>accent</code> 均为 <code>#RRGGBB</code>，外加布尔值 <code>darkText</code>）。</li>
+                  <li><strong>meta.json</strong>（必填）：包含 <code>title</code>、<code>author</code>、<code>description</code>、<code>tags</code>、<code>createdAt</code>。</li>
+                  <li><strong>preview.png / .gif</strong>（可选）：不提供则自动实时渲染 2.5D 键盘与鼠标预览。</li>
+                </ul>
+                <pre class="guide-code">{
+  "formatVersion": 1,
+  "name": "樱花奶盖 65%",
+  "author": "你的昵称",
+  "colors": {
+    "mouseBody": "#FFF6F8",
+    "mouseBorder": "#6B4252",
+    "wheel": "#F28BA8",
+    "base": "#5C3A48",
+    "deck": "#7D5264",
+    "key": "#FFF9FA",
+    "keyBorder": "#EBC8D4",
+    "accent": "#F28BA8",
+    "darkText": true
+  }
+}</pre>
               </div>
             </div>
 
-            <!-- Built-in Accessory Wardrobe -->
-            <div class="card-section">
-              <div class="section-head">
-                <h3>内置装扮库（点一下立刻佩戴）</h3>
-                <span class="muted-note">最多同时戴 8 件</span>
-              </div>
-              <div class="pill-grid deco-cat-pills" id="deco-category-pills">
-                <button type="button" class="pill active" data-cat="all">全部 (18)</button>
-                <button type="button" class="pill" data-cat="headTop">头顶</button>
-                <button type="button" class="pill" data-cat="face">脸部</button>
-                <button type="button" class="pill" data-cat="neck">颈部</button>
-                <button type="button" class="pill" data-cat="tailTip">尾尖</button>
-              </div>
-              <div class="deco-gallery" id="deco-gallery"></div>
+            <div class="verify-cmd-box">
+              <div class="verify-cmd-title">提交 PR 前的本地校验命令（Node.js 18+，零依赖）</div>
+              <pre class="guide-code">node scripts/validate-community.mjs &amp;&amp; node scripts/build-plaza-index.mjs</pre>
+              <p class="muted-note">注意：<code>slug</code> 目录名仅允许小写英文字母、数字和连字符（2–49 字符），且只提交你新增的子目录文件，不要把本地生成的 <code>index.json</code> 变动混进 PR（或按 CI 提示保持干净）。</p>
             </div>
           </section>
-        </div>
-      </aside>
-    </main>
 
-    <!-- Community Skin & Accessory Plaza View -->
-    <main class="plaza-shell" id="plaza-view" hidden>
-      <section class="plaza-hero">
-        <div class="plaza-hero-copy">
-          <div class="plaza-kicker">COMMUNITY PLAZA · FORK &amp; PR 共建</div>
-          <h2>皮肤 &amp; 饰品广场</h2>
-          <p>浏览社区创作者分享的猫咪皮肤与自定义配饰：支持动态 GIF / 实时 2.5D 交互预览，一键佩戴饰品到你的小猫，或下载 <code>.kurocat</code> 拖进换装间。</p>
-        </div>
-        <div class="plaza-hero-actions">
-          <button type="button" class="btn btn-primary" id="btn-plaza-submit">📤 我要投稿作品</button>
-          <a class="btn btn-secondary" href="https://github.com/chanke17/KuroCat-Workshop" target="_blank" rel="noopener">GitHub 开源仓库 ↗</a>
-        </div>
-      </section>
+          <hr class="guide-divider" />
 
-      <section class="plaza-toolbar">
-        <div class="plaza-subtabs" role="tablist" aria-label="广场分类">
-          <button type="button" class="plaza-subtab active" data-plaza-tab="skins" role="tab">
-            🐱 皮肤广场 <span class="count-badge" id="plaza-skins-count">0</span>
-          </button>
-          <button type="button" class="plaza-subtab" data-plaza-tab="accessories" role="tab">
-            🎀 饰品广场 <span class="count-badge" id="plaza-accessories-count">0</span>
-          </button>
-        </div>
-        <div class="plaza-search-wrap">
-          <input type="search" id="plaza-search-input" class="plaza-search" placeholder="搜索名称、作者、简介或标签…" />
-        </div>
-      </section>
-
-      <div class="plaza-filter-row" id="plaza-filter-row"></div>
-
-      <section id="plaza-skins-panel">
-        <div class="plaza-grid" id="plaza-skins-grid"></div>
-        <div class="plaza-empty" id="plaza-skins-empty" hidden>没有找到匹配的皮肤，换个关键词或来投稿第一只吧！</div>
-      </section>
-
-      <section id="plaza-accessories-panel" hidden>
-        <div class="plaza-acc-grid" id="plaza-accessories-grid"></div>
-        <div class="plaza-empty" id="plaza-accessories-empty" hidden>没有找到匹配的饰品，试试其他部位或来投稿你的创意贴纸！</div>
-      </section>
-    </main>
+          <!-- Fallback for Non-Coders Without an Agent -->
+          <section class="guide-fallback">
+            <div class="fallback-copy">
+              <h2>没有 AI Agent，也不会用 Git 提 PR？</h2>
+              <p>没关系！你可以直接点击下面的 GitHub Issue 表单，把文件拖进网页文本框并填写作者与简介，维护者审核后会帮你打包上架到广场。</p>
+            </div>
+            <div class="fallback-actions">
+              <a class="btn btn-primary" href="https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-skin.yml" target="_blank" rel="noopener">提 Issue 投稿皮肤</a>
+              <a class="btn btn-secondary" href="https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-accessory.yml" target="_blank" rel="noopener">提 Issue 投稿饰品</a>
+              <a class="btn btn-secondary" href="https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-keyboard.yml" target="_blank" rel="noopener">提 Issue 投稿键盘</a>
+              <button type="button" class="btn btn-secondary" id="btn-fallback-packager">用网页打包助手生成文件</button>
+            </div>
+          </section>
+        </article>
+      </main>
+    </div>
   </div>
 
   <!-- Interactive 7-Pose Skin Play Modal -->
@@ -570,7 +810,9 @@
           <h3 id="play-modal-title">皮肤试玩</h3>
           <div class="play-modal-author" id="play-modal-author"></div>
         </div>
-        <button type="button" class="icon-btn" id="btn-close-play-modal" aria-label="关闭">✕</button>
+        <button type="button" class="icon-btn" id="btn-close-play-modal" aria-label="关闭">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+        </button>
       </div>
       <div class="play-modal-body">
         <div class="play-stage-wrap">
@@ -589,33 +831,36 @@
           <p class="play-modal-desc" id="play-modal-desc"></p>
           <div class="plaza-tags" id="play-modal-tags"></div>
           <div class="play-modal-actions">
-            <button type="button" class="btn btn-primary" id="btn-play-download">⬇️ 下载 .kurocat</button>
-            <button type="button" class="btn btn-secondary" id="btn-play-open-workshop">🎨 在工坊二次编辑</button>
+            <button type="button" class="btn btn-primary" id="btn-play-download">下载 .kurocat</button>
+            <button type="button" class="btn btn-secondary" id="btn-play-open-workshop">在工坊二次编辑</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Community Submission Helper Modal -->
+  <!-- Community Submission Packager Modal (Skins / Accessories / Keyboards) -->
   <div class="modal-backdrop" id="submit-modal" hidden>
     <div class="modal-card modal-submit">
       <div class="modal-head">
         <div>
-          <h3>投稿作品到 KuroCat 广场</h3>
-          <span class="muted-note">自动生成符合 GitHub PR 规范的投稿文件包，合并后自动上线</span>
+          <h3>投稿文件打包助手</h3>
+          <span class="muted-note">自动生成符合社区广场规范的资产文件与 meta.json</span>
         </div>
-        <button type="button" class="icon-btn" id="btn-close-submit-modal" aria-label="关闭">✕</button>
+        <button type="button" class="icon-btn" id="btn-close-submit-modal" aria-label="关闭">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+        </button>
       </div>
       <div class="submit-modal-body">
-        <div class="segmented submit-type-seg" id="submit-type-seg">
-          <button type="button" class="seg-btn active" data-submit-type="skin">🐱 投稿当前皮肤</button>
-          <button type="button" class="seg-btn" data-submit-type="accessory">🎀 投稿自定义饰品</button>
+        <div class="segmented segmented-3 submit-type-seg" id="submit-type-seg">
+          <button type="button" class="seg-btn active" data-submit-type="skin">投稿当前皮肤</button>
+          <button type="button" class="seg-btn" data-submit-type="accessory">投稿自定义饰品</button>
+          <button type="button" class="seg-btn" data-submit-type="keyboard">投稿键盘配色</button>
         </div>
 
         <div class="submit-form-grid">
           <label class="submit-field">
-            <span>目录标识 slug（仅小写字母/数字/连字符）</span>
+            <span>目录标识 slug（小写字母 / 数字 / 连字符）</span>
             <input type="text" id="submit-slug" placeholder="例如：strawberry-cat" maxlength="48" />
           </label>
           <label class="submit-field">
@@ -634,19 +879,19 @@
 
         <label class="submit-field">
           <span>作品简介（展示在广场卡片上，最多 140 字）</span>
-          <textarea id="submit-desc" rows="2" maxlength="140" placeholder="介绍一下这只小猫或饰品的灵感与特点…"></textarea>
+          <textarea id="submit-desc" rows="2" maxlength="140" placeholder="介绍一下这件作品的灵感与特点…"></textarea>
         </label>
 
         <label class="submit-field">
           <span>标签（空格或逗号分隔，最多 6 个）</span>
-          <input type="text" id="submit-tags" placeholder="例如：橘猫 治愈 软萌" />
+          <input type="text" id="submit-tags" placeholder="例如：橘猫 治愈 原创配色" />
         </label>
 
         <!-- Accessory-specific options -->
-        <div id="submit-accessory-extra" class="submit-acc-extra" hidden>
+        <div id="submit-accessory-extra" class="submit-extra-box" hidden>
           <div class="submit-form-grid">
             <label class="submit-field">
-              <span>选择饰品 PNG（可从当前小猫已佩戴配饰选择或本地上传）</span>
+              <span>选择饰品 PNG（当前已佩戴或本地上传）</span>
               <div class="submit-acc-pick-row">
                 <select id="submit-acc-worn-select">
                   <option value="">-- 从本地选择 PNG 文件 --</option>
@@ -666,9 +911,30 @@
             </label>
           </div>
           <div class="submit-acc-preview-row" id="submit-acc-preview-row" hidden>
-            <img id="submit-acc-preview-img" alt="饰品预览" />
+            <img id="submit-acc-preview-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="饰品预览" />
             <span id="submit-acc-preview-meta" class="muted-note"></span>
           </div>
+        </div>
+
+        <!-- Keyboard-specific color customizer -->
+        <div id="submit-keyboard-extra" class="submit-extra-box" hidden>
+          <div class="kb-submit-preview-wrap">
+            <canvas id="submit-kb-preview-canvas" width="320" height="140"></canvas>
+          </div>
+          <div class="kb-color-grid">
+            <label class="kb-color-item"><span>键盘底座</span><input type="color" id="kb-col-base" value="#5C3A48" /></label>
+            <label class="kb-color-item"><span>键盘面板</span><input type="color" id="kb-col-deck" value="#7D5264" /></label>
+            <label class="kb-color-item"><span>常规键帽</span><input type="color" id="kb-col-key" value="#FFF9FA" /></label>
+            <label class="kb-color-item"><span>键帽描边</span><input type="color" id="kb-col-keyBorder" value="#EBC8D4" /></label>
+            <label class="kb-color-item"><span>强调主键</span><input type="color" id="kb-col-accent" value="#F28BA8" /></label>
+            <label class="kb-color-item"><span>鼠标机身</span><input type="color" id="kb-col-mouseBody" value="#FFF6F8" /></label>
+            <label class="kb-color-item"><span>鼠标轮廓</span><input type="color" id="kb-col-mouseBorder" value="#6B4252" /></label>
+            <label class="kb-color-item"><span>滚轮颜色</span><input type="color" id="kb-col-wheel" value="#F28BA8" /></label>
+          </div>
+          <label class="deco-bg-check">
+            <input type="checkbox" id="kb-col-darkText" checked />
+            <span>浅色键帽使用深色字符（暗色键盘请取消勾选）</span>
+          </label>
         </div>
 
         <div class="submit-path-banner">
@@ -677,9 +943,9 @@
         </div>
 
         <div class="submit-download-row">
-          <button type="button" class="btn btn-primary btn-sm" id="btn-dl-submit-asset">⬇️ 下载 skin.kurocat</button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-dl-submit-meta">⬇️ 下载 meta.json</button>
-          <button type="button" class="btn btn-secondary btn-sm" id="btn-dl-submit-preview">⬇️ 下载 preview.png（可选）</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-dl-submit-asset">下载 skin.kurocat</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-dl-submit-meta">下载 meta.json</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-dl-submit-preview">下载 preview.png（可选）</button>
         </div>
 
         <details class="submit-json-details">
@@ -687,21 +953,9 @@
           <pre id="submit-meta-preview" class="json-code"></pre>
         </details>
 
-        <div class="submit-guide-grid">
-          <div class="submit-guide-card">
-            <strong>方式一：Fork + Pull Request（推荐）</strong>
-            <ol>
-              <li>Fork 仓库并将下载的文件放入 <code id="submit-guide-dir">community/xxx/</code></li>
-              <li>可选放入自制 <code>preview.gif</code>（≤ 5 MB，不放则自动实时 2.5D 渲染）</li>
-              <li>发起 PR，CI 校验通过合并后即刻自动登上广场！</li>
-            </ol>
-            <a class="mini-btn" href="https://github.com/chanke17/KuroCat-Workshop/fork" target="_blank" rel="noopener">去 GitHub Fork 仓库 ↗</a>
-          </div>
-          <div class="submit-guide-card">
-            <strong>方式二：不会用 Git？直接提 Issue 投稿</strong>
-            <p>打开 GitHub Issue 投稿表单，直接拖入文件并填写作者与简介，维护者审核后帮你收录上架。</p>
-            <a class="mini-btn" id="btn-submit-issue-link" href="https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-skin.yml" target="_blank" rel="noopener">打开无代码投稿表单 ↗</a>
-          </div>
+        <div class="submit-footer-links">
+          <button type="button" class="mini-btn" id="btn-submit-goto-guide">查看 AI Agent 自动投稿提示词</button>
+          <a class="mini-btn" id="btn-submit-issue-link" href="https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-skin.yml" target="_blank" rel="noopener">不会 Git？直接提 Issue 投稿</a>
         </div>
       </div>
     </div>

@@ -6,6 +6,8 @@
 - 🎨 **在线皮肤工坊**：https://chanke17.github.io/KuroCat-Workshop/
 - ✨ **社区皮肤广场**：https://chanke17.github.io/KuroCat-Workshop/#plaza
 - 🎀 **社区饰品广场**：https://chanke17.github.io/KuroCat-Workshop/#accessories
+- ⌨️ **社区键盘广场**：https://chanke17.github.io/KuroCat-Workshop/#keyboards
+- 📖 **AI Agent 投稿指南**：https://chanke17.github.io/KuroCat-Workshop/#guide
 
 ---
 

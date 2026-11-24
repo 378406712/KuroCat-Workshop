@@ -1,0 +1,17 @@
+{
+  "formatVersion": 1,
+  "name": "赛博电青 65%",
+  "author": "KuroCat 皮肤工坊",
+  "authorUrl": "https://github.com/chanke17/KuroCat-Workshop",
+  "colors": {
+    "mouseBody": "#23283A",
+    "mouseBorder": "#111521",
+    "wheel": "#3EE4E8",
+    "base": "#0E121E",
+    "deck": "#1A2033",
+    "key": "#2C344D",
+    "keyBorder": "#171C2C",
+    "accent": "#3EE4E8",
+    "darkText": false
+  }
+}

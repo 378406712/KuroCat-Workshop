@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "抹茶拿铁 65%",
+  "author": "chanke17",
+  "colors": {
+    "mouseBody": "#F5F7F0",
+    "mouseBorder": "#364A37",
+    "wheel": "#78A86C",
+    "base": "#2A3B2B",
+    "deck": "#415B43",
+    "key": "#F7F8F2",
+    "keyBorder": "#CDD8C6",
+    "accent": "#78A86C",
+    "darkText": true
+  }
+}

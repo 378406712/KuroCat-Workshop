@@ -1,4 +1,4 @@
-/* KuroCat Community Skin & Accessory Plaza Controller */
+/* KuroCat Sidebar Router, Triple Community Plaza (Skins / Accessories / Keyboards) & Agent Submission Guide */
 (function () {
   'use strict';
 
@@ -12,17 +12,79 @@
     tailTip: '尾尖'
   };
 
-  let activeView = 'workshop'; // 'workshop' | 'plaza'
-  let activePlazaTab = 'skins'; // 'skins' | 'accessories'
+  const ROUTE_TITLES = {
+    'plaza-skins': '皮肤广场',
+    'plaza-accessories': '饰品广场',
+    'plaza-keyboards': '键盘广场',
+    guide: '投稿指南'
+  };
+
+  // --- Agent One-Click Prompts ---
+  const AGENT_PROMPTS = {
+    all: `请帮我把作品投稿到开源项目 KuroCat-Workshop（https://github.com/chanke17/KuroCat-Workshop）的社区广场。
+
+请按仓库规范自动完成以下全部步骤：
+1. Fork 并 clone https://github.com/chanke17/KuroCat-Workshop（若本地已有目录则同步最新 main）；
+2. 根据我提供的素材自动判断投稿类型并放入对应独立目录（slug 仅用小写字母/数字/连字符，绝不手动修改 index.json）：
+   - 皮肤：community/<slug>/ 放 skin.kurocat + meta.json（可选 preview.gif 或 preview.png）
+   - 饰品：community-accessories/<slug>/ 放透明底 accessory.png（≤1MB, ≤1024×1024）+ meta.json（含 anchor/offsetX/offsetY/scale/rotation）
+   - 键盘：community-keyboards/<slug>/ 放 keyboard.json（formatVersion:1 + colors 8色值 + darkText）+ meta.json
+3. 运行 node scripts/validate-community.mjs 确认 0 报错（如运行了 build-plaza-index.mjs，提 PR 前请不要提交被改动的 index.json，CI 合并后会自动重建）；
+4. 提交清晰的 commit 并向 chanke17/KuroCat-Workshop 发起 Pull Request，把 PR 链接发给我。
+
+我的作品信息与素材如下：
+- 作品名称：（请填写）
+- 制作人昵称与主页链接（可选）：（请填写）
+- 一句话简介：（请填写）
+- 文件或配色需求：（把 .kurocat / PNG 拖进来，或直接描述你想要的键盘配色）`,
+
+    skin: `请帮我把一款猫咪皮肤投稿到 https://github.com/chanke17/KuroCat-Workshop 的「皮肤广场」：
+1. Fork 并 clone 仓库，新建目录 community/<英文slug>/；
+2. 放入 skin.kurocat（v1 规范，≤2MB）、meta.json（含 title / author / authorUrl / description / tags / createdAt），以及可选的 preview.gif 或 preview.png（≤5MB）；
+3. 严禁修改 community/index.json；运行 node scripts/validate-community.mjs 验证全部通过；
+4. 发起 Pull Request 到 chanke17/KuroCat-Workshop 的 main 分支。
+
+我的皮肤文件与信息：
+- 皮肤名称：
+- 制作人：
+- 简介：
+- 标签：`,
+
+    accessory: `请帮我把一款自定义配饰投稿到 https://github.com/chanke17/KuroCat-Workshop 的「饰品广场」：
+1. Fork 并 clone 仓库，新建目录 community-accessories/<英文slug>/；
+2. 放入透明底 accessory.png（≤1MB，≤1024×1024，如需抠去白底请自动帮我抠成透明底并裁剪空白边）；
+3. 生成 meta.json，包含 title / author / authorUrl / description / anchor（headTop|face|neck|tailTip）/ offsetX / offsetY / scale / rotation / tags / createdAt；
+4. 严禁修改 community-accessories/index.json；运行 node scripts/validate-community.mjs 验证通过后提交 PR。
+
+我的饰品图片与佩戴说明：
+- 饰品名称：
+- 佩戴部位（头顶/脸部/颈部/尾尖）：
+- 制作人与简介：`,
+
+    keyboard: `请帮我制作并投稿一套 65% 机械键盘配色到 https://github.com/chanke17/KuroCat-Workshop 的「键盘广场」：
+1. Fork 并 clone 仓库，新建目录 community-keyboards/<英文slug>/；
+2. 创建 keyboard.json（formatVersion: 1，含 name、author 和 colors：mouseBody / mouseBorder / wheel / base / deck / key / keyBorder / accent 8 个 #RRGGBB 色值及 darkText 布尔值）；
+3. 创建 meta.json（含 title / author / authorUrl / description / tags / createdAt）；
+4. 严禁修改 community-keyboards/index.json；运行 node scripts/validate-community.mjs 验证通过后提交 PR。
+
+我想要的键盘风格与信息：
+- 键盘名称与配色灵感（例如：海盐蓝白 / 黑金极客 / 草莓牛奶）：
+- 制作人与简介：`
+  };
+
+  let activeRoute = 'workshop'; // 'workshop' | 'plaza-skins' | 'plaza-accessories' | 'plaza-keyboards' | 'guide'
   let searchQuery = '';
   let activeSkinTag = 'all';
   let activeAccAnchor = 'all';
+  let activeKbTag = 'all';
+  let activePromptKind = 'all';
 
   let skinsData = [];
   let accessoriesData = [];
+  let keyboardsData = [];
   let dataLoaded = false;
 
-  const skinSpecCache = new Map(); // skinPath -> Promise<rawSpec>
+  const skinSpecCache = new Map();
 
   // Play modal state
   let playModalItem = null;
@@ -36,30 +98,42 @@
   let playModalNextBlink = 2.4;
 
   // Submit modal state
-  let submitType = 'skin'; // 'skin' | 'accessory'
+  let submitType = 'skin'; // 'skin' | 'accessory' | 'keyboard'
   let submitAccPngB64 = '';
   let submitAccTransform = { offsetX: 0, offsetY: 0, scale: 1, rotation: 0 };
 
   // DOM refs
+  const sidebar = document.getElementById('sidebar');
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  const navItems = document.querySelectorAll('[data-nav]');
+
   const workshopView = document.getElementById('workshop-view');
   const plazaView = document.getElementById('plaza-view');
-  const topbarMeta = document.getElementById('topbar-meta-fields');
-  const viewSwitchBtns = document.querySelectorAll('.view-switch-btn');
-  const workshopOnlyEls = document.querySelectorAll('.workshop-only');
+  const guideView = document.getElementById('guide-view');
+
+  const topbarWorkshopLeft = document.getElementById('topbar-workshop-left');
+  const topbarPageHeading = document.getElementById('topbar-page-heading');
+  const topbarPageTitle = document.getElementById('topbar-page-title');
+  const topbarPageMeta = document.getElementById('topbar-page-meta');
+  const topbarWorkshopRight = document.getElementById('topbar-workshop-right');
+  const topbarPlazaRight = document.getElementById('topbar-plaza-right');
+  const topbarGuideRight = document.getElementById('topbar-guide-right');
 
   const skinsPanel = document.getElementById('plaza-skins-panel');
   const accessoriesPanel = document.getElementById('plaza-accessories-panel');
+  const keyboardsPanel = document.getElementById('plaza-keyboards-panel');
   const skinsGrid = document.getElementById('plaza-skins-grid');
   const accessoriesGrid = document.getElementById('plaza-accessories-grid');
+  const keyboardsGrid = document.getElementById('plaza-keyboards-grid');
   const skinsEmpty = document.getElementById('plaza-skins-empty');
   const accessoriesEmpty = document.getElementById('plaza-accessories-empty');
+  const keyboardsEmpty = document.getElementById('plaza-keyboards-empty');
   const filterRow = document.getElementById('plaza-filter-row');
   const searchInput = document.getElementById('plaza-search-input');
 
   const playModal = document.getElementById('plaza-play-modal');
   const playCanvas = document.getElementById('play-modal-canvas');
   const playCtx = playCanvas.getContext('2d');
-
   const submitModal = document.getElementById('submit-modal');
 
   function toast(msg) {
@@ -115,91 +189,166 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  // --- Main View Switching & URL Hash ---
-  function setMainView(view, subTab, skipHash) {
-    activeView = view === 'plaza' ? 'plaza' : 'workshop';
-    viewSwitchBtns.forEach((btn) => btn.classList.toggle('active', btn.dataset.view === activeView));
-    workshopView.hidden = activeView !== 'workshop';
-    plazaView.hidden = activeView !== 'plaza';
-    if (topbarMeta) topbarMeta.hidden = activeView !== 'workshop';
-    workshopOnlyEls.forEach((el) => { el.hidden = activeView !== 'workshop'; });
+  // --- Mobile Sidebar Drawer ---
+  function setSidebarOpen(open) {
+    sidebar.classList.toggle('open', open);
+    sidebarBackdrop.hidden = !open;
+  }
 
-    if (activeView === 'plaza') {
-      if (subTab === 'skins' || subTab === 'accessories') {
-        activePlazaTab = subTab;
+  document.getElementById('btn-sidebar-open').addEventListener('click', () => setSidebarOpen(true));
+  document.getElementById('btn-sidebar-close').addEventListener('click', () => setSidebarOpen(false));
+  sidebarBackdrop.addEventListener('click', () => setSidebarOpen(false));
+
+  // --- Unified Route Navigation ---
+  function routeToHash(route) {
+    if (route === 'plaza-skins') return '#plaza';
+    if (route === 'plaza-accessories') return '#accessories';
+    if (route === 'plaza-keyboards') return '#keyboards';
+    if (route === 'guide') return '#guide';
+    return '';
+  }
+
+  function hashToRoute(hash) {
+    const h = (hash || '').toLowerCase();
+    if (h === '#plaza' || h === '#skins') return 'plaza-skins';
+    if (h === '#accessories') return 'plaza-accessories';
+    if (h === '#keyboards') return 'plaza-keyboards';
+    if (h === '#guide' || h === '#submit') return 'guide';
+    return 'workshop';
+  }
+
+  function currentPlazaTab() {
+    if (activeRoute === 'plaza-accessories') return 'accessories';
+    if (activeRoute === 'plaza-keyboards') return 'keyboards';
+    return 'skins';
+  }
+
+  function updatePageHeadingMeta() {
+    if (activeRoute === 'plaza-skins') topbarPageMeta.textContent = `${skinsData.length} 款作品`;
+    else if (activeRoute === 'plaza-accessories') topbarPageMeta.textContent = `${accessoriesData.length} 款作品`;
+    else if (activeRoute === 'plaza-keyboards') topbarPageMeta.textContent = `${keyboardsData.length} 款配色`;
+    else if (activeRoute === 'guide') topbarPageMeta.textContent = 'AI Agent 一键投稿 · Fork PR 规范 · 无代码 Issue';
+    else topbarPageMeta.textContent = '';
+  }
+
+  function navigate(route, skipHash) {
+    activeRoute = route;
+    const isWorkshop = route === 'workshop';
+    const isPlaza = route.startsWith('plaza-');
+    const isGuide = route === 'guide';
+
+    navItems.forEach((el) => {
+      if (el.classList.contains('nav-item')) {
+        el.classList.toggle('active', el.dataset.nav === route);
       }
+    });
+
+    workshopView.hidden = !isWorkshop;
+    plazaView.hidden = !isPlaza;
+    guideView.hidden = !isGuide;
+
+    topbarWorkshopLeft.hidden = !isWorkshop;
+    topbarWorkshopRight.hidden = !isWorkshop;
+    topbarPageHeading.hidden = isWorkshop;
+    topbarPlazaRight.hidden = !isPlaza;
+    topbarGuideRight.hidden = !isGuide;
+
+    if (!isWorkshop) {
+      topbarPageTitle.textContent = ROUTE_TITLES[route] || '';
+      updatePageHeadingMeta();
+    }
+
+    if (isPlaza) {
+      syncPlazaPanels();
       if (!dataLoaded) {
         loadPlazaData();
       } else {
-        syncPlazaSubtabs();
         renderFilterRow();
         renderActivePlazaGrid();
       }
-      if (!skipHash) {
-        const targetHash = activePlazaTab === 'accessories' ? '#accessories' : '#plaza';
+    }
+
+    if (!skipHash) {
+      const targetHash = routeToHash(route);
+      if (targetHash) {
         if (window.location.hash !== targetHash) history.replaceState(null, '', targetHash);
-      }
-    } else if (!skipHash) {
-      if (window.location.hash === '#plaza' || window.location.hash === '#accessories') {
+      } else if (window.location.hash) {
         history.replaceState(null, '', window.location.pathname + window.location.search);
       }
     }
+
+    setSidebarOpen(false);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
-  viewSwitchBtns.forEach((btn) => {
-    btn.addEventListener('click', () => setMainView(btn.dataset.view));
+  navItems.forEach((el) => {
+    el.addEventListener('click', (e) => {
+      if (el.tagName === 'A') e.preventDefault();
+      navigate(el.dataset.nav);
+    });
+  });
+
+  document.getElementById('btn-topbar-guide').addEventListener('click', () => navigate('guide'));
+  document.getElementById('btn-submit-goto-guide').addEventListener('click', () => {
+    closeSubmitModal();
+    navigate('guide');
+  });
+
+  document.querySelectorAll('.plaza-tab-pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.plazaTab;
+      if (tab === 'skins') navigate('plaza-skins');
+      else if (tab === 'accessories') navigate('plaza-accessories');
+      else if (tab === 'keyboards') navigate('plaza-keyboards');
+    });
   });
 
   window.addEventListener('hashchange', () => {
-    const h = window.location.hash.toLowerCase();
-    if (h === '#plaza') setMainView('plaza', 'skins', true);
-    else if (h === '#accessories') setMainView('plaza', 'accessories', true);
-    else if (h === '#workshop' || h === '') setMainView('workshop', null, true);
+    navigate(hashToRoute(window.location.hash), true);
   });
 
   // --- Plaza Data Loading ---
   async function loadPlazaData() {
     dataLoaded = true;
     try {
-      const [skinsRes, accRes] = await Promise.all([
+      const [skinsRes, accRes, kbRes] = await Promise.all([
         fetch('./community/index.json').then((r) => (r.ok ? r.json() : { skins: [] })),
-        fetch('./community-accessories/index.json').then((r) => (r.ok ? r.json() : { accessories: [] }))
+        fetch('./community-accessories/index.json').then((r) => (r.ok ? r.json() : { accessories: [] })),
+        fetch('./community-keyboards/index.json').then((r) => (r.ok ? r.json() : { keyboards: [] }))
       ]);
-      skinsData = Array.isArray(skinsRes.skins) ? skinsRes.skins : (Array.isArray(skinsRes.items) ? skinsRes.items : []);
-      accessoriesData = Array.isArray(accRes.accessories) ? accRes.accessories : (Array.isArray(accRes.items) ? accRes.items : []);
-    } catch (err) {
+      skinsData = Array.isArray(skinsRes.skins) ? skinsRes.skins : [];
+      accessoriesData = Array.isArray(accRes.accessories) ? accRes.accessories : [];
+      keyboardsData = Array.isArray(kbRes.keyboards) ? kbRes.keyboards : [];
+    } catch (_) {
       skinsData = [];
       accessoriesData = [];
-      toast('广场索引加载失败，请稍后刷新重试');
+      keyboardsData = [];
     }
 
+    document.getElementById('nav-count-skins').textContent = String(skinsData.length);
+    document.getElementById('nav-count-accessories').textContent = String(accessoriesData.length);
+    document.getElementById('nav-count-keyboards').textContent = String(keyboardsData.length);
     document.getElementById('plaza-skins-count').textContent = String(skinsData.length);
     document.getElementById('plaza-accessories-count').textContent = String(accessoriesData.length);
-    syncPlazaSubtabs();
-    renderFilterRow();
-    renderActivePlazaGrid();
-  }
+    document.getElementById('plaza-keyboards-count').textContent = String(keyboardsData.length);
 
-  function syncPlazaSubtabs() {
-    document.querySelectorAll('.plaza-subtab').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.plazaTab === activePlazaTab);
-    });
-    skinsPanel.hidden = activePlazaTab !== 'skins';
-    accessoriesPanel.hidden = activePlazaTab !== 'accessories';
-  }
-
-  document.querySelectorAll('.plaza-subtab').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      activePlazaTab = btn.dataset.plazaTab;
-      syncPlazaSubtabs();
+    if (activeRoute.startsWith('plaza-')) {
+      updatePageHeadingMeta();
+      syncPlazaPanels();
       renderFilterRow();
       renderActivePlazaGrid();
-      const targetHash = activePlazaTab === 'accessories' ? '#accessories' : '#plaza';
-      if (activeView === 'plaza' && window.location.hash !== targetHash) {
-        history.replaceState(null, '', targetHash);
-      }
+    }
+  }
+
+  function syncPlazaPanels() {
+    const tab = currentPlazaTab();
+    document.querySelectorAll('.plaza-tab-pill').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.plazaTab === tab);
     });
-  });
+    skinsPanel.hidden = tab !== 'skins';
+    accessoriesPanel.hidden = tab !== 'accessories';
+    keyboardsPanel.hidden = tab !== 'keyboards';
+  }
 
   searchInput.addEventListener('input', () => {
     searchQuery = searchInput.value.trim().toLowerCase();
@@ -207,50 +356,51 @@
   });
 
   // --- Filter Pills ---
+  function renderTagFilters(list, activeVal, onPick) {
+    const tagCounts = new Map();
+    for (const item of list) {
+      for (const t of item.tags || []) {
+        tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+      }
+    }
+    const tags = Array.from(tagCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([t]) => t);
+
+    const allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.className = 'pill' + (activeVal === 'all' ? ' active' : '');
+    allBtn.textContent = `全部 (${list.length})`;
+    allBtn.addEventListener('click', () => onPick('all'));
+    filterRow.appendChild(allBtn);
+
+    for (const tag of tags) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pill' + (activeVal === tag ? ' active' : '');
+      b.textContent = `#${tag}`;
+      b.addEventListener('click', () => onPick(tag));
+      filterRow.appendChild(b);
+    }
+  }
+
   function renderFilterRow() {
     filterRow.innerHTML = '';
-    if (activePlazaTab === 'skins') {
-      const tagCounts = new Map();
-      for (const item of skinsData) {
-        for (const t of item.tags || []) {
-          tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
-        }
-      }
-      const tags = Array.from(tagCounts.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 12)
-        .map(([t]) => t);
-
-      const allBtn = document.createElement('button');
-      allBtn.type = 'button';
-      allBtn.className = 'pill' + (activeSkinTag === 'all' ? ' active' : '');
-      allBtn.textContent = `全部 (${skinsData.length})`;
-      allBtn.addEventListener('click', () => {
-        activeSkinTag = 'all';
+    const tab = currentPlazaTab();
+    if (tab === 'skins') {
+      renderTagFilters(skinsData, activeSkinTag, (val) => {
+        activeSkinTag = val;
         renderFilterRow();
         renderSkinsGrid();
       });
-      filterRow.appendChild(allBtn);
-
-      for (const tag of tags) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'pill' + (activeSkinTag === tag ? ' active' : '');
-        b.textContent = `#${tag}`;
-        b.addEventListener('click', () => {
-          activeSkinTag = tag;
-          renderFilterRow();
-          renderSkinsGrid();
-        });
-        filterRow.appendChild(b);
-      }
-    } else {
+    } else if (tab === 'accessories') {
       const options = [
         ['all', `全部部位 (${accessoriesData.length})`],
-        ['headTop', '🎩 头顶'],
-        ['face', '🕶️ 脸部'],
-        ['neck', '🎀 颈部'],
-        ['tailTip', '✨ 尾尖']
+        ['headTop', '头顶'],
+        ['face', '脸部'],
+        ['neck', '颈部'],
+        ['tailTip', '尾尖']
       ];
       for (const [val, label] of options) {
         const b = document.createElement('button');
@@ -264,27 +414,29 @@
         });
         filterRow.appendChild(b);
       }
+    } else {
+      renderTagFilters(keyboardsData, activeKbTag, (val) => {
+        activeKbTag = val;
+        renderFilterRow();
+        renderKeyboardsGrid();
+      });
     }
   }
 
   function renderActivePlazaGrid() {
-    if (activePlazaTab === 'skins') renderSkinsGrid();
-    else renderAccessoriesGrid();
+    const tab = currentPlazaTab();
+    if (tab === 'skins') renderSkinsGrid();
+    else if (tab === 'accessories') renderAccessoriesGrid();
+    else renderKeyboardsGrid();
   }
 
-  // --- Skin Cards Rendering ---
   function matchesQuery(item, q) {
     if (!q) return true;
-    const hay = [
-      item.title,
-      item.author,
-      item.description,
-      item.slug,
-      ...(item.tags || [])
-    ].join(' ').toLowerCase();
+    const hay = [item.title, item.author, item.description, item.slug, ...(item.tags || [])].join(' ').toLowerCase();
     return hay.includes(q);
   }
 
+  // --- 1. Skins Plaza ---
   function renderSkinsGrid() {
     const filtered = skinsData.filter((item) => {
       if (activeSkinTag !== 'all' && !(item.tags || []).includes(activeSkinTag)) return false;
@@ -292,10 +444,7 @@
     });
     skinsGrid.innerHTML = '';
     skinsEmpty.hidden = filtered.length > 0;
-
-    for (const item of filtered) {
-      skinsGrid.appendChild(createSkinCard(item));
-    }
+    for (const item of filtered) skinsGrid.appendChild(createSkinCard(item));
   }
 
   function attachLiveCardCanvas(canvas, item) {
@@ -314,11 +463,8 @@
       Renderer.drawScene(ctx, resolved, st, { kbTheme: 'classicMilk', eyeTheme: 'neonChartreuse' });
     }
 
-    function animateHover(ts) {
-      if (!hoverActive || !resolved) {
-        rafId = 0;
-        return;
-      }
+    function animateHover() {
+      if (!hoverActive || !resolved) { rafId = 0; return; }
       st.time += 0.016;
       st.tailPhase += 0.045;
       st.headYaw += (pointer.yaw - st.headYaw) * 0.16;
@@ -334,7 +480,6 @@
       resolved = Spec.resolveSkin(raw);
       Renderer.preloadDecorations(resolved.decorations);
       drawOnce();
-      // Re-draw briefly after decoration images finish loading
       if (resolved.decorations && resolved.decorations.length) {
         setTimeout(drawOnce, 180);
         setTimeout(drawOnce, 480);
@@ -347,10 +492,8 @@
     });
     canvas.addEventListener('pointermove', (e) => {
       const rect = canvas.getBoundingClientRect();
-      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-      pointer.yaw = Spec.clamp(nx * 0.9, -1, 1);
-      pointer.pitch = Spec.clamp(ny * 0.7, -1, 1);
+      pointer.yaw = Spec.clamp((((e.clientX - rect.left) / rect.width) * 2 - 1) * 0.9, -1, 1);
+      pointer.pitch = Spec.clamp((((e.clientY - rect.top) / rect.height) * 2 - 1) * 0.7, -1, 1);
     });
     canvas.addEventListener('pointerleave', () => {
       hoverActive = false;
@@ -388,17 +531,16 @@
 
       const badge = document.createElement('span');
       badge.className = 'media-badge live';
-      badge.textContent = '2.5D 实时互动';
+      badge.textContent = '2.5D 互动';
       media.appendChild(badge);
-
       attachLiveCardCanvas(canvas, item);
     }
 
-    const decoCnt = item.decorationCount || item.decorationsCount || 0;
+    const decoCnt = item.decorationCount || 0;
     if (decoCnt > 0) {
       const decoBadge = document.createElement('span');
       decoBadge.className = 'media-badge deco-count';
-      decoBadge.textContent = `🎀 ${decoCnt} 件配饰`;
+      decoBadge.textContent = `含 ${decoCnt} 件配饰`;
       media.appendChild(decoBadge);
     }
 
@@ -409,9 +551,8 @@
 
     const url = safeUrl(item.authorUrl);
     const authorHtml = url
-      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)} ↗</a>`
+      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)}</a>`
       : `<span>${escapeHtml(item.author)}</span>`;
-
     const tagsHtml = (item.tags || []).map((t) => `<span class="plaza-tag">#${escapeHtml(t)}</span>`).join('');
 
     body.innerHTML = `
@@ -423,9 +564,9 @@
       <p class="plaza-desc" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</p>
       <div class="plaza-tags">${tagsHtml}</div>
       <div class="plaza-card-actions">
-        <button type="button" class="btn btn-primary btn-xs" data-act="download">⬇️ 下载 .kurocat</button>
-        <button type="button" class="btn btn-secondary btn-xs" data-act="workshop">🎨 工坊打开</button>
-        <button type="button" class="mini-btn" data-act="play">👀 动作试玩</button>
+        <button type="button" class="btn btn-primary btn-xs" data-act="download">下载 .kurocat</button>
+        <button type="button" class="btn btn-secondary btn-xs" data-act="workshop">工坊打开</button>
+        <button type="button" class="mini-btn" data-act="play">动作试玩</button>
       </div>
     `;
 
@@ -445,7 +586,7 @@
       const blob = await res.blob();
       const safeName = (item.title || item.slug).replace(/[\\/:*?"<>|]/g, '_');
       triggerBlobDownload(blob, `${safeName}.kurocat`);
-      toast(`已下载「${item.title}.kurocat」，拖进换装间即可使用！`);
+      toast(`已下载「${item.title}.kurocat」，拖进换装间即可使用`);
     } catch (err) {
       toast('下载皮肤失败：' + err.message);
     }
@@ -456,14 +597,14 @@
       const spec = await fetchSkinSpec(item.skinPath);
       if (window.KuroWorkshopAPI && window.KuroWorkshopAPI.loadExternalSkin(spec, `广场皮肤 · ${item.title}`)) {
         closePlayModal();
-        setMainView('workshop');
+        navigate('workshop');
       }
     } catch (err) {
       toast('载入皮肤失败：' + err.message);
     }
   }
 
-  // --- Accessory Cards Rendering ---
+  // --- 2. Accessories Plaza ---
   function renderAccessoriesGrid() {
     const filtered = accessoriesData.filter((item) => {
       if (activeAccAnchor !== 'all' && item.anchor !== activeAccAnchor) return false;
@@ -471,10 +612,7 @@
     });
     accessoriesGrid.innerHTML = '';
     accessoriesEmpty.hidden = filtered.length > 0;
-
-    for (const item of filtered) {
-      accessoriesGrid.appendChild(createAccessoryCard(item));
-    }
+    for (const item of filtered) accessoriesGrid.appendChild(createAccessoryCard(item));
   }
 
   function createAccessoryCard(item) {
@@ -483,7 +621,7 @@
 
     const url = safeUrl(item.authorUrl);
     const authorHtml = url
-      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)} ↗</a>`
+      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)}</a>`
       : `<span>${escapeHtml(item.author)}</span>`;
     const tagsHtml = (item.tags || []).map((t) => `<span class="plaza-tag">#${escapeHtml(t)}</span>`).join('');
     const anchorName = ANCHOR_LABELS[item.anchor] || item.anchor;
@@ -491,7 +629,7 @@
     card.innerHTML = `
       <div class="plaza-acc-stage">
         <img src="${escapeHtml(resolveAssetUrl(item.previewPath || item.pngPath))}" alt="${escapeHtml(item.title)}" loading="lazy" />
-        <span class="media-badge acc-anchor">${escapeHtml(anchorName)}</span>
+        <span class="media-badge">${escapeHtml(anchorName)}</span>
       </div>
       <div class="plaza-card-body">
         <div class="plaza-card-head">
@@ -501,8 +639,8 @@
         <p class="plaza-desc" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</p>
         <div class="plaza-tags">${tagsHtml}</div>
         <div class="plaza-card-actions">
-          <button type="button" class="btn btn-primary btn-xs" data-act="equip">🎀 佩戴到当前小猫</button>
-          <button type="button" class="mini-btn" data-act="download">⬇️ PNG</button>
+          <button type="button" class="btn btn-primary btn-xs" data-act="equip">佩戴到当前小猫</button>
+          <button type="button" class="mini-btn" data-act="download">下载 PNG</button>
         </div>
       </div>
     `;
@@ -518,10 +656,7 @@
     const blob = await res.blob();
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => {
-        const str = String(reader.result || '');
-        resolve(str.replace(/^data:[^;]+;base64,/, ''));
-      };
+      reader.onload = () => resolve(String(reader.result || '').replace(/^data:[^;]+;base64,/, ''));
       reader.onerror = () => reject(new Error('读取图片失败'));
       reader.readAsDataURL(blob);
     });
@@ -540,7 +675,7 @@
         png: b64
       };
       if (window.KuroWorkshopAPI && window.KuroWorkshopAPI.addExternalDecoration(decoObj)) {
-        setMainView('workshop');
+        navigate('workshop');
       }
     } catch (err) {
       toast('佩戴饰品失败：' + err.message);
@@ -560,14 +695,163 @@
     }
   }
 
-  // --- Interactive 7-Pose Play Modal ---
+  // --- 3. Keyboards Plaza ---
+  function renderKeyboardsGrid() {
+    const filtered = keyboardsData.filter((item) => {
+      if (activeKbTag !== 'all' && !(item.tags || []).includes(activeKbTag)) return false;
+      return matchesQuery(item, searchQuery);
+    });
+    keyboardsGrid.innerHTML = '';
+    keyboardsEmpty.hidden = filtered.length > 0;
+    for (const item of filtered) keyboardsGrid.appendChild(createKeyboardCard(item));
+  }
+
+  function createKeyboardCard(item) {
+    const card = document.createElement('article');
+    card.className = 'plaza-kb-card';
+
+    const stage = document.createElement('div');
+    stage.className = 'plaza-kb-stage';
+
+    if (item.previewPath) {
+      const img = document.createElement('img');
+      img.src = resolveAssetUrl(item.previewPath);
+      img.alt = item.title;
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '100%';
+      img.style.objectFit = 'contain';
+      stage.appendChild(img);
+    } else {
+      const canvas = document.createElement('canvas');
+      canvas.width = 480;
+      canvas.height = 220;
+      canvas.className = 'plaza-kb-canvas';
+      stage.appendChild(canvas);
+      const ctx = canvas.getContext('2d');
+      Renderer.drawKeyboardCardPreview(ctx, item.colors);
+
+      stage.addEventListener('pointerenter', () => {
+        const cap = Renderer.KEYCAPS[Math.floor(Math.random() * Renderer.KEYCAPS.length)];
+        Renderer.drawKeyboardCardPreview(ctx, item.colors, cap.id);
+      });
+      stage.addEventListener('pointerleave', () => {
+        Renderer.drawKeyboardCardPreview(ctx, item.colors);
+      });
+    }
+
+    const c = item.colors || {};
+    const swatchStrip = document.createElement('div');
+    swatchStrip.className = 'kb-swatch-strip';
+    for (const hex of [c.deck, c.key, c.accent, c.mouseBody].filter(Boolean)) {
+      const dot = document.createElement('span');
+      dot.className = 'kb-swatch-dot';
+      dot.style.background = hex;
+      dot.title = hex;
+      swatchStrip.appendChild(dot);
+    }
+    stage.appendChild(swatchStrip);
+
+    const body = document.createElement('div');
+    body.className = 'plaza-card-body';
+
+    const url = safeUrl(item.authorUrl);
+    const authorHtml = url
+      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)}</a>`
+      : `<span>${escapeHtml(item.author)}</span>`;
+    const tagsHtml = (item.tags || []).map((t) => `<span class="plaza-tag">#${escapeHtml(t)}</span>`).join('');
+
+    body.innerHTML = `
+      <div class="plaza-card-head">
+        <h3>${escapeHtml(item.title)}</h3>
+        <span class="plaza-date">${escapeHtml(item.createdAt || '')}</span>
+      </div>
+      <div class="plaza-author-row">制作人：${authorHtml}</div>
+      <p class="plaza-desc" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</p>
+      <div class="plaza-tags">${tagsHtml}</div>
+      <div class="plaza-card-actions">
+        <button type="button" class="btn btn-primary btn-xs" data-act="apply">应用到当前小猫</button>
+        <button type="button" class="mini-btn" data-act="download">下载 JSON</button>
+      </div>
+    `;
+
+    body.querySelector('[data-act="apply"]').addEventListener('click', () => {
+      if (window.KuroWorkshopAPI && window.KuroWorkshopAPI.applyKeyboardTheme(`plaza_${item.slug}`, item.title, item.colors)) {
+        navigate('workshop');
+      }
+    });
+    body.querySelector('[data-act="download"]').addEventListener('click', async () => {
+      try {
+        const res = await fetch(resolveAssetUrl(item.keyboardPath));
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        const safeName = (item.title || item.slug).replace(/[\\/:*?"<>|]/g, '_');
+        triggerBlobDownload(blob, `${safeName}.keyboard.json`);
+        toast(`已下载键盘配色「${safeName}.keyboard.json」`);
+      } catch (err) {
+        toast('下载失败：' + err.message);
+      }
+    });
+
+    card.appendChild(stage);
+    card.appendChild(body);
+    return card;
+  }
+
+  // --- Submission Guide: Agent Prompt Switcher & One-Click Copy ---
+  const promptTextEl = document.getElementById('agent-prompt-text');
+  const copyPromptBtn = document.getElementById('btn-copy-agent-prompt');
+  const copyPromptLabel = document.getElementById('copy-prompt-label');
+
+  function renderAgentPrompt() {
+    promptTextEl.textContent = AGENT_PROMPTS[activePromptKind] || AGENT_PROMPTS.all;
+  }
+
+  document.querySelectorAll('#agent-prompt-tabs .pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activePromptKind = btn.dataset.promptKind || 'all';
+      document.querySelectorAll('#agent-prompt-tabs .pill').forEach((b) => b.classList.toggle('active', b === btn));
+      renderAgentPrompt();
+    });
+  });
+
+  async function copyText(str) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(str);
+        return true;
+      } catch (_) {}
+    }
+    const ta = document.createElement('textarea');
+    ta.value = str;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (_) {}
+    ta.remove();
+    return ok;
+  }
+
+  copyPromptBtn.addEventListener('click', async () => {
+    const ok = await copyText(AGENT_PROMPTS[activePromptKind] || AGENT_PROMPTS.all);
+    if (ok) {
+      copyPromptLabel.textContent = '已复制，直接发给 Agent 吧';
+      toast('提示词已复制到剪贴板');
+      setTimeout(() => { copyPromptLabel.textContent = '复制发给 Agent'; }, 2200);
+    } else {
+      toast('复制失败，请手动选中复制');
+    }
+  });
+
+  // --- Interactive 7-Pose Skin Play Modal ---
   async function openPlayModal(item) {
     playModalItem = item;
     playModalPose = 'idle';
     document.getElementById('play-modal-title').textContent = item.title;
     const url = safeUrl(item.authorUrl);
     document.getElementById('play-modal-author').innerHTML = url
-      ? `制作人：<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)} ↗</a> · ${escapeHtml(item.createdAt || '')}`
+      ? `制作人：<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)}</a> · ${escapeHtml(item.createdAt || '')}`
       : `制作人：${escapeHtml(item.author)} · ${escapeHtml(item.createdAt || '')}`;
     document.getElementById('play-modal-desc').textContent = item.description || '';
     document.getElementById('play-modal-tags').innerHTML = (item.tags || [])
@@ -708,7 +992,7 @@
     if (playModalItem) openPlazaSkinInWorkshop(playModalItem);
   });
 
-  // --- Community Submission Helper Modal ---
+  // --- Community Submission Packager Modal (Skins / Accessories / Keyboards) ---
   function suggestSlug(text, fallback) {
     const ascii = String(text || '')
       .toLowerCase()
@@ -725,6 +1009,26 @@
       .replace(/-+/g, '-')
       .replace(/^-+|-+$/g, '')
       .slice(0, 48);
+  }
+
+  function readSubmitKeyboardColors() {
+    return {
+      mouseBody: document.getElementById('kb-col-mouseBody').value.toUpperCase(),
+      mouseBorder: document.getElementById('kb-col-mouseBorder').value.toUpperCase(),
+      wheel: document.getElementById('kb-col-wheel').value.toUpperCase(),
+      base: document.getElementById('kb-col-base').value.toUpperCase(),
+      deck: document.getElementById('kb-col-deck').value.toUpperCase(),
+      key: document.getElementById('kb-col-key').value.toUpperCase(),
+      keyBorder: document.getElementById('kb-col-keyBorder').value.toUpperCase(),
+      accent: document.getElementById('kb-col-accent').value.toUpperCase(),
+      darkText: document.getElementById('kb-col-darkText').checked
+    };
+  }
+
+  function renderSubmitKeyboardPreview() {
+    const canvas = document.getElementById('submit-kb-preview-canvas');
+    if (!canvas) return;
+    Renderer.drawKeyboardCardPreview(canvas.getContext('2d'), readSubmitKeyboardColors());
   }
 
   function populateWornAccessoriesSelect() {
@@ -756,9 +1060,6 @@
       rotation: d.rotation || 0
     };
     document.getElementById('submit-acc-anchor').value = d.anchor || 'headTop';
-    if (d._label && !document.getElementById('submit-title').value.trim()) {
-      document.getElementById('submit-title').value = d._label;
-    }
     updateSubmitAccPreview();
     updateSubmitPreview();
   }
@@ -777,14 +1078,16 @@
   }
 
   function buildSubmitMetaObject() {
-    const title = document.getElementById('submit-title').value.trim() || (submitType === 'skin' ? '我的桌面小猫' : '我的自定义饰品');
+    const fallbackTitle = submitType === 'skin' ? '我的桌面小猫' : submitType === 'accessory' ? '我的自定义饰品' : '我的自定义键盘';
+    const title = document.getElementById('submit-title').value.trim() || fallbackTitle;
     const author = document.getElementById('submit-author').value.trim() || '社区创作者';
     const authorUrl = safeUrl(document.getElementById('submit-author-url').value.trim());
-    const description = document.getElementById('submit-desc').value.trim() || '欢迎试玩我的 KuroCat 作品！';
+    const description = document.getElementById('submit-desc').value.trim() || '欢迎试玩我的 KuroCat 社区作品！';
     const tagsRaw = document.getElementById('submit-tags').value.trim();
+    const defaultTag = submitType === 'skin' ? '原创皮肤' : submitType === 'accessory' ? '原创饰品' : '原创键盘';
     const tags = tagsRaw
       ? tagsRaw.split(/[\s,，、#]+/).map((s) => s.trim()).filter(Boolean).slice(0, 6)
-      : [submitType === 'skin' ? '原创皮肤' : '原创饰品'];
+      : [defaultTag];
     const createdAt = new Date().toISOString().slice(0, 10);
 
     const meta = { title, author };
@@ -804,21 +1107,33 @@
   }
 
   function updateSubmitPreview() {
-    const slugVal = sanitizeSlug(document.getElementById('submit-slug').value) || (submitType === 'skin' ? 'my-kurocat' : 'my-accessory');
-    const dir = submitType === 'skin' ? `community/${slugVal}/` : `community-accessories/${slugVal}/`;
-    document.getElementById('submit-target-path').textContent = dir;
-    document.getElementById('submit-guide-dir').textContent = dir;
-    document.getElementById('btn-dl-submit-asset').textContent = submitType === 'skin' ? '⬇️ 下载 skin.kurocat' : '⬇️ 下载 accessory.png';
+    const fallbackSlug = submitType === 'skin' ? 'my-kurocat' : submitType === 'accessory' ? 'my-accessory' : 'my-keyboard';
+    const slugVal = sanitizeSlug(document.getElementById('submit-slug').value) || fallbackSlug;
+    const dirPrefix = submitType === 'skin' ? 'community' : submitType === 'accessory' ? 'community-accessories' : 'community-keyboards';
+    document.getElementById('submit-target-path').textContent = `${dirPrefix}/${slugVal}/`;
+
+    const assetBtn = document.getElementById('btn-dl-submit-asset');
+    if (submitType === 'skin') assetBtn.textContent = '下载 skin.kurocat';
+    else if (submitType === 'accessory') assetBtn.textContent = '下载 accessory.png';
+    else assetBtn.textContent = '下载 keyboard.json';
+
     document.getElementById('btn-dl-submit-preview').hidden = submitType !== 'skin';
     document.getElementById('submit-accessory-extra').hidden = submitType !== 'accessory';
-    document.getElementById('btn-submit-issue-link').href = submitType === 'skin'
-      ? 'https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-skin.yml'
-      : 'https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-accessory.yml';
+    document.getElementById('submit-keyboard-extra').hidden = submitType !== 'keyboard';
+
+    const issueTpl = submitType === 'skin' ? 'submit-skin.yml' : submitType === 'accessory' ? 'submit-accessory.yml' : 'submit-keyboard.yml';
+    document.getElementById('btn-submit-issue-link').href = `https://github.com/chanke17/KuroCat-Workshop/issues/new?template=${issueTpl}`;
     document.getElementById('submit-meta-preview').textContent = JSON.stringify(buildSubmitMetaObject(), null, 2);
+
+    if (submitType === 'keyboard') renderSubmitKeyboardPreview();
   }
 
   function openSubmitModal(preferredType) {
-    submitType = preferredType || (activeView === 'plaza' && activePlazaTab === 'accessories' ? 'accessory' : 'skin');
+    if (preferredType) submitType = preferredType;
+    else if (activeRoute === 'plaza-accessories') submitType = 'accessory';
+    else if (activeRoute === 'plaza-keyboards') submitType = 'keyboard';
+    else submitType = 'skin';
+
     document.querySelectorAll('#submit-type-seg .seg-btn').forEach((b) => {
       b.classList.toggle('active', b.dataset.submitType === submitType);
     });
@@ -834,6 +1149,11 @@
         document.getElementById('submit-author').value = raw.author;
       }
       populateWornAccessoriesSelect();
+    } else if (submitType === 'keyboard') {
+      document.getElementById('submit-slug').value = suggestSlug(document.getElementById('submit-title').value, 'my-keyboard');
+      if (raw && raw.author && !document.getElementById('submit-author').value.trim()) {
+        document.getElementById('submit-author').value = raw.author;
+      }
     }
 
     updateSubmitPreview();
@@ -846,6 +1166,8 @@
 
   document.getElementById('btn-open-submit').addEventListener('click', () => openSubmitModal());
   document.getElementById('btn-plaza-submit').addEventListener('click', () => openSubmitModal());
+  document.getElementById('btn-guide-open-submit').addEventListener('click', () => openSubmitModal('skin'));
+  document.getElementById('btn-fallback-packager').addEventListener('click', () => openSubmitModal('skin'));
   document.getElementById('btn-close-submit-modal').addEventListener('click', closeSubmitModal);
   submitModal.addEventListener('click', (e) => { if (e.target === submitModal) closeSubmitModal(); });
 
@@ -856,6 +1178,8 @@
       if (submitType === 'accessory') {
         populateWornAccessoriesSelect();
         document.getElementById('submit-slug').value = suggestSlug(document.getElementById('submit-title').value, 'my-accessory');
+      } else if (submitType === 'keyboard') {
+        document.getElementById('submit-slug').value = suggestSlug(document.getElementById('submit-title').value, 'my-keyboard');
       } else {
         const raw = window.KuroWorkshopAPI ? window.KuroWorkshopAPI.getRawSkin() : null;
         if (raw) {
@@ -869,6 +1193,10 @@
 
   ['submit-slug', 'submit-title', 'submit-author', 'submit-author-url', 'submit-desc', 'submit-tags', 'submit-acc-anchor'].forEach((id) => {
     document.getElementById(id).addEventListener('input', updateSubmitPreview);
+  });
+
+  ['kb-col-base', 'kb-col-deck', 'kb-col-key', 'kb-col-keyBorder', 'kb-col-accent', 'kb-col-mouseBody', 'kb-col-mouseBorder', 'kb-col-wheel', 'kb-col-darkText'].forEach((id) => {
+    document.getElementById(id).addEventListener('input', renderSubmitKeyboardPreview);
   });
 
   document.getElementById('submit-acc-worn-select').addEventListener('change', (e) => {
@@ -902,10 +1230,9 @@
         toast('当前皮肤未通过规范校验：' + check.error);
         return;
       }
-      const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json;charset=utf-8' });
-      triggerBlobDownload(blob, 'skin.kurocat');
+      triggerBlobDownload(new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json;charset=utf-8' }), 'skin.kurocat');
       toast('已下载 skin.kurocat');
-    } else {
+    } else if (submitType === 'accessory') {
       if (!submitAccPngB64) {
         toast('请先选择当前小猫已佩戴的配饰，或上传一张透明底 PNG');
         return;
@@ -915,13 +1242,21 @@
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       triggerBlobDownload(new Blob([bytes], { type: 'image/png' }), 'accessory.png');
       toast('已下载 accessory.png');
+    } else {
+      const kbObj = {
+        formatVersion: 1,
+        name: document.getElementById('submit-title').value.trim() || '我的自定义键盘',
+        author: document.getElementById('submit-author').value.trim() || '社区创作者',
+        colors: readSubmitKeyboardColors()
+      };
+      triggerBlobDownload(new Blob([JSON.stringify(kbObj, null, 2) + '\n'], { type: 'application/json;charset=utf-8' }), 'keyboard.json');
+      toast('已下载 keyboard.json');
     }
   });
 
   document.getElementById('btn-dl-submit-meta').addEventListener('click', () => {
     const meta = buildSubmitMetaObject();
-    const blob = new Blob([JSON.stringify(meta, null, 2) + '\n'], { type: 'application/json;charset=utf-8' });
-    triggerBlobDownload(blob, 'meta.json');
+    triggerBlobDownload(new Blob([JSON.stringify(meta, null, 2) + '\n'], { type: 'application/json;charset=utf-8' }), 'meta.json');
     toast('已下载 meta.json');
   });
 
@@ -940,11 +1275,12 @@
     if (e.key === 'Escape') {
       if (!playModal.hidden) closePlayModal();
       else if (!submitModal.hidden) closeSubmitModal();
+      else setSidebarOpen(false);
     }
   });
 
-  // Boot: honor URL hash (#plaza or #accessories)
-  const initialHash = window.location.hash.toLowerCase();
-  if (initialHash === '#plaza') setMainView('plaza', 'skins', true);
-  else if (initialHash === '#accessories') setMainView('plaza', 'accessories', true);
+  // Boot: render default Agent prompt, preload Plaza counts, honor URL hash
+  renderAgentPrompt();
+  loadPlazaData();
+  navigate(hashToRoute(window.location.hash), true);
 })();

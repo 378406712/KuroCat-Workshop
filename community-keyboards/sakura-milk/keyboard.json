@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "樱花奶盖 65%",
+  "author": "chanke17",
+  "colors": {
+    "mouseBody": "#FFF6F8",
+    "mouseBorder": "#6B4252",
+    "wheel": "#F28BA8",
+    "base": "#5C3A48",
+    "deck": "#7D5264",
+    "key": "#FFF9FA",
+    "keyBorder": "#EBC8D4",
+    "accent": "#F28BA8",
+    "darkText": true
+  }
+}

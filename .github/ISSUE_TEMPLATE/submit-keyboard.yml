@@ -1,0 +1,51 @@
+name: "⌨️ 投稿键盘配色到键盘广场（无需懂 Git）"
+description: "不懂代码也能分享你的 65% 机械键盘与鼠标配色！填写表单后维护者会帮你收录到键盘广场。"
+title: "[键盘投稿] 你的键盘名称"
+labels: ["community-keyboard"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎向 **KuroCat 键盘广场** 投稿！
+        如果你有 AI Agent（豆包工作 / Workbuddy / Codex / Claude Code / Antigravity 等），也可以直接去网页「投稿指南」复制提示词让 Agent 自动帮你提 PR。
+  - type: input
+    id: title
+    attributes:
+      label: 键盘名称（不超过 40 字）
+      placeholder: 例如：草莓奶油 65%
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: 制作人昵称
+      placeholder: 你的昵称或 GitHub ID
+    validations:
+      required: true
+  - type: input
+    id: authorUrl
+    attributes:
+      label: 制作人主页链接（可选）
+      placeholder: https://github.com/your-id
+  - type: textarea
+    id: description
+    attributes:
+      label: 一句话简介（展示在广场卡片上）
+      placeholder: 介绍一下这套键盘与鼠标配色的灵感！
+    validations:
+      required: true
+  - type: input
+    id: tags
+    attributes:
+      label: 标签（空格或逗号分隔，最多 6 个）
+      placeholder: 例如：浅色键盘 温柔风 樱花粉
+    validations:
+      required: true
+  - type: textarea
+    id: colors
+    attributes:
+      label: 粘贴 keyboard.json（或列出各部位色值）
+      description: 建议在网页「投稿助手」中导出 keyboard.json 直接粘贴在下方。
+      render: json
+    validations:
+      required: true

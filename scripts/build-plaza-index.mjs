@@ -1,18 +1,23 @@
 #!/usr/bin/env node
 /**
- * Builds community/index.json and community-accessories/index.json
+ * Builds community/index.json, community-accessories/index.json, and community-keyboards/index.json
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scanAndValidateCommunity, scanAndValidateAccessories } from './validate-community.mjs';
+import {
+  scanAndValidateCommunity,
+  scanAndValidateAccessories,
+  scanAndValidateKeyboards
+} from './validate-community.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 
 const skins = scanAndValidateCommunity();
 const accs = scanAndValidateAccessories();
-const allErrors = [...skins.errors, ...accs.errors];
+const kbs = scanAndValidateKeyboards();
+const allErrors = [...skins.errors, ...accs.errors, ...kbs.errors];
 
 if (allErrors.length > 0) {
   console.error('❌ 构建广场索引失败，请先修复以下校验错误：\n');
@@ -35,4 +40,12 @@ fs.writeFileSync(
   'utf8'
 );
 
-console.log(`✨ 已生成广场索引：${skins.entries.length} 款皮肤 + ${accs.entries.length} 款饰品`);
+const kbDir = path.join(ROOT, 'community-keyboards');
+fs.mkdirSync(kbDir, { recursive: true });
+fs.writeFileSync(
+  path.join(kbDir, 'index.json'),
+  JSON.stringify({ generatedAt: now, count: kbs.entries.length, keyboards: kbs.entries }, null, 2) + '\n',
+  'utf8'
+);
+
+console.log(`✨ 已生成广场索引：${skins.entries.length} 款皮肤 + ${accs.entries.length} 款饰品 + ${kbs.entries.length} 款键盘`);

@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "复古掌机 DMG",
+  "author": "KuroCat 皮肤工坊",
+  "colors": {
+    "mouseBody": "#DCD9CE",
+    "mouseBorder": "#3E3D3A",
+    "wheel": "#9B2948",
+    "base": "#494844",
+    "deck": "#6C6B66",
+    "key": "#DFDDD3",
+    "keyBorder": "#B8B5AA",
+    "accent": "#9B2948",
+    "darkText": true
+  }
+}
