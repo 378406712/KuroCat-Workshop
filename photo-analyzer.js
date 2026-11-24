@@ -523,6 +523,7 @@
     for (let y = iy0; y < iy1; y++) {
       for (let x = ix0; x < ix1; x++) {
         const i = (y * w + x) * 4;
+        if (pixels[i + 3] < 128) continue;
         const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
         const lab = rgbToLab(r, g, b);
         let minBg = 999;
@@ -559,8 +560,59 @@
    * - softColorpoint: boolean (use soft gradient mask when colorpoint face detected)
    * - includeNose, includePads, includeIris: boolean
    */
+  function detectDrawingCrop(imgSource) {
+    const w = 96, h = 96;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(imgSource, 0, 0, w, h);
+    const pix = ctx.getImageData(0, 0, w, h).data;
+
+    let transCount = 0;
+    for (let i = 3; i < pix.length; i += 4) if (pix[i] < 128) transCount++;
+    const hasAlpha = transCount > w * h * 0.04;
+
+    let bgLab = null;
+    if (!hasAlpha) {
+      const corners = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]];
+      let sr = 0, sg = 0, sb = 0;
+      for (const [cx, cy] of corners) {
+        const idx = (cy * w + cx) * 4;
+        sr += pix[idx]; sg += pix[idx + 1]; sb += pix[idx + 2];
+      }
+      bgLab = rgbToLab(sr / 4, sg / 4, sb / 4);
+    }
+
+    let minX = w, minY = h, maxX = -1, maxY = -1;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        const isFg = hasAlpha
+          ? pix[i + 3] >= 128
+          : labDist(rgbToLab(pix[i], pix[i + 1], pix[i + 2]), bgLab) > 12;
+        if (isFg) {
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX - minX < 10 || maxY - minY < 10) {
+      return { x: 0.08, y: 0.06, w: 0.84, h: 0.88 };
+    }
+    const padX = (maxX - minX) * 0.10;
+    const padY = (maxY - minY) * 0.08;
+    const x0 = clamp((minX - padX) / w, 0, 0.8);
+    const y0 = clamp((minY - padY) / h, 0, 0.8);
+    const x1 = clamp((maxX + 1 + padX) / w, x0 + 0.18, 1);
+    const y1 = clamp((maxY + 1 + padY) / h, y0 + 0.18, 1);
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+
   function analyzeCatPhoto(imgSource, cropBox, options) {
     const opts = Object.assign({
+      sourceType: 'photo', // 'photo' | 'drawing'
       colorCount: 3,
       smoothness: 1.0,
       tone: 'balanced',
@@ -571,6 +623,7 @@
       includeIris: true,
       name: '照片生成小猫'
     }, options || {});
+    const isDrawing = opts.sourceType === 'drawing';
 
     // 1. Sample raw photo crop into 128x144 (raw) for eye/tabby detection & 72x84 (smoothed) for spatial color blocks
     const rawW = 128, rawH = 144;
@@ -599,21 +652,34 @@
       for (let x = 0; x < 64; x += 2) {
         if (x < 5 || x > 58 || y < 5) {
           const i = (y * 64 + x) * 4;
+          if (ftPix[i + 3] < 128) continue;
           bgSamples.push({ r: ftPix[i], g: ftPix[i + 1], b: ftPix[i + 2], lab: rgbToLab(ftPix[i], ftPix[i + 1], ftPix[i + 2]), w: 1 });
         }
       }
     }
-    const bgClusters = kMeansLab(bgSamples, 3, 14);
+    const bgClusters = bgSamples.length ? kMeansLab(bgSamples, 3, 14) : [];
     const bgLabs = bgClusters.map((c) => c.lab);
 
-    // 2. Downsample & bilateral-smooth for clean spatial coat block extraction
+    // 2. Downsample & bilateral-smooth for clean spatial coat block extraction (skip heavy blur on hand-drawn art)
     const gw = 72, gh = 84;
     const gCanvas = document.createElement('canvas');
     gCanvas.width = gw; gCanvas.height = gh;
     const gCtx = gCanvas.getContext('2d', { willReadFrequently: true });
     gCtx.drawImage(rawCanvas, 0, 0, gw, gh);
     const gRaw = gCtx.getImageData(0, 0, gw, gh).data;
-    const smoothPix = bilateralSmooth(gRaw, gw, gh, 2, 34);
+    const smoothPix = isDrawing ? gRaw : bilateralSmooth(gRaw, gw, gh, 2, 34);
+
+    // Track transparent pixels (e.g. transparent PNG hand-drawn cats)
+    const N = gw * gh;
+    const isTrans = new Uint8Array(N);
+    let transTotal = 0;
+    for (let idx = 0; idx < N; idx++) {
+      if (gRaw[idx * 4 + 3] < 128) {
+        isTrans[idx] = 1;
+        transTotal++;
+      }
+    }
+    const hasAlpha = transTotal > N * 0.03;
 
     // 3. Foreground cat mask on the 72x84 grid — a GrabCut-style colour-model segmentation (no OpenCV).
     //    Priors: the crop frames the cat (head top-centre, body below), so the crop border is background
@@ -628,7 +694,6 @@
       const r = ((nx - 0.64) / 0.085) ** 2 + ((ny - 0.32) / 0.065) ** 2 <= 1.0;
       return l || r;
     };
-    const N = gw * gh;
     const pixelLab = new Array(N);
     const inPrior = new Uint8Array(N), inCoreCell = new Uint8Array(N), inFaceCore = new Uint8Array(N), inEye = new Uint8Array(N), onBorder = new Uint8Array(N);
     for (let y = 0; y < gh; y++) {
@@ -637,9 +702,9 @@
         const nx = (x + 0.5) / gw;
         const idx = y * gw + x, i = idx * 4;
         pixelLab[idx] = rgbToLab(smoothPix[i], smoothPix[i + 1], smoothPix[i + 2]);
-        inPrior[idx] = insideHead(nx, ny) || insideBody(nx, ny) ? 1 : 0;
-        inFaceCore[idx] = ((nx - 0.50) / 0.17) ** 2 + ((ny - 0.37) / 0.09) ** 2 <= 1.0 ? 1 : 0;
-        inCoreCell[idx] = (inFaceCore[idx] || ((nx - 0.50) / 0.20) ** 2 + ((ny - 0.60) / 0.22) ** 2 <= 1.0) ? 1 : 0;
+        inPrior[idx] = !isTrans[idx] && (insideHead(nx, ny) || insideBody(nx, ny)) ? 1 : 0;
+        inFaceCore[idx] = !isTrans[idx] && (((nx - 0.50) / 0.17) ** 2 + ((ny - 0.37) / 0.09) ** 2 <= 1.0) ? 1 : 0;
+        inCoreCell[idx] = !isTrans[idx] && (inFaceCore[idx] || ((nx - 0.50) / 0.20) ** 2 + ((ny - 0.60) / 0.22) ** 2 <= 1.0) ? 1 : 0;
         inEye[idx] = insideEyeHole(nx, ny) ? 1 : 0;
         onBorder[idx] = (x < 3 || x >= gw - 3 || y < 2 || y >= gh - 2) ? 1 : 0;
       }
@@ -657,37 +722,38 @@
     // colour that matches the crop border is an occluder (grass blades, a hand) and is dropped.
     const faceS = [], borderS = [];
     for (let idx = 0; idx < N; idx++) {
+      if (isTrans[idx]) continue;
       if (inFaceCore[idx] && !inEye[idx]) faceS.push(cellSample(idx, 1));
       else if (onBorder[idx]) borderS.push(cellSample(idx, 1));
     }
-    const rawBorderModel = kMeansLab(borderS, 6, 7).map((c) => c.lab);
-    let faceClusters = kMeansLab(faceS, 4, 7);
+    const rawBorderModel = borderS.length ? kMeansLab(borderS, 6, 7).map((c) => c.lab) : [];
+    let faceClusters = faceS.length ? kMeansLab(faceS, 4, 7) : [];
     const cleanedFace = faceClusters.filter((c) => !(c.ratio < 0.15 && minDistTo(c.lab, rawBorderModel) < 12));
     if (cleanedFace.length) faceClusters = cleanedFace;
     const faceModel = faceClusters.map((c) => c.lab);
-    const faceLike = (idx) => minDistTo(pixelLab[idx], faceModel) <= 12;
+    const faceLike = (idx) => !isTrans[idx] && minDistTo(pixelLab[idx], faceModel) <= 12;
 
-    // Background = everything reachable from the top edge and the upper part of the side edges by
-    // walking across small colour steps (GrabCut-style spatial coherence, without OpenCV). The bottom
-    // edge is not a seed — a sitting cat usually runs off the bottom of the crop — and the walk never
-    // enters face-coloured cells or the face / torso core, so it stops at the cat's outline.
+    // Background = transparent pixels OR everything reachable from the top/side edges by walking
+    // across small colour steps.
     const flooded = new Uint8Array(N);
     const fq = new Int32Array(N);
     let fh = 0, ft = 0;
     for (let y = 0; y < gh; y++) {
       for (let x = 0; x < gw; x++) {
         const idx = y * gw + x;
-        const seed = y < 2 || ((x < 3 || x >= gw - 3) && y < gh * 0.55);
+        if (isTrans[idx]) { flooded[idx] = 1; continue; }
+        if (hasAlpha) continue;
+        const seed = y < 2 || ((x < 3 || x >= gw - 3) && y < (isDrawing ? gh * 0.92 : gh * 0.55));
         if (seed && !inCoreCell[idx] && !faceLike(idx)) { flooded[idx] = 1; fq[ft++] = idx; }
       }
     }
+    const floodStepTol = isDrawing ? 14 : 10;
     while (fh < ft) {
       const c = fq[fh++], cx = c % gw, cy = (c - cx) / gw;
       const nbs = [cx > 0 ? c - 1 : -1, cx + 1 < gw ? c + 1 : -1, cy > 0 ? c - gw : -1, cy + 1 < gh ? c + gw : -1];
       for (const nb of nbs) {
-        // never into the face / torso core: a white chest or bib often touches the crop sides too
         if (nb < 0 || flooded[nb] || inCoreCell[nb]) continue;
-        if (labDist(pixelLab[nb], pixelLab[c]) < 10 && !faceLike(nb)) { flooded[nb] = 1; fq[ft++] = nb; }
+        if (labDist(pixelLab[nb], pixelLab[c]) < floodStepTol && !faceLike(nb)) { flooded[nb] = 1; fq[ft++] = nb; }
       }
     }
 
@@ -751,12 +817,15 @@
       furSamples.push({ ...cellSample(idx, inCoreCell[idx] ? 1.3 : 0.75) });
     }
 
-    // 4. Quantize foreground fur into K distinct perceptual coat colors (shadow-tolerant)
+    // 4. Quantize foreground fur into K distinct perceptual coat colors
     const targetK = clamp(Math.round(opts.colorCount || 3), 2, 5);
-    const mergeTol = targetK <= 2 ? 24 : targetK === 3 ? 20 : 15;
-    const rawClusters = kMeansLab(furSamples, targetK, mergeTol, true);
-    let coatClusters = rawClusters.filter((c) => c.ratio >= 0.045);
-    if (coatClusters.length > 1) {
+    const mergeTol = isDrawing
+      ? (targetK <= 2 ? 16 : 11)
+      : (targetK <= 2 ? 24 : targetK === 3 ? 20 : 15);
+    const distFn = isDrawing ? labDist : coatLabDist;
+    const rawClusters = kMeansLab(furSamples, targetK, mergeTol, !isDrawing);
+    let coatClusters = rawClusters.filter((c) => c.ratio >= (isDrawing ? 0.035 : 0.045));
+    if (coatClusters.length > 1 && !hasAlpha) {
       // A cluster that matches the background model and is (almost) absent from the cat's core is
       // background that slipped past the mask — drop it so it can't become a head / ear patch.
       const coreHits = new Float64Array(coatClusters.length), allHits = new Float64Array(coatClusters.length);
@@ -764,7 +833,7 @@
         if (!pixelFg[idx] || inEye[idx]) continue;
         let best = 0, bestD = Infinity;
         for (let c = 0; c < coatClusters.length; c++) {
-          const d = coatLabDist(pixelLab[idx], coatClusters[c].lab);
+          const d = distFn(pixelLab[idx], coatClusters[c].lab);
           if (d < bestD) { bestD = d; best = c; }
         }
         allHits[best]++;
@@ -790,32 +859,34 @@
         const lab = pixelLab[y * gw + x];
         let best = 0, bestD = Infinity;
         for (let c = 0; c < coatClusters.length; c++) {
-          const d = coatLabDist(lab, coatClusters[c].lab);
+          const d = distFn(lab, coatClusters[c].lab);
           if (d < bestD) { bestD = d; best = c; }
         }
         labelGrid[y * gw + x] = best;
       }
     }
 
-    // Representative colour of a chromatic coat cluster = its sunlit half (median-and-brighter cells), so
-    // body shadows don't drag ginger / cream fur towards brown-grey.
-    for (let c = 0; c < coatClusters.length; c++) {
-      if (coatClusters[c].chroma <= 14) continue;
-      const ls = [];
-      for (let idx = 0; idx < N; idx++) if (labelGrid[idx] === c) ls.push(pixelLab[idx][0]);
-      if (ls.length < 12) continue;
-      ls.sort((a, b) => a - b);
-      const medL = ls[Math.floor(ls.length / 2)];
-      let r = 0, g = 0, b = 0, n = 0;
-      for (let idx = 0; idx < N; idx++) {
-        if (labelGrid[idx] !== c || pixelLab[idx][0] < medL) continue;
-        const i = idx * 4;
-        r += smoothPix[i]; g += smoothPix[i + 1]; b += smoothPix[i + 2]; n++;
-      }
-      if (n) {
-        const rgb = [r / n, g / n, b / n];
-        const lab = rgbToLab(rgb[0], rgb[1], rgb[2]);
-        coatClusters[c] = { ...coatClusters[c], rgb, lab, hsl: rgbToHsl(rgb[0], rgb[1], rgb[2]), chroma: Math.hypot(lab[1], lab[2]) };
+    // Representative colour of a chromatic coat cluster = its sunlit half for real photos
+    // (skip for hand-drawn illustrations so exact drawn flat colors stay untouched!)
+    if (!isDrawing) {
+      for (let c = 0; c < coatClusters.length; c++) {
+        if (coatClusters[c].chroma <= 14) continue;
+        const ls = [];
+        for (let idx = 0; idx < N; idx++) if (labelGrid[idx] === c) ls.push(pixelLab[idx][0]);
+        if (ls.length < 12) continue;
+        ls.sort((a, b) => a - b);
+        const medL = ls[Math.floor(ls.length / 2)];
+        let r = 0, g = 0, b = 0, n = 0;
+        for (let idx = 0; idx < N; idx++) {
+          if (labelGrid[idx] !== c || pixelLab[idx][0] < medL) continue;
+          const i = idx * 4;
+          r += smoothPix[i]; g += smoothPix[i + 1]; b += smoothPix[i + 2]; n++;
+        }
+        if (n) {
+          const rgb = [r / n, g / n, b / n];
+          const lab = rgbToLab(rgb[0], rgb[1], rgb[2]);
+          coatClusters[c] = { ...coatClusters[c], rgb, lab, hsl: rgbToHsl(rgb[0], rgb[1], rgb[2]), chroma: Math.hypot(lab[1], lab[2]) };
+        }
       }
     }
 
@@ -887,7 +958,7 @@
 
     // Check if this photo is a true colorpoint (Siamese): light creamy body & forehead + dark muzzle & ears
     // (Requires bright base & forehead so black tuxedo cats with a white chest NEVER trigger colorpoint!)
-    const isColorpoint = opts.softColorpoint &&
+    const isColorpoint = !isDrawing && opts.softColorpoint &&
       (baseCl.lab[0] > 54 || flankLight > 55) &&
       (foreheadInfo.lab[0] > 50 || flankLight > 55) &&
       (chestInfo.lab[0] - muzzleInfo.lab[0]) > 18 &&
@@ -1061,7 +1132,7 @@
     const tabbyEnergy = foreheadInfo.edgeEnergy;
     const baseColObj = global.KuroSpec.parseHexColor(palette.body);
     const baseLuminance = baseColObj ? global.KuroSpec.luminance(baseColObj) : 0.5;
-    const autoTabby = !isColorpoint && tabbyEnergy > 9.0 && baseLuminance > 0.18 && baseLuminance < 0.78 && regions.length <= 4;
+    const autoTabby = !isDrawing && !isColorpoint && tabbyEnergy > 9.0 && baseLuminance > 0.18 && baseLuminance < 0.78 && regions.length <= 4;
     const shouldAddTabby = opts.addTabby === 'on' || (opts.addTabby === 'auto' && autoTabby);
 
     if (shouldAddTabby) {
@@ -1145,7 +1216,9 @@
 
     const modeLabel = isColorpoint
       ? '柔焦重点色提取'
-      : `真实色块拟合 (${adjustedClusters.length} 色 · ${regions.length} 分区)`;
+      : isDrawing
+        ? `手绘色块提取 (${adjustedClusters.length} 色 · ${regions.length} 分区)`
+        : `真实色块拟合 (${adjustedClusters.length} 色 · ${regions.length} 分区)`;
 
     const swatches = adjustedClusters.map((c, idx) => ({
       label: idx === baseIdx ? `底色 ${Math.round(c.ratio * 100)}%` : `色块${idx + 1} ${Math.round(c.ratio * 100)}%`,
@@ -1158,7 +1231,9 @@
       modeLabel,
       reason: isColorpoint
         ? '检测到奶白身躯与深色重点面罩，已采用柔焦渐变面罩（取消勾选「重点色柔焦」可切换纯色块拟合）'
-        : `从照片中直接提取了 ${adjustedClusters.length} 种毛色，并按实际像素位置拟合出 ${regions.length} 个可二次拖动编辑的贝塞尔色块分区${shouldAddTabby ? ' + 虎斑条纹' : ''}`,
+        : isDrawing
+          ? `已按手绘/板绘模式保留原图清晰色块，提取 ${adjustedClusters.length} 种颜色并生成 ${regions.length} 个可编辑贝塞尔分区`
+          : `从照片中直接提取了 ${adjustedClusters.length} 种毛色，并按实际像素位置拟合出 ${regions.length} 个可二次拖动编辑的贝塞尔色块分区${shouldAddTabby ? ' + 虎斑条纹' : ''}`,
       swatches,
       segDataUrl: segCanvas.toDataURL('image/png'),
       diagnostics: {
@@ -1184,6 +1259,7 @@
   }
 
   global.KuroPhotoAnalyzer = {
-    analyzeCatPhoto
+    analyzeCatPhoto,
+    detectDrawingCrop
   };
 })(window);

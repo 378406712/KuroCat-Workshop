@@ -28,6 +28,7 @@
   let photoImg = null;
   let photoCrop = { x: 0.12, y: 0.06, w: 0.76, h: 0.86 }; // normalized [0..1]
   let photoOpts = {
+    sourceType: 'photo',
     colorCount: 3,
     smoothness: 1.0,
     tone: 'balanced',
@@ -496,6 +497,10 @@
 
   catCanvas.addEventListener('pointerup', () => {
     if (pen) {
+      if (pen.mode === 'brushFill' || pen.mode === 'brushStroke') {
+        finishFreehandStroke();
+        return;
+      }
       pen.drag = null;
       updatePenPreview();
       return;
@@ -545,7 +550,8 @@
     pen = {
       space: penSpace, mode: penMode, anchors: [], stage: 'draw',
       mirror: penMirror && Spec.canMirror(penSpace),
-      drag: null, hover: null, closeHint: false, preview: null, ends: null, lastDown: 0
+      drag: null, hover: null, closeHint: false, preview: null, ends: null, lastDown: 0,
+      freehand: [], drawingFreehand: false
     };
     penPreviewSkin = null;
     catCanvas.classList.add('pen-active');
@@ -576,6 +582,18 @@
       text = `点线的一侧给${where}上色 · 换个颜色还能再点另一侧`;
       back = '返回改线';
       canBack = true;
+    } else if (pen.mode === 'brushFill') {
+      text = `自由画笔色块：在${where}上按住拖动涂画一圈，松手即生成可编辑色块（可连续画）`;
+      finish = '完成退出';
+      canFinish = true;
+      back = '撤销上一笔';
+      canBack = history.undo.length > 0;
+    } else if (pen.mode === 'brushStroke') {
+      text = `自由画笔线条：在${where}上按住拖动直接画花纹/条纹，松手即落笔（可连续画）`;
+      finish = '完成退出';
+      canFinish = true;
+      back = '撤销上一笔';
+      canBack = history.undo.length > 0;
     } else if (pen.mode === 'split') {
       text = n === 0
         ? `分割线：在${where}上从一边画到另一边 · 单击放点，按住拖出弧线`
@@ -605,9 +623,131 @@
     bb.disabled = !canBack;
   }
 
+  // Freehand RDP simplification + Catmull-Rom cubic Bezier anchor fitting
+  function rdpSimplify(pts, eps) {
+    if (pts.length <= 2) return pts.slice();
+    let maxD = 0, idx = 0;
+    const a = pts[0], b = pts[pts.length - 1];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    for (let i = 1; i < pts.length - 1; i++) {
+      let d;
+      if (len2 < 1e-6) {
+        d = Math.hypot(pts[i].x - a.x, pts[i].y - a.y);
+      } else {
+        const t = Math.max(0, Math.min(1, ((pts[i].x - a.x) * dx + (pts[i].y - a.y) * dy) / len2));
+        d = Math.hypot(pts[i].x - (a.x + t * dx), pts[i].y - (a.y + t * dy));
+      }
+      if (d > maxD) { maxD = d; idx = i; }
+    }
+    if (maxD > eps) {
+      const left = rdpSimplify(pts.slice(0, idx + 1), eps);
+      const right = rdpSimplify(pts.slice(idx), eps);
+      return left.slice(0, -1).concat(right);
+    }
+    return [a, b];
+  }
+
+  function freehandToClosedAnchors(pts) {
+    if (pts.length < 3) return [];
+    let simplified = rdpSimplify(pts, 2.2);
+    // Drop closing duplicate if very close to start
+    if (simplified.length > 3 && Math.hypot(simplified[0].x - simplified[simplified.length - 1].x, simplified[0].y - simplified[simplified.length - 1].y) < 3) {
+      simplified.pop();
+    }
+    if (simplified.length < 3) return [];
+    if (simplified.length > 40) {
+      simplified = rdpSimplify(pts, 4.0);
+      if (simplified.length > 40) {
+        const step = simplified.length / 40;
+        const sampled = [];
+        for (let i = 0; i < 40; i++) sampled.push(simplified[Math.floor(i * step)]);
+        simplified = sampled;
+      }
+    }
+    const n = simplified.length;
+    const tension = 0.22;
+    return simplified.map((cur, i) => {
+      const prev = simplified[(i - 1 + n) % n];
+      const next = simplified[(i + 1) % n];
+      const tx = (next.x - prev.x) * tension;
+      const ty = (next.y - prev.y) * tension;
+      return {
+        x: penRound(cur.x),
+        y: penRound(cur.y),
+        inX: penRound(cur.x - tx),
+        inY: penRound(cur.y - ty),
+        outX: penRound(cur.x + tx),
+        outY: penRound(cur.y + ty)
+      };
+    });
+  }
+
+  function finishFreehandStroke() {
+    if (!pen || !pen.drawingFreehand) return;
+    pen.drawingFreehand = false;
+    const pts = pen.freehand || [];
+    pen.freehand = [];
+    if (pen.mode === 'brushFill') {
+      if (pts.length >= 4) {
+        const anchors = freehandToClosedAnchors(pts);
+        if (anchors.length >= 3) {
+          commitPenRegion(anchors, '手绘');
+          return;
+        }
+      }
+      showToast('画圈范围太小，拖动大一点试试');
+      updatePenPreview();
+      return;
+    }
+    if (pen.mode === 'brushStroke') {
+      if (pts.length >= 2) {
+        const simp = rdpSimplify(pts, 1.1);
+        const rawPts = simp.map((p) => [penRound(p.x), penRound(p.y)]).slice(0, 512);
+        if (rawPts.length >= 2) {
+          rawSkin.marks = rawSkin.marks || [];
+          const need = pen.mirror ? 2 : 1;
+          if (rawSkin.marks.length + need > 256) {
+            showToast('最多 256 条条纹，先删掉一些再画');
+            updatePenPreview();
+            return;
+          }
+          const m = { space: pen.space, kind: 'stroke', color: penColor.toUpperCase(), width: Spec.round2(penWidth), points: rawPts };
+          rawSkin.marks.push(m);
+          if (pen.mirror) rawSkin.marks.push(Spec.mirrorMark(m));
+          syncSkin(true);
+          showToast(pen.mirror ? '已手绘一对对称线条' : '已添加手绘线条');
+        }
+      }
+      updatePenPreview();
+    }
+  }
+
   // the shape under the cursor is drawn as a real region so it is clipped to the part exactly as it will be
   function updatePenPreview() {
     if (!pen) return;
+    if (pen.mode === 'brushFill' || pen.mode === 'brushStroke') {
+      const fh = pen.freehand || [];
+      const extraRegions = [];
+      const extraMarks = [];
+      if (pen.mode === 'brushFill' && fh.length >= 3) {
+        const r = { space: pen.space, fill: penColor + 'CC', anchors: fh.map((p) => ({ x: p.x, y: p.y })) };
+        extraRegions.push(r);
+        if (pen.mirror) extraRegions.push(Spec.mirrorRegion(r));
+      } else if (pen.mode === 'brushStroke' && fh.length >= 2) {
+        const m = { space: pen.space, kind: 'stroke', color: penColor, width: penWidth, points: fh.map((p) => [p.x, p.y]) };
+        extraMarks.push(m);
+        if (pen.mirror) extraMarks.push(Spec.mirrorMark(m));
+      }
+      penPreviewSkin = (extraRegions.length || extraMarks.length)
+        ? Spec.resolveSkin(Object.assign({}, rawSkin, {
+            regions: (rawSkin.regions || []).concat(extraRegions),
+            marks: (rawSkin.marks || []).concat(extraMarks)
+          }))
+        : null;
+      updatePenBanner();
+      return;
+    }
     const A = pen.anchors;
     let preview = null;
     if (pen.stage === 'side') {
@@ -685,7 +825,7 @@
     updatePenPreview();
   }
 
-  function commitPenRegion(anchors) {
+  function commitPenRegion(anchors, prefix) {
     rawSkin.regions = rawSkin.regions || [];
     const need = pen.mirror ? 2 : 1;
     if (rawSkin.regions.length + need > 64) {
@@ -693,7 +833,7 @@
       return;
     }
     const r = {
-      _label: `钢笔 · ${PEN_SPACE_NAMES[pen.space]}`,
+      _label: `${prefix || '钢笔'} · ${PEN_SPACE_NAMES[pen.space]}`,
       space: pen.space,
       fill: penColor.toUpperCase(),
       anchors: deepClone(anchors)
@@ -718,6 +858,10 @@
 
   function finishPen() {
     if (!pen) return;
+    if (pen.mode === 'brushFill' || pen.mode === 'brushStroke') {
+      exitPen();
+      return;
+    }
     const A = pen.anchors;
     if (pen.stage === 'side') {
       exitPen();
@@ -754,6 +898,10 @@
 
   function penBack() {
     if (!pen) return;
+    if (pen.mode === 'brushFill' || pen.mode === 'brushStroke') {
+      undo();
+      return;
+    }
     if (pen.stage === 'side') {
       pen.stage = 'draw';
     } else {
@@ -766,6 +914,14 @@
 
   function penPointerDown(e, pos) {
     pen.hover = pos;
+    if (pen.mode === 'brushFill' || pen.mode === 'brushStroke') {
+      const sp = penToSpace(pos);
+      pen.freehand = [{ x: penRound(sp.x), y: penRound(sp.y) }];
+      pen.drawingFreehand = true;
+      try { catCanvas.setPointerCapture(e.pointerId); } catch (_) {}
+      updatePenPreview();
+      return;
+    }
     if (pen.stage === 'side') {
       const side = Spec.pickSplitSide(pen.anchors, pen.space, penToSpace(pos));
       if (!side) {
@@ -806,6 +962,16 @@
 
   function penPointerMove(pos) {
     pen.hover = pos;
+    if (pen.mode === 'brushFill' || pen.mode === 'brushStroke') {
+      if (!pen.drawingFreehand) return;
+      const sp = penToSpace(pos);
+      const last = pen.freehand[pen.freehand.length - 1];
+      if (!last || Math.hypot(sp.x - last.x, sp.y - last.y) >= 1.6) {
+        pen.freehand.push({ x: penRound(sp.x), y: penRound(sp.y) });
+        updatePenPreview();
+      }
+      return;
+    }
     if (pen.drag) {
       const a = pen.anchors[pen.drag.idx];
       if (Math.hypot(pos.x - pen.drag.start.x, pos.y - pen.drag.start.y) > 3) {
@@ -860,6 +1026,8 @@
   document.getElementById('pen-color').addEventListener('input', (e) => setPenColor(e.target.value));
 
   const PEN_HELP = {
+    brushFill: '像画画一样直接在左边小猫身上按住拖动涂出一块形状，松手自动闭合为可调锚点的色块，可连续画。',
+    brushStroke: '直接在左边小猫身上按住拖动自由绘制条纹、腮红、花斑线条，松手即落笔。',
     split: '在左边小猫身上画一条穿过部位的曲线，画好后点线的哪一侧，哪一侧就填上颜色。',
     closed: '沿着想要的色块边缘一圈放点，点回起点就闭合成一块颜色。',
     stroke: '沿着条纹放点、按住拖出弧线，画好后生成一道条纹（会出现在「条纹与图形」列表里）。'
@@ -878,7 +1046,7 @@
   bindPenPills('pen-space-pills', 'space', (v) => { penSpace = v; });
   bindPenPills('pen-mode-pills', 'mode', (v) => {
     penMode = v;
-    document.getElementById('pen-width-row').hidden = v !== 'stroke';
+    document.getElementById('pen-width-row').hidden = (v !== 'stroke' && v !== 'brushStroke');
   });
 
   document.getElementById('pen-mirror').addEventListener('change', (e) => {
@@ -1123,14 +1291,21 @@
       const img = new Image();
       img.onload = () => {
         photoImg = img;
-        photoCrop = defaultPhotoCrop(img);
         document.getElementById('dropzone-empty').hidden = true;
         document.getElementById('photo-workspace').hidden = false;
-        setFramingStep('nose');
-        document.getElementById('photo-archetype-tag').textContent = '等待定位猫脸';
-        document.getElementById('photo-summary-box').innerHTML =
-          '<b>先定位猫脸：</b>在上方照片里的<b>猫鼻子</b>上按住，拖到<b>脸颊边缘</b>再松开。取色只看这只猫，背景（草地、地板、沙发）就不会混进毛色。';
-        drawPhotoWorkspace();
+        if (photoOpts.sourceType === 'drawing') {
+          photoCrop = Analyzer.detectDrawingCrop ? Analyzer.detectDrawingCrop(img) : defaultPhotoCrop(img);
+          setFramingStep('framed');
+          drawPhotoWorkspace();
+          runPhotoAnalysis(false);
+        } else {
+          photoCrop = defaultPhotoCrop(img);
+          setFramingStep('nose');
+          document.getElementById('photo-archetype-tag').textContent = '等待定位猫脸';
+          document.getElementById('photo-summary-box').innerHTML =
+            '<b>先定位猫脸：</b>在上方照片里的<b>猫鼻子</b>上按住，拖到<b>脸颊边缘</b>再松开。取色只看这只猫，背景（草地、地板、沙发）就不会混进毛色。';
+          drawPhotoWorkspace();
+        }
       };
       img.src = String(reader.result);
     };
@@ -1302,6 +1477,33 @@
   }
   document.getElementById('btn-eyedrop-iris').addEventListener('click', () => toggleEyedropper('iris'));
   document.getElementById('btn-eyedrop-body').addEventListener('click', () => toggleEyedropper('body'));
+
+  document.querySelectorAll('#photo-source-pills .pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#photo-source-pills .pill').forEach((b) => b.classList.toggle('active', b === btn));
+      const mode = btn.dataset.source || 'photo';
+      photoOpts.sourceType = mode;
+      if (mode === 'drawing') {
+        photoOpts.tone = 'faithful';
+        photoOpts.addTabby = 'off';
+        document.querySelectorAll('#tone-pills .pill').forEach((b) => b.classList.toggle('active', b.dataset.tone === 'faithful'));
+        document.querySelectorAll('#tabby-pills .pill').forEach((b) => b.classList.toggle('active', b.dataset.tabby === 'off'));
+      } else {
+        photoOpts.tone = 'balanced';
+        photoOpts.addTabby = 'auto';
+        document.querySelectorAll('#tone-pills .pill').forEach((b) => b.classList.toggle('active', b.dataset.tone === 'balanced'));
+        document.querySelectorAll('#tabby-pills .pill').forEach((b) => b.classList.toggle('active', b.dataset.tabby === 'auto'));
+      }
+      if (photoImg) {
+        if (mode === 'drawing' && framingStep === 'nose') {
+          photoCrop = Analyzer.detectDrawingCrop ? Analyzer.detectDrawingCrop(photoImg) : defaultPhotoCrop(photoImg);
+          setFramingStep('framed');
+          drawPhotoWorkspace();
+        }
+        if (framingStep === 'framed') runPhotoAnalysis(true);
+      }
+    });
+  });
 
   document.querySelectorAll('#color-count-pills .pill').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -2197,20 +2399,80 @@
         hover: pen.stage === 'draw' && !pen.drag ? pen.hover : null,
         closeHint: pen.closeHint,
         ends: pen.ends,
-        mirror: pen.mirror
+        mirror: pen.mirror,
+        freehand: pen.freehand && pen.freehand.length ? pen.freehand : null,
+        freehandClosed: pen.mode === 'brushFill'
       } : null
     });
 
     requestAnimationFrame(tick);
   }
 
-  // Expose helper API for automated testing & quick debugging
+  function switchTab(target) {
+    document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === target));
+    document.querySelectorAll('.tab-panel').forEach((p) => p.classList.toggle('active', p.id === `tab-${target}`));
+  }
+
+  // Expose helper API for Plaza integration, automated testing & quick debugging
   window.KuroWorkshopAPI = {
     getRawSkin: () => rawSkin,
+    getResolvedSkin: () => resolvedSkin,
+    getExportObject: () => {
+      const previewB64 = Renderer.renderPreviewBase64(resolvedSkin, kbTheme, eyeTheme);
+      return Spec.sanitizeForExport(rawSkin, previewB64);
+    },
     getExportJson: () => {
       const previewB64 = Renderer.renderPreviewBase64(resolvedSkin, kbTheme, eyeTheme);
       return JSON.stringify(Spec.sanitizeForExport(rawSkin, previewB64), null, 2);
     },
+    loadExternalSkin: (specObj, badgeText) => {
+      const check = Spec.validateRawSkin(specObj);
+      if (!check.ok) {
+        showToast('载入失败：' + check.error);
+        return false;
+      }
+      if (pen) exitPen();
+      rawSkin = deepClone(specObj);
+      if (!rawSkin.regions) rawSkin.regions = [];
+      if (!rawSkin.marks) rawSkin.marks = [];
+      if (!rawSkin.decorations) rawSkin.decorations = [];
+      if (!rawSkin.shape) rawSkin.shape = { build: 'standard' };
+      editingRegionIdx = -1;
+      selectedDecoIdx = -1;
+      editModeBanner.hidden = true;
+      decoBanner.hidden = true;
+      stageCoatBadge.textContent = badgeText || `广场皮肤 · ${rawSkin.name}`;
+      syncSkin();
+      showToast(`已在工坊打开「${rawSkin.name}」`);
+      return true;
+    },
+    addExternalDecoration: (decoObj) => {
+      rawSkin.decorations = rawSkin.decorations || [];
+      if (rawSkin.decorations.length >= 8) {
+        showToast('最多同时佩戴 8 件配饰，请先在配饰装扮中摘下一件');
+        return false;
+      }
+      if (pen) exitPen();
+      const item = deepClone(decoObj);
+      item._defaultPos = {
+        anchor: item.anchor || 'headTop',
+        offsetX: item.offsetX || 0,
+        offsetY: item.offsetY || 0,
+        scale: item.scale || 1,
+        rotation: item.rotation || 0
+      };
+      rawSkin.decorations.push(item);
+      selectedDecoIdx = rawSkin.decorations.length - 1;
+      editingRegionIdx = -1;
+      editModeBanner.hidden = true;
+      decoBanner.hidden = false;
+      syncSkin(true);
+      switchTab('decorations');
+      showToast(`已为当前小猫佩戴「${item._label || '广场饰品'}」，可直接拖动微调！`);
+      return true;
+    },
+    switchTab,
+    showToast,
     setPose: (p) => { currentPose = p; },
     // face (optional): { noseX, noseY, cheek } as fractions of the image width/height/width
     analyzeImageUrl: (url, name, overrides, face) => new Promise((resolve, reject) => {

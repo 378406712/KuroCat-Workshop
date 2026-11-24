@@ -1306,6 +1306,21 @@
     ctx.save();
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
+    if (pen.freehand && pen.freehand.length >= 2) {
+      drawPolyline(ctx, pen.freehand, pen.freehandClosed === true, map);
+      ctx.setLineDash([4, 3]);
+      strokeTwice(1.5);
+      if (pen.mirror) {
+        const mir = pen.freehand.map((p) => ({ x: -p.x, y: p.y }));
+        drawPolyline(ctx, mir, pen.freehandClosed === true, map);
+        ctx.strokeStyle = 'rgba(226,139,66,0.7)';
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+      return;
+    }
     if (pen.ends && pen.space !== 'tail') {
       ctx.setLineDash([3, 4]);
       for (const e of pen.ends) {

@@ -1,0 +1,222 @@
+{
+  "formatVersion": 1,
+  "name": "软萌三花猫",
+  "author": "KuroCat 皮肤工坊",
+  "palette": {
+    "body": "#FAF5EC",
+    "bodyShade": "#F1E8DA",
+    "belly": "#FAF5EC",
+    "legs": "#FAF5EC",
+    "paws": "#FAF5EC",
+    "pawPads": "#EAA1A7",
+    "earOuter": "#E08C45",
+    "earInner": "#F4BEB8",
+    "nose": "#E69196",
+    "mouth": "#A38375",
+    "iris": "#B5C954",
+    "tail": "#2E2724",
+    "tailTip": "#E08C45",
+    "whiskers": "#8D8170A8",
+    "crease": "#9C8D7E80",
+    "outline": "#B8A6925C"
+  },
+  "shape": {
+    "build": "standard",
+    "bodyWidth": 1.12,
+    "cheekFullness": 1.12,
+    "pawStagger": 0
+  },
+  "headSurface": "dome",
+  "regions": [
+    {
+      "space": "head",
+      "fill": "#E08C45",
+      "anchors": [
+        {
+          "x": -62,
+          "y": -56,
+          "inX": -62,
+          "inY": -36,
+          "outX": -32,
+          "outY": -56
+        },
+        {
+          "x": 4,
+          "y": -54,
+          "inX": -14,
+          "inY": -54,
+          "outX": 8,
+          "outY": -32
+        },
+        {
+          "x": -4,
+          "y": -12,
+          "inX": 2,
+          "inY": -22,
+          "outX": -14,
+          "outY": -2
+        },
+        {
+          "x": -30,
+          "y": 8,
+          "inX": -18,
+          "inY": 6,
+          "outX": -46,
+          "outY": 12
+        },
+        {
+          "x": -62,
+          "y": 4,
+          "inX": -54,
+          "inY": 10,
+          "outX": -62,
+          "outY": -24
+        }
+      ]
+    },
+    {
+      "space": "head",
+      "fill": "#2E2724",
+      "anchors": [
+        {
+          "x": -4,
+          "y": -54,
+          "inX": -8,
+          "inY": -32,
+          "outX": 18,
+          "outY": -56
+        },
+        {
+          "x": 62,
+          "y": -56,
+          "inX": 34,
+          "inY": -56,
+          "outX": 62,
+          "outY": -24
+        },
+        {
+          "x": 62,
+          "y": 6,
+          "inX": 62,
+          "inY": -18,
+          "outX": 52,
+          "outY": 12
+        },
+        {
+          "x": 28,
+          "y": 10,
+          "inX": 44,
+          "inY": 12,
+          "outX": 16,
+          "outY": 4
+        },
+        {
+          "x": 6,
+          "y": -14,
+          "inX": 14,
+          "inY": -4,
+          "outX": 0,
+          "outY": -26
+        }
+      ]
+    },
+    {
+      "space": "body",
+      "fill": "#2E2724",
+      "anchors": [
+        {
+          "x": 24,
+          "y": -90,
+          "inX": 16,
+          "inY": -70,
+          "outX": 40,
+          "outY": -94
+        },
+        {
+          "x": 66,
+          "y": -88,
+          "inX": 54,
+          "inY": -92,
+          "outX": 66,
+          "outY": -50
+        },
+        {
+          "x": 62,
+          "y": -12,
+          "inX": 66,
+          "inY": -30,
+          "outX": 46,
+          "outY": -4
+        },
+        {
+          "x": 26,
+          "y": -26,
+          "inX": 38,
+          "inY": -10,
+          "outX": 18,
+          "outY": -52
+        }
+      ]
+    },
+    {
+      "space": "body",
+      "fill": "#E08C45",
+      "anchors": [
+        {
+          "x": -64,
+          "y": -64,
+          "inX": -64,
+          "inY": -40,
+          "outX": -46,
+          "outY": -72
+        },
+        {
+          "x": -24,
+          "y": -52,
+          "inX": -34,
+          "inY": -66,
+          "outX": -20,
+          "outY": -30
+        },
+        {
+          "x": -30,
+          "y": 2,
+          "inX": -22,
+          "inY": -12,
+          "outX": -46,
+          "outY": 6
+        },
+        {
+          "x": -64,
+          "y": -6,
+          "inX": -56,
+          "inY": 4,
+          "outX": -64,
+          "outY": -34
+        }
+      ]
+    },
+    {
+      "space": "rightEar",
+      "fill": "#2E2724",
+      "anchors": [
+        {
+          "x": -60,
+          "y": 10
+        },
+        {
+          "x": 60,
+          "y": 10
+        },
+        {
+          "x": 60,
+          "y": -120
+        },
+        {
+          "x": -60,
+          "y": -120
+        }
+      ]
+    }
+  ]
+}

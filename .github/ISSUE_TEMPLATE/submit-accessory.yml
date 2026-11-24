@@ -1,0 +1,58 @@
+name: 🎀 饰品广场投稿（不会 Git 也能交）
+description: 上传你自己画的或制作的透明 PNG 小猫配饰（帽子、眼镜、项圈、挂件等），审核后上架到饰品广场！
+title: "[饰品投稿] "
+labels: ["accessory-submission"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: 饰品名称
+      placeholder: 例如：招财小鱼发卡 / 草莓贝雷帽
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: 制作人署名
+      placeholder: 你的昵称或 GitHub ID
+    validations:
+      required: true
+  - type: dropdown
+    id: anchor
+    attributes:
+      label: 建议佩戴部位
+      options:
+        - headTop（头顶：帽子、发卡、光环）
+        - face（脸部：眼镜、墨镜、腮红、贴纸）
+        - neck（颈部：项圈、围巾、领结、领带）
+        - tailTip（尾尖：丝带、星星、挂件）
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: 饰品简介（description）
+      placeholder: 简单介绍一下这款配饰的灵感或搭配建议（180 字以内）
+    validations:
+      required: true
+  - type: input
+    id: tags
+    attributes:
+      label: 标签（逗号分隔）
+      placeholder: 例如：帽子, 可爱, 手绘
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: 上传透明 PNG 饰品图（建议 2 倍图，≤ 512×512）
+      placeholder: 直接把透明背景的 PNG 图片拖到这里上传…
+    validations:
+      required: true
+  - type: checkboxes
+    id: license
+    attributes:
+      label: 开源展示确认
+      options:
+        - label: 我确认该饰品为原创或拥有可开源分发授权，同意在 KuroCat 饰品广场公开展示供大家免费佩戴。
+          required: true

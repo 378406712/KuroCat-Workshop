@@ -1,0 +1,123 @@
+{
+  "generatedAt": "2026-11-24T14:37:16.328Z",
+  "count": 5,
+  "skins": [
+    {
+      "slug": "royal-tuxedo",
+      "title": "皇家墨镜奶牛猫",
+      "author": "chanke17",
+      "authorUrl": "https://github.com/chanke17",
+      "description": "头戴小金皇冠、酷酷墨镜、红项圈金铃铛和尾尖小星星的燕尾服奶牛猫，敲键盘自带大佬气场！",
+      "tags": [
+        "奶牛猫",
+        "带配饰",
+        "官方示例"
+      ],
+      "createdAt": "2026-11-24",
+      "skinPath": "./community/royal-tuxedo/skin.kurocat",
+      "previewPath": "./community/royal-tuxedo/preview.gif",
+      "previewType": "gif",
+      "decorationCount": 4,
+      "regionCount": 2,
+      "sizeBytes": 71485,
+      "paletteSummary": [
+        "#1F2024",
+        "#FAF7F1",
+        "#D6B74E"
+      ]
+    },
+    {
+      "slug": "chubby-orange",
+      "title": "胖橘白 · 曲线分区",
+      "author": "KuroCat 皮肤工坊",
+      "authorUrl": "https://github.com/chanke17/KuroCat",
+      "description": "圆滚滚的 1.25 倍大胖橘！采用单条 U 形贝塞尔分界线切出白围脖、白嘴套、双色耳尖与粉色肉垫。",
+      "tags": [
+        "橘白猫",
+        "圆脸胖猫",
+        "官方示例"
+      ],
+      "createdAt": "2026-11-23",
+      "skinPath": "./community/chubby-orange/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 6,
+      "sizeBytes": 3719,
+      "paletteSummary": [
+        "#EA9C55",
+        "#FBF5EC"
+      ]
+    },
+    {
+      "slug": "soft-calico",
+      "title": "软萌三花猫",
+      "author": "KuroCat 皮肤工坊",
+      "authorUrl": "https://github.com/chanke17/KuroCat-Workshop",
+      "description": "暖橘与炭黑不对称三花斑块配奶白底毛，左右耳异色，清爽又耐看，支持直接二创改花斑。",
+      "tags": [
+        "三花猫",
+        "原创配色"
+      ],
+      "createdAt": "2026-11-22",
+      "skinPath": "./community/soft-calico/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 5,
+      "sizeBytes": 3986,
+      "paletteSummary": [
+        "#FAF5EC",
+        "#B5C954"
+      ]
+    },
+    {
+      "slug": "seal-ragdoll",
+      "title": "海双布偶猫",
+      "author": "KuroCat 皮肤工坊",
+      "authorUrl": "https://github.com/chanke17/KuroCat-Workshop",
+      "description": "蓬松奶白长毛配经典海豹色倒 V 八字面罩、大毛尾巴与通透浅蓝宝石瞳。",
+      "tags": [
+        "布偶猫",
+        "蓝眼睛",
+        "原创配色"
+      ],
+      "createdAt": "2026-11-21",
+      "skinPath": "./community/seal-ragdoll/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 4,
+      "sizeBytes": 3036,
+      "paletteSummary": [
+        "#F7F1E7",
+        "#FCF9F3",
+        "#89C8F0"
+      ]
+    },
+    {
+      "slug": "british-blue",
+      "title": "圆脸英短蓝猫",
+      "author": "KuroCat 皮肤工坊",
+      "authorUrl": "https://github.com/chanke17/KuroCat-Workshop",
+      "description": "腮帮饱满、圆耳短胖的经典英短蓝猫，配上一双亮晶晶的琥珀金瞳。",
+      "tags": [
+        "蓝猫",
+        "圆脸胖猫",
+        "纯色"
+      ],
+      "createdAt": "2026-11-20",
+      "skinPath": "./community/british-blue/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 667,
+      "paletteSummary": [
+        "#747D88",
+        "#87909B",
+        "#E5A63B"
+      ]
+    }
+  ]
+}

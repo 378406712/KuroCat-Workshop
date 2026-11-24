@@ -1,0 +1,98 @@
+{
+  "generatedAt": "2026-11-24T14:37:16.328Z",
+  "count": 4,
+  "accessories": [
+    {
+      "slug": "lucky-fish-pin",
+      "title": "招财小鱼发卡",
+      "author": "chanke17",
+      "authorUrl": "https://github.com/chanke17",
+      "description": "卡在小猫耳边的元气小鱼干发卡，祝各位打工人天天摸鱼暴富！",
+      "tags": [
+        "头饰",
+        "可爱",
+        "官方示例"
+      ],
+      "createdAt": "2026-11-24",
+      "anchor": "headTop",
+      "offsetX": 22,
+      "offsetY": -4,
+      "scale": 0.82,
+      "rotation": 14,
+      "pngPath": "./community-accessories/lucky-fish-pin/accessory.png",
+      "previewPath": null,
+      "width": 112,
+      "height": 76,
+      "sizeBytes": 851
+    },
+    {
+      "slug": "pixel-shades",
+      "title": "8-bit 像素大佬墨镜",
+      "author": "chanke17",
+      "authorUrl": "https://github.com/chanke17",
+      "description": "经典像素风 Deal With It 墨镜，自带高光，戴上瞬间变成键盘战神。",
+      "tags": [
+        "眼镜",
+        "像素风",
+        "搞怪"
+      ],
+      "createdAt": "2026-11-23",
+      "anchor": "face",
+      "offsetX": 0,
+      "offsetY": -6,
+      "scale": 1,
+      "rotation": 0,
+      "pngPath": "./community-accessories/pixel-shades/accessory.png",
+      "previewPath": null,
+      "width": 152,
+      "height": 48,
+      "sizeBytes": 271
+    },
+    {
+      "slug": "mini-witch-hat",
+      "title": "魔法小尖帽",
+      "author": "KuroCat 皮肤工坊",
+      "authorUrl": "https://github.com/chanke17/KuroCat-Workshop",
+      "description": "深紫魔法尖顶帽搭配金色扣带，和小黑猫、暹罗猫绝配！",
+      "tags": [
+        "帽子",
+        "魔法",
+        "暗黑可爱"
+      ],
+      "createdAt": "2026-11-22",
+      "anchor": "headTop",
+      "offsetX": 0,
+      "offsetY": -18,
+      "scale": 0.94,
+      "rotation": -6,
+      "pngPath": "./community-accessories/mini-witch-hat/accessory.png",
+      "previewPath": null,
+      "width": 156,
+      "height": 118,
+      "sizeBytes": 1152
+    },
+    {
+      "slug": "matcha-collar",
+      "title": "抹茶奶油小领结",
+      "author": "KuroCat 皮肤工坊",
+      "authorUrl": "https://github.com/chanke17/KuroCat-Workshop",
+      "description": "清新抹茶绿项圈配奶油蝴蝶结，橘猫和三花戴上超显白。",
+      "tags": [
+        "颈饰",
+        "小清新",
+        "日常"
+      ],
+      "createdAt": "2026-11-21",
+      "anchor": "neck",
+      "offsetX": 0,
+      "offsetY": 4,
+      "scale": 0.96,
+      "rotation": 0,
+      "pngPath": "./community-accessories/matcha-collar/accessory.png",
+      "previewPath": null,
+      "width": 166,
+      "height": 74,
+      "sizeBytes": 1003
+    }
+  ]
+}

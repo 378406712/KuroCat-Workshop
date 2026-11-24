@@ -1,0 +1,53 @@
+name: 🐱 皮肤广场投稿（不会 Git 也能交）
+description: 上传你用 KuroCat 皮肤工坊做好的 .kurocat 皮肤，审核后将上架到在线皮肤广场！
+title: "[皮肤投稿] "
+labels: ["skin-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢分享你的猫咪皮肤！如果你会使用 Git，也欢迎直接 Fork 仓库往 `community/<英文短名>/` 提 PR（自动校验合并更快）。不会 Git 的话填好下面表格即可~
+  - type: input
+    id: title
+    attributes:
+      label: 皮肤名称
+      placeholder: 例如：戴草帽的橘白大胖猫
+    validations:
+      required: true
+  - type: input
+    id: author
+    attributes:
+      label: 制作人署名
+      placeholder: 你的昵称或 GitHub ID
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: 皮肤简介（description）
+      description: 介绍一下这只小猫的灵感或特点（180 字以内），会显示在皮肤广场卡片上
+      placeholder: 例如：照着我家 14 斤大橘做的，左脸有一块小花斑，头顶戴了幸运小发芽~
+    validations:
+      required: true
+  - type: input
+    id: tags
+    attributes:
+      label: 标签（用逗号分隔）
+      placeholder: 例如：橘白猫, 真猫还原, 带配饰
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: 上传 .kurocat 文件与预览图/GIF
+      description: 直接把工坊导出的 .kurocat 文件（如果 GitHub 提示不支持扩展名，可先改成 .json 或压缩成 .zip）以及可选的预览 GIF / 图片拖到下面输入框里
+      placeholder: 把皮肤文件和预览图拖到这里上传…
+    validations:
+      required: true
+  - type: checkboxes
+    id: license
+    attributes:
+      label: 开源展示确认
+      options:
+        - label: 我确认该皮肤及自定义贴纸不侵犯他人版权，同意在 KuroCat 皮肤广场公开展示并供大家免费下载使用。
+          required: true

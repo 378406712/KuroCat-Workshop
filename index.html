@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KuroCat 皮肤工坊 · 照片一键生成你的桌面小猫</title>
+  <title>KuroCat 皮肤工坊 · 皮肤与饰品广场 · 照片/手绘一键生成你的桌面小猫</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -21,11 +21,16 @@
         </div>
         <div class="brand-text">
           <h1>KuroCat 皮肤工坊</h1>
-          <span class="brand-sub">支持照片识别生成 · 导出 .kurocat 直接拖进换装间</span>
+          <span class="brand-sub">支持照片/手绘生成 · 配饰 DIY · 社区皮肤与饰品广场</span>
         </div>
       </div>
 
-      <div class="meta-fields">
+      <nav class="view-switcher" role="tablist" aria-label="主视图切换">
+        <button type="button" class="view-switch-btn active" data-view="workshop" role="tab">🎨 皮肤工坊</button>
+        <button type="button" class="view-switch-btn" data-view="plaza" role="tab">✨ 皮肤 &amp; 饰品广场</button>
+      </nav>
+
+      <div class="meta-fields" id="topbar-meta-fields">
         <label class="inline-field">
           <span>皮肤名</span>
           <input id="skin-name" type="text" maxlength="40" value="我的桌面小猫" placeholder="例如：家里的橘猫" />
@@ -37,8 +42,8 @@
       </div>
 
       <div class="top-actions">
-        <span id="validation-pill" class="validation-pill ok" title="符合 .kurocat v1 规范">✓ 规范校验通过</span>
-        <div class="history-btns" role="group" aria-label="撤销与重做">
+        <span id="validation-pill" class="validation-pill ok workshop-only" title="符合 .kurocat v1 规范">✓ 规范校验通过</span>
+        <div class="history-btns workshop-only" role="group" aria-label="撤销与重做">
           <button type="button" class="icon-btn" id="btn-undo" title="撤销 (Ctrl/⌘+Z)" aria-label="撤销" disabled>
             <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 5 3.5 9l4 4M4 9h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
@@ -46,18 +51,21 @@
             <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 5l4 4-4 4M16 9H8.5a4.5 4.5 0 0 0 0 9H11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <label class="btn btn-secondary" for="import-kurocat-input" title="导入已有 .kurocat 文件继续编辑">
+        <label class="btn btn-secondary workshop-only" for="import-kurocat-input" title="导入已有 .kurocat 文件继续编辑">
           导入 .kurocat
         </label>
         <input id="import-kurocat-input" type="file" accept=".kurocat,application/json" hidden />
-        <button id="btn-export" class="btn btn-primary" type="button">
+        <button id="btn-open-submit" class="btn btn-secondary" type="button" title="生成投稿包，分享皮肤或饰品到社区广场">
+          投稿到广场
+        </button>
+        <button id="btn-export" class="btn btn-primary workshop-only" type="button">
           导出 .kurocat
         </button>
       </div>
     </header>
 
     <!-- Main Workbench -->
-    <main class="workbench">
+    <main class="workbench" id="workshop-view">
       <!-- Left: Interactive 2.5D Cat Stage -->
       <section class="stage-column">
         <div class="stage-card">
@@ -143,17 +151,24 @@
       <!-- Right: Studio Inspector Tabs -->
       <aside class="panel-column">
         <nav class="tab-bar" role="tablist">
-          <button type="button" class="tab-btn active" data-tab="photo" role="tab">照片生成</button>
+          <button type="button" class="tab-btn active" data-tab="photo" role="tab">传图生成</button>
           <button type="button" class="tab-btn" data-tab="templates" role="tab">模板库</button>
           <button type="button" class="tab-btn" data-tab="palette" role="tab">毛色五官</button>
           <button type="button" class="tab-btn" data-tab="shape" role="tab">体型轮廓</button>
-          <button type="button" class="tab-btn" data-tab="regions" role="tab">分区花纹</button>
+          <button type="button" class="tab-btn" data-tab="regions" role="tab">手绘花纹</button>
           <button type="button" class="tab-btn" data-tab="decorations" role="tab">配饰装扮</button>
         </nav>
 
         <div class="tab-panels">
-          <!-- TAB 1: Photo-to-Skin Generator -->
+          <!-- TAB 1: Photo / Hand-Drawn Cat Generator -->
           <section class="tab-panel active" id="tab-photo">
+            <div class="source-mode-bar">
+              <span class="source-mode-label">图片类型</span>
+              <div class="pill-grid" id="photo-source-pills" role="group" aria-label="上传图片类型">
+                <button type="button" class="pill active" data-source="photo">📷 真实猫照片</button>
+                <button type="button" class="pill" data-source="drawing">🎨 手绘 / 板绘猫图</button>
+              </div>
+            </div>
             <div class="photo-dropzone" id="photo-dropzone">
               <input id="photo-file-input" type="file" accept="image/*" hidden />
               <div class="dropzone-empty" id="dropzone-empty">
@@ -164,9 +179,9 @@
                     <path d="M8 33l10-9 7 6 6-5 9 8"/>
                   </svg>
                 </div>
-                <p class="drop-title">把真实猫咪照片拖到这里，或点击选择</p>
-                <p class="drop-sub">正面/半身清晰的猫咪照片效果最好 · 纯本地浏览器识别，不上传服务器</p>
-                <button type="button" class="btn btn-primary btn-sm" id="btn-choose-photo">选择猫咪照片…</button>
+                <p class="drop-title">拖入真实猫照片，或你自己画的小猫图，点击选择</p>
+                <p class="drop-sub">支持实拍照片 / 手绘插画 / 透明底板绘 PNG · 纯本地识别，不上传服务器</p>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-choose-photo">选择照片 / 手绘图…</button>
               </div>
 
               <div class="photo-workspace" id="photo-workspace" hidden>
@@ -307,12 +322,12 @@
             </div>
           </section>
 
-          <!-- TAB 5: Regions, Marks & JSON -->
+          <!-- TAB 5: Regions, Freehand Brush, Pen & JSON -->
           <section class="tab-panel" id="tab-regions">
             <div class="card-section pen-card">
               <div class="section-head">
-                <h3>钢笔画分区</h3>
-                <span class="muted-note">单击 = 尖角 · 按住拖 = 圆滑弧线</span>
+                <h3>手绘涂色 &amp; 钢笔画分区</h3>
+                <span class="muted-note">支持自由画笔直接画在小猫身上</span>
               </div>
               <div class="pen-row">
                 <span class="pen-label">画在</span>
@@ -326,9 +341,11 @@
               <div class="pen-row">
                 <span class="pen-label">方式</span>
                 <div class="pill-grid" id="pen-mode-pills" role="group" aria-label="画法">
+                  <button type="button" class="pill" data-mode="brushFill">🖌️ 自由画笔色块</button>
+                  <button type="button" class="pill" data-mode="brushStroke">✏️ 自由画笔线条</button>
                   <button type="button" class="pill active" data-mode="split">分割线，点一侧上色</button>
-                  <button type="button" class="pill" data-mode="closed">闭合色块</button>
-                  <button type="button" class="pill" data-mode="stroke">条纹笔触</button>
+                  <button type="button" class="pill" data-mode="closed">钢笔闭合色块</button>
+                  <button type="button" class="pill" data-mode="stroke">钢笔条纹</button>
                 </div>
               </div>
               <div class="pen-row" id="pen-width-row" hidden>
@@ -502,6 +519,192 @@
         </div>
       </aside>
     </main>
+
+    <!-- Community Skin & Accessory Plaza View -->
+    <main class="plaza-shell" id="plaza-view" hidden>
+      <section class="plaza-hero">
+        <div class="plaza-hero-copy">
+          <div class="plaza-kicker">COMMUNITY PLAZA · FORK &amp; PR 共建</div>
+          <h2>皮肤 &amp; 饰品广场</h2>
+          <p>浏览社区创作者分享的猫咪皮肤与自定义配饰：支持动态 GIF / 实时 2.5D 交互预览，一键佩戴饰品到你的小猫，或下载 <code>.kurocat</code> 拖进换装间。</p>
+        </div>
+        <div class="plaza-hero-actions">
+          <button type="button" class="btn btn-primary" id="btn-plaza-submit">📤 我要投稿作品</button>
+          <a class="btn btn-secondary" href="https://github.com/chanke17/KuroCat-Workshop" target="_blank" rel="noopener">GitHub 开源仓库 ↗</a>
+        </div>
+      </section>
+
+      <section class="plaza-toolbar">
+        <div class="plaza-subtabs" role="tablist" aria-label="广场分类">
+          <button type="button" class="plaza-subtab active" data-plaza-tab="skins" role="tab">
+            🐱 皮肤广场 <span class="count-badge" id="plaza-skins-count">0</span>
+          </button>
+          <button type="button" class="plaza-subtab" data-plaza-tab="accessories" role="tab">
+            🎀 饰品广场 <span class="count-badge" id="plaza-accessories-count">0</span>
+          </button>
+        </div>
+        <div class="plaza-search-wrap">
+          <input type="search" id="plaza-search-input" class="plaza-search" placeholder="搜索名称、作者、简介或标签…" />
+        </div>
+      </section>
+
+      <div class="plaza-filter-row" id="plaza-filter-row"></div>
+
+      <section id="plaza-skins-panel">
+        <div class="plaza-grid" id="plaza-skins-grid"></div>
+        <div class="plaza-empty" id="plaza-skins-empty" hidden>没有找到匹配的皮肤，换个关键词或来投稿第一只吧！</div>
+      </section>
+
+      <section id="plaza-accessories-panel" hidden>
+        <div class="plaza-acc-grid" id="plaza-accessories-grid"></div>
+        <div class="plaza-empty" id="plaza-accessories-empty" hidden>没有找到匹配的饰品，试试其他部位或来投稿你的创意贴纸！</div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Interactive 7-Pose Skin Play Modal -->
+  <div class="modal-backdrop" id="plaza-play-modal" hidden>
+    <div class="modal-card modal-play">
+      <div class="modal-head">
+        <div>
+          <h3 id="play-modal-title">皮肤试玩</h3>
+          <div class="play-modal-author" id="play-modal-author"></div>
+        </div>
+        <button type="button" class="icon-btn" id="btn-close-play-modal" aria-label="关闭">✕</button>
+      </div>
+      <div class="play-modal-body">
+        <div class="play-stage-wrap">
+          <canvas id="play-modal-canvas" width="540" height="480"></canvas>
+          <div class="pose-bar play-pose-bar" id="play-modal-poses">
+            <button type="button" class="pose-btn active" data-pose="idle">待机</button>
+            <button type="button" class="pose-btn" data-pose="typing">敲键盘</button>
+            <button type="button" class="pose-btn" data-pose="hunt">捕猎大眼</button>
+            <button type="button" class="pose-btn" data-pose="petHead">摸头闭眼</button>
+            <button type="button" class="pose-btn" data-pose="petBody">半眯享受</button>
+            <button type="button" class="pose-btn" data-pose="hindFoot">三键踢脚</button>
+            <button type="button" class="pose-btn" data-pose="sleep">打瞌睡</button>
+          </div>
+        </div>
+        <div class="play-modal-info">
+          <p class="play-modal-desc" id="play-modal-desc"></p>
+          <div class="plaza-tags" id="play-modal-tags"></div>
+          <div class="play-modal-actions">
+            <button type="button" class="btn btn-primary" id="btn-play-download">⬇️ 下载 .kurocat</button>
+            <button type="button" class="btn btn-secondary" id="btn-play-open-workshop">🎨 在工坊二次编辑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Community Submission Helper Modal -->
+  <div class="modal-backdrop" id="submit-modal" hidden>
+    <div class="modal-card modal-submit">
+      <div class="modal-head">
+        <div>
+          <h3>投稿作品到 KuroCat 广场</h3>
+          <span class="muted-note">自动生成符合 GitHub PR 规范的投稿文件包，合并后自动上线</span>
+        </div>
+        <button type="button" class="icon-btn" id="btn-close-submit-modal" aria-label="关闭">✕</button>
+      </div>
+      <div class="submit-modal-body">
+        <div class="segmented submit-type-seg" id="submit-type-seg">
+          <button type="button" class="seg-btn active" data-submit-type="skin">🐱 投稿当前皮肤</button>
+          <button type="button" class="seg-btn" data-submit-type="accessory">🎀 投稿自定义饰品</button>
+        </div>
+
+        <div class="submit-form-grid">
+          <label class="submit-field">
+            <span>目录标识 slug（仅小写字母/数字/连字符）</span>
+            <input type="text" id="submit-slug" placeholder="例如：strawberry-cat" maxlength="48" />
+          </label>
+          <label class="submit-field">
+            <span>作品名称</span>
+            <input type="text" id="submit-title" placeholder="例如：草莓奶昔猫" maxlength="40" />
+          </label>
+          <label class="submit-field">
+            <span>制作人昵称</span>
+            <input type="text" id="submit-author" placeholder="你的昵称或 GitHub ID" maxlength="40" />
+          </label>
+          <label class="submit-field">
+            <span>制作人主页链接（可选）</span>
+            <input type="url" id="submit-author-url" placeholder="https://github.com/your-id" maxlength="200" />
+          </label>
+        </div>
+
+        <label class="submit-field">
+          <span>作品简介（展示在广场卡片上，最多 140 字）</span>
+          <textarea id="submit-desc" rows="2" maxlength="140" placeholder="介绍一下这只小猫或饰品的灵感与特点…"></textarea>
+        </label>
+
+        <label class="submit-field">
+          <span>标签（空格或逗号分隔，最多 6 个）</span>
+          <input type="text" id="submit-tags" placeholder="例如：橘猫 治愈 软萌" />
+        </label>
+
+        <!-- Accessory-specific options -->
+        <div id="submit-accessory-extra" class="submit-acc-extra" hidden>
+          <div class="submit-form-grid">
+            <label class="submit-field">
+              <span>选择饰品 PNG（可从当前小猫已佩戴配饰选择或本地上传）</span>
+              <div class="submit-acc-pick-row">
+                <select id="submit-acc-worn-select">
+                  <option value="">-- 从本地选择 PNG 文件 --</option>
+                </select>
+                <label class="mini-btn" for="submit-acc-file">上传 PNG</label>
+                <input type="file" id="submit-acc-file" accept="image/png" hidden />
+              </div>
+            </label>
+            <label class="submit-field">
+              <span>默认佩戴部位 (anchor)</span>
+              <select id="submit-acc-anchor">
+                <option value="headTop">头顶 (headTop)</option>
+                <option value="face">脸部 (face)</option>
+                <option value="neck">颈部 (neck)</option>
+                <option value="tailTip">尾尖 (tailTip)</option>
+              </select>
+            </label>
+          </div>
+          <div class="submit-acc-preview-row" id="submit-acc-preview-row" hidden>
+            <img id="submit-acc-preview-img" alt="饰品预览" />
+            <span id="submit-acc-preview-meta" class="muted-note"></span>
+          </div>
+        </div>
+
+        <div class="submit-path-banner">
+          <span>目标提交目录：</span>
+          <code id="submit-target-path">community/my-cat/</code>
+        </div>
+
+        <div class="submit-download-row">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-dl-submit-asset">⬇️ 下载 skin.kurocat</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-dl-submit-meta">⬇️ 下载 meta.json</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-dl-submit-preview">⬇️ 下载 preview.png（可选）</button>
+        </div>
+
+        <details class="submit-json-details">
+          <summary>预览生成的 meta.json</summary>
+          <pre id="submit-meta-preview" class="json-code"></pre>
+        </details>
+
+        <div class="submit-guide-grid">
+          <div class="submit-guide-card">
+            <strong>方式一：Fork + Pull Request（推荐）</strong>
+            <ol>
+              <li>Fork 仓库并将下载的文件放入 <code id="submit-guide-dir">community/xxx/</code></li>
+              <li>可选放入自制 <code>preview.gif</code>（≤ 5 MB，不放则自动实时 2.5D 渲染）</li>
+              <li>发起 PR，CI 校验通过合并后即刻自动登上广场！</li>
+            </ol>
+            <a class="mini-btn" href="https://github.com/chanke17/KuroCat-Workshop/fork" target="_blank" rel="noopener">去 GitHub Fork 仓库 ↗</a>
+          </div>
+          <div class="submit-guide-card">
+            <strong>方式二：不会用 Git？直接提 Issue 投稿</strong>
+            <p>打开 GitHub Issue 投稿表单，直接拖入文件并填写作者与简介，维护者审核后帮你收录上架。</p>
+            <a class="mini-btn" id="btn-submit-issue-link" href="https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-skin.yml" target="_blank" rel="noopener">打开无代码投稿表单 ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -511,5 +714,6 @@
   <script src="decorations.js"></script>
   <script src="photo-analyzer.js"></script>
   <script src="app.js"></script>
+  <script src="plaza.js"></script>
 </body>
 </html>

@@ -1,0 +1,950 @@
+/* KuroCat Community Skin & Accessory Plaza Controller */
+(function () {
+  'use strict';
+
+  const Spec = window.KuroSpec;
+  const Renderer = window.KuroRenderer;
+
+  const ANCHOR_LABELS = {
+    headTop: '头顶',
+    face: '脸部',
+    neck: '颈部',
+    tailTip: '尾尖'
+  };
+
+  let activeView = 'workshop'; // 'workshop' | 'plaza'
+  let activePlazaTab = 'skins'; // 'skins' | 'accessories'
+  let searchQuery = '';
+  let activeSkinTag = 'all';
+  let activeAccAnchor = 'all';
+
+  let skinsData = [];
+  let accessoriesData = [];
+  let dataLoaded = false;
+
+  const skinSpecCache = new Map(); // skinPath -> Promise<rawSpec>
+
+  // Play modal state
+  let playModalItem = null;
+  let playModalResolved = null;
+  let playModalPose = 'idle';
+  let playModalState = null;
+  let playModalRaf = 0;
+  let playModalLastTs = 0;
+  let playModalPointer = { yaw: 0, pitch: 0, gazeX: 0, gazeY: 0, active: false };
+  let playModalTypingTimer = 0;
+  let playModalNextBlink = 2.4;
+
+  // Submit modal state
+  let submitType = 'skin'; // 'skin' | 'accessory'
+  let submitAccPngB64 = '';
+  let submitAccTransform = { offsetX: 0, offsetY: 0, scale: 1, rotation: 0 };
+
+  // DOM refs
+  const workshopView = document.getElementById('workshop-view');
+  const plazaView = document.getElementById('plaza-view');
+  const topbarMeta = document.getElementById('topbar-meta-fields');
+  const viewSwitchBtns = document.querySelectorAll('.view-switch-btn');
+  const workshopOnlyEls = document.querySelectorAll('.workshop-only');
+
+  const skinsPanel = document.getElementById('plaza-skins-panel');
+  const accessoriesPanel = document.getElementById('plaza-accessories-panel');
+  const skinsGrid = document.getElementById('plaza-skins-grid');
+  const accessoriesGrid = document.getElementById('plaza-accessories-grid');
+  const skinsEmpty = document.getElementById('plaza-skins-empty');
+  const accessoriesEmpty = document.getElementById('plaza-accessories-empty');
+  const filterRow = document.getElementById('plaza-filter-row');
+  const searchInput = document.getElementById('plaza-search-input');
+
+  const playModal = document.getElementById('plaza-play-modal');
+  const playCanvas = document.getElementById('play-modal-canvas');
+  const playCtx = playCanvas.getContext('2d');
+
+  const submitModal = document.getElementById('submit-modal');
+
+  function toast(msg) {
+    if (window.KuroWorkshopAPI && window.KuroWorkshopAPI.showToast) {
+      window.KuroWorkshopAPI.showToast(msg);
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function safeUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    return /^https?:\/\//i.test(url.trim()) ? url.trim() : '';
+  }
+
+  function resolveAssetUrl(p) {
+    if (!p) return '';
+    if (p.startsWith('./') || p.startsWith('/') || /^https?:\/\//i.test(p)) return p;
+    return `./${p}`;
+  }
+
+  function fetchSkinSpec(skinPath) {
+    const url = resolveAssetUrl(skinPath);
+    if (!skinSpecCache.has(url)) {
+      const p = fetch(url)
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .catch((err) => {
+          skinSpecCache.delete(url);
+          throw err;
+        });
+      skinSpecCache.set(url, p);
+    }
+    return skinSpecCache.get(url);
+  }
+
+  function triggerBlobDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // --- Main View Switching & URL Hash ---
+  function setMainView(view, subTab, skipHash) {
+    activeView = view === 'plaza' ? 'plaza' : 'workshop';
+    viewSwitchBtns.forEach((btn) => btn.classList.toggle('active', btn.dataset.view === activeView));
+    workshopView.hidden = activeView !== 'workshop';
+    plazaView.hidden = activeView !== 'plaza';
+    if (topbarMeta) topbarMeta.hidden = activeView !== 'workshop';
+    workshopOnlyEls.forEach((el) => { el.hidden = activeView !== 'workshop'; });
+
+    if (activeView === 'plaza') {
+      if (subTab === 'skins' || subTab === 'accessories') {
+        activePlazaTab = subTab;
+      }
+      if (!dataLoaded) {
+        loadPlazaData();
+      } else {
+        syncPlazaSubtabs();
+        renderFilterRow();
+        renderActivePlazaGrid();
+      }
+      if (!skipHash) {
+        const targetHash = activePlazaTab === 'accessories' ? '#accessories' : '#plaza';
+        if (window.location.hash !== targetHash) history.replaceState(null, '', targetHash);
+      }
+    } else if (!skipHash) {
+      if (window.location.hash === '#plaza' || window.location.hash === '#accessories') {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+  }
+
+  viewSwitchBtns.forEach((btn) => {
+    btn.addEventListener('click', () => setMainView(btn.dataset.view));
+  });
+
+  window.addEventListener('hashchange', () => {
+    const h = window.location.hash.toLowerCase();
+    if (h === '#plaza') setMainView('plaza', 'skins', true);
+    else if (h === '#accessories') setMainView('plaza', 'accessories', true);
+    else if (h === '#workshop' || h === '') setMainView('workshop', null, true);
+  });
+
+  // --- Plaza Data Loading ---
+  async function loadPlazaData() {
+    dataLoaded = true;
+    try {
+      const [skinsRes, accRes] = await Promise.all([
+        fetch('./community/index.json').then((r) => (r.ok ? r.json() : { skins: [] })),
+        fetch('./community-accessories/index.json').then((r) => (r.ok ? r.json() : { accessories: [] }))
+      ]);
+      skinsData = Array.isArray(skinsRes.skins) ? skinsRes.skins : (Array.isArray(skinsRes.items) ? skinsRes.items : []);
+      accessoriesData = Array.isArray(accRes.accessories) ? accRes.accessories : (Array.isArray(accRes.items) ? accRes.items : []);
+    } catch (err) {
+      skinsData = [];
+      accessoriesData = [];
+      toast('广场索引加载失败，请稍后刷新重试');
+    }
+
+    document.getElementById('plaza-skins-count').textContent = String(skinsData.length);
+    document.getElementById('plaza-accessories-count').textContent = String(accessoriesData.length);
+    syncPlazaSubtabs();
+    renderFilterRow();
+    renderActivePlazaGrid();
+  }
+
+  function syncPlazaSubtabs() {
+    document.querySelectorAll('.plaza-subtab').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.plazaTab === activePlazaTab);
+    });
+    skinsPanel.hidden = activePlazaTab !== 'skins';
+    accessoriesPanel.hidden = activePlazaTab !== 'accessories';
+  }
+
+  document.querySelectorAll('.plaza-subtab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activePlazaTab = btn.dataset.plazaTab;
+      syncPlazaSubtabs();
+      renderFilterRow();
+      renderActivePlazaGrid();
+      const targetHash = activePlazaTab === 'accessories' ? '#accessories' : '#plaza';
+      if (activeView === 'plaza' && window.location.hash !== targetHash) {
+        history.replaceState(null, '', targetHash);
+      }
+    });
+  });
+
+  searchInput.addEventListener('input', () => {
+    searchQuery = searchInput.value.trim().toLowerCase();
+    renderActivePlazaGrid();
+  });
+
+  // --- Filter Pills ---
+  function renderFilterRow() {
+    filterRow.innerHTML = '';
+    if (activePlazaTab === 'skins') {
+      const tagCounts = new Map();
+      for (const item of skinsData) {
+        for (const t of item.tags || []) {
+          tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+        }
+      }
+      const tags = Array.from(tagCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 12)
+        .map(([t]) => t);
+
+      const allBtn = document.createElement('button');
+      allBtn.type = 'button';
+      allBtn.className = 'pill' + (activeSkinTag === 'all' ? ' active' : '');
+      allBtn.textContent = `全部 (${skinsData.length})`;
+      allBtn.addEventListener('click', () => {
+        activeSkinTag = 'all';
+        renderFilterRow();
+        renderSkinsGrid();
+      });
+      filterRow.appendChild(allBtn);
+
+      for (const tag of tags) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'pill' + (activeSkinTag === tag ? ' active' : '');
+        b.textContent = `#${tag}`;
+        b.addEventListener('click', () => {
+          activeSkinTag = tag;
+          renderFilterRow();
+          renderSkinsGrid();
+        });
+        filterRow.appendChild(b);
+      }
+    } else {
+      const options = [
+        ['all', `全部部位 (${accessoriesData.length})`],
+        ['headTop', '🎩 头顶'],
+        ['face', '🕶️ 脸部'],
+        ['neck', '🎀 颈部'],
+        ['tailTip', '✨ 尾尖']
+      ];
+      for (const [val, label] of options) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'pill' + (activeAccAnchor === val ? ' active' : '');
+        b.textContent = label;
+        b.addEventListener('click', () => {
+          activeAccAnchor = val;
+          renderFilterRow();
+          renderAccessoriesGrid();
+        });
+        filterRow.appendChild(b);
+      }
+    }
+  }
+
+  function renderActivePlazaGrid() {
+    if (activePlazaTab === 'skins') renderSkinsGrid();
+    else renderAccessoriesGrid();
+  }
+
+  // --- Skin Cards Rendering ---
+  function matchesQuery(item, q) {
+    if (!q) return true;
+    const hay = [
+      item.title,
+      item.author,
+      item.description,
+      item.slug,
+      ...(item.tags || [])
+    ].join(' ').toLowerCase();
+    return hay.includes(q);
+  }
+
+  function renderSkinsGrid() {
+    const filtered = skinsData.filter((item) => {
+      if (activeSkinTag !== 'all' && !(item.tags || []).includes(activeSkinTag)) return false;
+      return matchesQuery(item, searchQuery);
+    });
+    skinsGrid.innerHTML = '';
+    skinsEmpty.hidden = filtered.length > 0;
+
+    for (const item of filtered) {
+      skinsGrid.appendChild(createSkinCard(item));
+    }
+  }
+
+  function attachLiveCardCanvas(canvas, item) {
+    const ctx = canvas.getContext('2d');
+    let resolved = null;
+    let rafId = 0;
+    let hoverActive = false;
+    let pointer = { yaw: 0, pitch: 0 };
+    const st = Renderer.createDefaultState();
+    st.time = 0.6;
+    st.tailPhase = 0.9;
+
+    function drawOnce() {
+      if (!resolved) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      Renderer.drawScene(ctx, resolved, st, { kbTheme: 'classicMilk', eyeTheme: 'neonChartreuse' });
+    }
+
+    function animateHover(ts) {
+      if (!hoverActive || !resolved) {
+        rafId = 0;
+        return;
+      }
+      st.time += 0.016;
+      st.tailPhase += 0.045;
+      st.headYaw += (pointer.yaw - st.headYaw) * 0.16;
+      st.headPitch += (pointer.pitch - st.headPitch) * 0.16;
+      st.headTilt = st.headYaw * 0.06;
+      st.eyeGazeX = st.headYaw;
+      st.eyeGazeY = st.headPitch;
+      drawOnce();
+      rafId = requestAnimationFrame(animateHover);
+    }
+
+    fetchSkinSpec(item.skinPath).then((raw) => {
+      resolved = Spec.resolveSkin(raw);
+      Renderer.preloadDecorations(resolved.decorations);
+      drawOnce();
+      // Re-draw briefly after decoration images finish loading
+      if (resolved.decorations && resolved.decorations.length) {
+        setTimeout(drawOnce, 180);
+        setTimeout(drawOnce, 480);
+      }
+    }).catch(() => {});
+
+    canvas.addEventListener('pointerenter', () => {
+      hoverActive = true;
+      if (!rafId && resolved) rafId = requestAnimationFrame(animateHover);
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+      pointer.yaw = Spec.clamp(nx * 0.9, -1, 1);
+      pointer.pitch = Spec.clamp(ny * 0.7, -1, 1);
+    });
+    canvas.addEventListener('pointerleave', () => {
+      hoverActive = false;
+      pointer = { yaw: 0, pitch: 0 };
+      st.headYaw = 0; st.headPitch = 0; st.headTilt = 0; st.eyeGazeX = 0; st.eyeGazeY = 0;
+      drawOnce();
+    });
+  }
+
+  function createSkinCard(item) {
+    const card = document.createElement('article');
+    card.className = 'plaza-card';
+
+    const media = document.createElement('div');
+    media.className = 'plaza-card-media';
+
+    if (item.previewPath) {
+      const img = document.createElement('img');
+      img.src = resolveAssetUrl(item.previewPath);
+      img.alt = item.title;
+      img.loading = 'lazy';
+      media.appendChild(img);
+
+      const isGif = /\.gif$/i.test(item.previewPath);
+      const badge = document.createElement('span');
+      badge.className = 'media-badge' + (isGif ? ' gif' : '');
+      badge.textContent = isGif ? 'GIF 动图' : '预览图';
+      media.appendChild(badge);
+    } else {
+      const canvas = document.createElement('canvas');
+      canvas.width = 360;
+      canvas.height = 320;
+      canvas.className = 'plaza-live-canvas';
+      media.appendChild(canvas);
+
+      const badge = document.createElement('span');
+      badge.className = 'media-badge live';
+      badge.textContent = '2.5D 实时互动';
+      media.appendChild(badge);
+
+      attachLiveCardCanvas(canvas, item);
+    }
+
+    const decoCnt = item.decorationCount || item.decorationsCount || 0;
+    if (decoCnt > 0) {
+      const decoBadge = document.createElement('span');
+      decoBadge.className = 'media-badge deco-count';
+      decoBadge.textContent = `🎀 ${decoCnt} 件配饰`;
+      media.appendChild(decoBadge);
+    }
+
+    media.addEventListener('click', () => openPlayModal(item));
+
+    const body = document.createElement('div');
+    body.className = 'plaza-card-body';
+
+    const url = safeUrl(item.authorUrl);
+    const authorHtml = url
+      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)} ↗</a>`
+      : `<span>${escapeHtml(item.author)}</span>`;
+
+    const tagsHtml = (item.tags || []).map((t) => `<span class="plaza-tag">#${escapeHtml(t)}</span>`).join('');
+
+    body.innerHTML = `
+      <div class="plaza-card-head">
+        <h3>${escapeHtml(item.title)}</h3>
+        <span class="plaza-date">${escapeHtml(item.createdAt || '')}</span>
+      </div>
+      <div class="plaza-author-row">制作人：${authorHtml}</div>
+      <p class="plaza-desc" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</p>
+      <div class="plaza-tags">${tagsHtml}</div>
+      <div class="plaza-card-actions">
+        <button type="button" class="btn btn-primary btn-xs" data-act="download">⬇️ 下载 .kurocat</button>
+        <button type="button" class="btn btn-secondary btn-xs" data-act="workshop">🎨 工坊打开</button>
+        <button type="button" class="mini-btn" data-act="play">👀 动作试玩</button>
+      </div>
+    `;
+
+    body.querySelector('[data-act="download"]').addEventListener('click', () => downloadPlazaSkin(item));
+    body.querySelector('[data-act="workshop"]').addEventListener('click', () => openPlazaSkinInWorkshop(item));
+    body.querySelector('[data-act="play"]').addEventListener('click', () => openPlayModal(item));
+
+    card.appendChild(media);
+    card.appendChild(body);
+    return card;
+  }
+
+  async function downloadPlazaSkin(item) {
+    try {
+      const res = await fetch(resolveAssetUrl(item.skinPath));
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const safeName = (item.title || item.slug).replace(/[\\/:*?"<>|]/g, '_');
+      triggerBlobDownload(blob, `${safeName}.kurocat`);
+      toast(`已下载「${item.title}.kurocat」，拖进换装间即可使用！`);
+    } catch (err) {
+      toast('下载皮肤失败：' + err.message);
+    }
+  }
+
+  async function openPlazaSkinInWorkshop(item) {
+    try {
+      const spec = await fetchSkinSpec(item.skinPath);
+      if (window.KuroWorkshopAPI && window.KuroWorkshopAPI.loadExternalSkin(spec, `广场皮肤 · ${item.title}`)) {
+        closePlayModal();
+        setMainView('workshop');
+      }
+    } catch (err) {
+      toast('载入皮肤失败：' + err.message);
+    }
+  }
+
+  // --- Accessory Cards Rendering ---
+  function renderAccessoriesGrid() {
+    const filtered = accessoriesData.filter((item) => {
+      if (activeAccAnchor !== 'all' && item.anchor !== activeAccAnchor) return false;
+      return matchesQuery(item, searchQuery);
+    });
+    accessoriesGrid.innerHTML = '';
+    accessoriesEmpty.hidden = filtered.length > 0;
+
+    for (const item of filtered) {
+      accessoriesGrid.appendChild(createAccessoryCard(item));
+    }
+  }
+
+  function createAccessoryCard(item) {
+    const card = document.createElement('article');
+    card.className = 'plaza-acc-card';
+
+    const url = safeUrl(item.authorUrl);
+    const authorHtml = url
+      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)} ↗</a>`
+      : `<span>${escapeHtml(item.author)}</span>`;
+    const tagsHtml = (item.tags || []).map((t) => `<span class="plaza-tag">#${escapeHtml(t)}</span>`).join('');
+    const anchorName = ANCHOR_LABELS[item.anchor] || item.anchor;
+
+    card.innerHTML = `
+      <div class="plaza-acc-stage">
+        <img src="${escapeHtml(resolveAssetUrl(item.previewPath || item.pngPath))}" alt="${escapeHtml(item.title)}" loading="lazy" />
+        <span class="media-badge acc-anchor">${escapeHtml(anchorName)}</span>
+      </div>
+      <div class="plaza-card-body">
+        <div class="plaza-card-head">
+          <h3>${escapeHtml(item.title)}</h3>
+        </div>
+        <div class="plaza-author-row">制作人：${authorHtml}</div>
+        <p class="plaza-desc" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</p>
+        <div class="plaza-tags">${tagsHtml}</div>
+        <div class="plaza-card-actions">
+          <button type="button" class="btn btn-primary btn-xs" data-act="equip">🎀 佩戴到当前小猫</button>
+          <button type="button" class="mini-btn" data-act="download">⬇️ PNG</button>
+        </div>
+      </div>
+    `;
+
+    card.querySelector('[data-act="equip"]').addEventListener('click', () => equipPlazaAccessory(item));
+    card.querySelector('[data-act="download"]').addEventListener('click', () => downloadPlazaAccessory(item));
+    return card;
+  }
+
+  async function fetchPngAsBase64(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const str = String(reader.result || '');
+        resolve(str.replace(/^data:[^;]+;base64,/, ''));
+      };
+      reader.onerror = () => reject(new Error('读取图片失败'));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function equipPlazaAccessory(item) {
+    try {
+      const b64 = await fetchPngAsBase64(resolveAssetUrl(item.pngPath));
+      const decoObj = {
+        _label: item.title,
+        anchor: item.anchor || 'headTop',
+        offsetX: typeof item.offsetX === 'number' ? item.offsetX : 0,
+        offsetY: typeof item.offsetY === 'number' ? item.offsetY : 0,
+        scale: typeof item.scale === 'number' ? item.scale : 1,
+        rotation: typeof item.rotation === 'number' ? item.rotation : 0,
+        png: b64
+      };
+      if (window.KuroWorkshopAPI && window.KuroWorkshopAPI.addExternalDecoration(decoObj)) {
+        setMainView('workshop');
+      }
+    } catch (err) {
+      toast('佩戴饰品失败：' + err.message);
+    }
+  }
+
+  async function downloadPlazaAccessory(item) {
+    try {
+      const res = await fetch(resolveAssetUrl(item.pngPath));
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const safeName = (item.title || item.slug).replace(/[\\/:*?"<>|]/g, '_');
+      triggerBlobDownload(blob, `${safeName}.png`);
+      toast(`已下载饰品图片「${safeName}.png」`);
+    } catch (err) {
+      toast('下载饰品失败：' + err.message);
+    }
+  }
+
+  // --- Interactive 7-Pose Play Modal ---
+  async function openPlayModal(item) {
+    playModalItem = item;
+    playModalPose = 'idle';
+    document.getElementById('play-modal-title').textContent = item.title;
+    const url = safeUrl(item.authorUrl);
+    document.getElementById('play-modal-author').innerHTML = url
+      ? `制作人：<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="author-link">${escapeHtml(item.author)} ↗</a> · ${escapeHtml(item.createdAt || '')}`
+      : `制作人：${escapeHtml(item.author)} · ${escapeHtml(item.createdAt || '')}`;
+    document.getElementById('play-modal-desc').textContent = item.description || '';
+    document.getElementById('play-modal-tags').innerHTML = (item.tags || [])
+      .map((t) => `<span class="plaza-tag">#${escapeHtml(t)}</span>`).join('');
+    document.querySelectorAll('#play-modal-poses .pose-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.pose === 'idle');
+    });
+
+    playModal.hidden = false;
+
+    try {
+      const raw = await fetchSkinSpec(item.skinPath);
+      playModalResolved = Spec.resolveSkin(raw);
+      Renderer.preloadDecorations(playModalResolved.decorations);
+      playModalState = Renderer.createDefaultState();
+      playModalLastTs = performance.now();
+      playModalTypingTimer = 0;
+      playModalNextBlink = 2.4;
+      cancelAnimationFrame(playModalRaf);
+      playModalRaf = requestAnimationFrame(tickPlayModal);
+    } catch (err) {
+      toast('载入试玩皮肤失败：' + err.message);
+      closePlayModal();
+    }
+  }
+
+  function closePlayModal() {
+    playModal.hidden = true;
+    cancelAnimationFrame(playModalRaf);
+    playModalRaf = 0;
+    playModalItem = null;
+    playModalResolved = null;
+  }
+
+  function tickPlayModal(ts) {
+    if (!playModalResolved || playModal.hidden) return;
+    const dt = Math.min(0.05, (ts - playModalLastTs) / 1000);
+    playModalLastTs = ts;
+    const st = playModalState;
+    st.time += dt;
+    st.tailPhase += dt * (playModalPose === 'hunt' ? 5.2 : 2.2);
+
+    for (const k of Object.keys(st.keyGlow)) {
+      st.keyGlow[k] = Math.max(0, st.keyGlow[k] - dt * 3.8);
+      if (st.keyGlow[k] <= 0.01) delete st.keyGlow[k];
+    }
+
+    if (playModalPose === 'idle' || playModalPose === 'typing') {
+      if (st.time >= playModalNextBlink) {
+        const el = st.time - playModalNextBlink;
+        if (el < 0.08) st.blinkProgress = el / 0.08;
+        else if (el < 0.17) st.blinkProgress = 1 - (el - 0.08) / 0.09;
+        else { st.blinkProgress = 0; playModalNextBlink = st.time + 2.5 + Math.random() * 2.5; }
+      }
+    } else {
+      st.blinkProgress += (0 - st.blinkProgress) * Math.min(1, dt * 10);
+    }
+
+    let tYaw = playModalPointer.active ? playModalPointer.yaw : Math.sin(st.time * 0.8) * 0.14;
+    let tPitch = playModalPointer.active ? playModalPointer.pitch : 0;
+    let tHunt = 0, tPetH = 0, tPetB = 0, tSleep = 0, tEarFold = 0, tHind = 0, tSquash = 1, tHeadY = 0;
+
+    if (playModalPose === 'hunt') { tHunt = 1; tSquash = 0.9; tHeadY = 8; tEarFold = 0.45; }
+    else if (playModalPose === 'petHead') { tPetH = 1; tEarFold = 0.78; tSquash = 0.95; tHeadY = 3; }
+    else if (playModalPose === 'petBody') { tPetB = 0.85; tEarFold = 0.45; tSquash = 0.96; }
+    else if (playModalPose === 'sleep') { tSleep = 1; tPitch = 0.35; tHeadY = 6; tEarFold = 0.32; }
+    else if (playModalPose === 'hindFoot') { tHind = 1; st.hindFoot = Renderer.screenQuadPoint(0.28, 0.45); }
+    else if (playModalPose === 'typing') {
+      playModalTypingTimer += dt;
+      if (playModalTypingTimer > 0.22) {
+        playModalTypingTimer = 0;
+        const cap = Renderer.KEYCAPS[Math.floor(Math.random() * Renderer.KEYCAPS.length)];
+        st.keyGlow[cap.id] = 1.0;
+        const pt = Renderer.screenQuadPoint(1 - (cap.xUnits + cap.widthUnits * 0.5), 1 - (cap.row + 0.5) / 5);
+        if (pt.x < 188) { st.leftPaw = pt; st.leftPawActive = true; }
+        else { st.rightPaw = pt; st.rightPawActive = true; }
+      }
+      tPitch = 0.28;
+    } else {
+      st.leftPawActive = false;
+      st.rightPawActive = false;
+    }
+
+    const k = Math.min(1, dt * 9);
+    const lerp = (a, b) => a + (b - a) * k;
+    st.headYaw = lerp(st.headYaw, tYaw);
+    st.headPitch = lerp(st.headPitch, tPitch);
+    st.headTilt = lerp(st.headTilt, tYaw * 0.06);
+    st.bodyTilt = lerp(st.bodyTilt, tYaw * 0.04);
+    st.eyeGazeX = lerp(st.eyeGazeX, playModalPointer.active ? playModalPointer.gazeX : tYaw);
+    st.eyeGazeY = lerp(st.eyeGazeY, playModalPointer.active ? playModalPointer.gazeY : tPitch);
+    st.huntIntensity = lerp(st.huntIntensity, tHunt);
+    st.petHead = lerp(st.petHead, tPetH);
+    st.petBody = lerp(st.petBody, tPetB);
+    st.sleepiness = lerp(st.sleepiness, tSleep);
+    st.earFold = lerp(st.earFold, tEarFold);
+    st.bodySquash = lerp(st.bodySquash, tSquash);
+    st.headOffsetY = lerp(st.headOffsetY, tHeadY);
+    st.hindFootActive = lerp(st.hindFootActive, tHind);
+    if (!st.leftPawActive) {
+      st.leftPaw.x = lerp(st.leftPaw.x, Renderer.LEFT_PAW_REST.x);
+      st.leftPaw.y = lerp(st.leftPaw.y, Renderer.LEFT_PAW_REST.y);
+    }
+    if (!st.rightPawActive) {
+      st.rightPaw.x = lerp(st.rightPaw.x, Renderer.RIGHT_PAW_REST.x);
+      st.rightPaw.y = lerp(st.rightPaw.y, Renderer.RIGHT_PAW_REST.y);
+    }
+
+    Renderer.drawScene(playCtx, playModalResolved, st, { kbTheme: 'classicMilk', eyeTheme: 'neonChartreuse' });
+    playModalRaf = requestAnimationFrame(tickPlayModal);
+  }
+
+  playCanvas.addEventListener('pointermove', (e) => {
+    const rect = playCanvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 360;
+    const y = ((e.clientY - rect.top) / rect.height) * 320;
+    playModalPointer.active = true;
+    playModalPointer.yaw = Spec.clamp((x - 184) / 145, -1, 1);
+    playModalPointer.pitch = Spec.clamp((y - 130) / 135, -1, 1);
+    playModalPointer.gazeX = Spec.clamp((x - 184) / 110, -1, 1);
+    playModalPointer.gazeY = Spec.clamp((y - 130) / 110, -1, 1);
+  });
+  playCanvas.addEventListener('pointerleave', () => { playModalPointer.active = false; });
+
+  document.querySelectorAll('#play-modal-poses .pose-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      playModalPose = btn.dataset.pose;
+      document.querySelectorAll('#play-modal-poses .pose-btn').forEach((b) => b.classList.toggle('active', b === btn));
+    });
+  });
+
+  document.getElementById('btn-close-play-modal').addEventListener('click', closePlayModal);
+  playModal.addEventListener('click', (e) => { if (e.target === playModal) closePlayModal(); });
+  document.getElementById('btn-play-download').addEventListener('click', () => {
+    if (playModalItem) downloadPlazaSkin(playModalItem);
+  });
+  document.getElementById('btn-play-open-workshop').addEventListener('click', () => {
+    if (playModalItem) openPlazaSkinInWorkshop(playModalItem);
+  });
+
+  // --- Community Submission Helper Modal ---
+  function suggestSlug(text, fallback) {
+    const ascii = String(text || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 36);
+    return ascii.length >= 2 ? ascii : fallback;
+  }
+
+  function sanitizeSlug(raw) {
+    return String(raw || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 48);
+  }
+
+  function populateWornAccessoriesSelect() {
+    const sel = document.getElementById('submit-acc-worn-select');
+    sel.innerHTML = '<option value="">-- 从本地选择 PNG 文件 --</option>';
+    const raw = window.KuroWorkshopAPI ? window.KuroWorkshopAPI.getRawSkin() : null;
+    const decos = (raw && raw.decorations) || [];
+    decos.forEach((d, idx) => {
+      const opt = document.createElement('option');
+      opt.value = String(idx);
+      opt.textContent = `当前已佩戴 #${idx + 1}：${d._label || ANCHOR_LABELS[d.anchor] || '自定义配饰'}`;
+      sel.appendChild(opt);
+    });
+    if (decos.length > 0 && !submitAccPngB64) {
+      sel.value = '0';
+      selectWornAccessory(0);
+    }
+  }
+
+  function selectWornAccessory(idx) {
+    const raw = window.KuroWorkshopAPI ? window.KuroWorkshopAPI.getRawSkin() : null;
+    const d = raw && raw.decorations && raw.decorations[idx];
+    if (!d) return;
+    submitAccPngB64 = d.png || '';
+    submitAccTransform = {
+      offsetX: d.offsetX || 0,
+      offsetY: d.offsetY || 0,
+      scale: d.scale || 1,
+      rotation: d.rotation || 0
+    };
+    document.getElementById('submit-acc-anchor').value = d.anchor || 'headTop';
+    if (d._label && !document.getElementById('submit-title').value.trim()) {
+      document.getElementById('submit-title').value = d._label;
+    }
+    updateSubmitAccPreview();
+    updateSubmitPreview();
+  }
+
+  function updateSubmitAccPreview() {
+    const row = document.getElementById('submit-acc-preview-row');
+    const img = document.getElementById('submit-acc-preview-img');
+    const meta = document.getElementById('submit-acc-preview-meta');
+    if (submitAccPngB64) {
+      row.hidden = false;
+      img.src = `data:image/png;base64,${submitAccPngB64}`;
+      meta.textContent = `已就绪 · 偏移 (${submitAccTransform.offsetX}, ${submitAccTransform.offsetY}) · 缩放 ${submitAccTransform.scale}`;
+    } else {
+      row.hidden = true;
+    }
+  }
+
+  function buildSubmitMetaObject() {
+    const title = document.getElementById('submit-title').value.trim() || (submitType === 'skin' ? '我的桌面小猫' : '我的自定义饰品');
+    const author = document.getElementById('submit-author').value.trim() || '社区创作者';
+    const authorUrl = safeUrl(document.getElementById('submit-author-url').value.trim());
+    const description = document.getElementById('submit-desc').value.trim() || '欢迎试玩我的 KuroCat 作品！';
+    const tagsRaw = document.getElementById('submit-tags').value.trim();
+    const tags = tagsRaw
+      ? tagsRaw.split(/[\s,，、#]+/).map((s) => s.trim()).filter(Boolean).slice(0, 6)
+      : [submitType === 'skin' ? '原创皮肤' : '原创饰品'];
+    const createdAt = new Date().toISOString().slice(0, 10);
+
+    const meta = { title, author };
+    if (authorUrl) meta.authorUrl = authorUrl;
+    meta.description = description;
+
+    if (submitType === 'accessory') {
+      meta.anchor = document.getElementById('submit-acc-anchor').value || 'headTop';
+      meta.offsetX = submitAccTransform.offsetX;
+      meta.offsetY = submitAccTransform.offsetY;
+      meta.scale = submitAccTransform.scale;
+      meta.rotation = submitAccTransform.rotation;
+    }
+    meta.tags = tags;
+    meta.createdAt = createdAt;
+    return meta;
+  }
+
+  function updateSubmitPreview() {
+    const slugVal = sanitizeSlug(document.getElementById('submit-slug').value) || (submitType === 'skin' ? 'my-kurocat' : 'my-accessory');
+    const dir = submitType === 'skin' ? `community/${slugVal}/` : `community-accessories/${slugVal}/`;
+    document.getElementById('submit-target-path').textContent = dir;
+    document.getElementById('submit-guide-dir').textContent = dir;
+    document.getElementById('btn-dl-submit-asset').textContent = submitType === 'skin' ? '⬇️ 下载 skin.kurocat' : '⬇️ 下载 accessory.png';
+    document.getElementById('btn-dl-submit-preview').hidden = submitType !== 'skin';
+    document.getElementById('submit-accessory-extra').hidden = submitType !== 'accessory';
+    document.getElementById('btn-submit-issue-link').href = submitType === 'skin'
+      ? 'https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-skin.yml'
+      : 'https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-accessory.yml';
+    document.getElementById('submit-meta-preview').textContent = JSON.stringify(buildSubmitMetaObject(), null, 2);
+  }
+
+  function openSubmitModal(preferredType) {
+    submitType = preferredType || (activeView === 'plaza' && activePlazaTab === 'accessories' ? 'accessory' : 'skin');
+    document.querySelectorAll('#submit-type-seg .seg-btn').forEach((b) => {
+      b.classList.toggle('active', b.dataset.submitType === submitType);
+    });
+
+    const raw = window.KuroWorkshopAPI ? window.KuroWorkshopAPI.getRawSkin() : null;
+    if (submitType === 'skin' && raw) {
+      document.getElementById('submit-title').value = raw.name || '我的桌面小猫';
+      document.getElementById('submit-author').value = raw.author || '';
+      document.getElementById('submit-slug').value = suggestSlug(raw.name, 'my-kurocat');
+    } else if (submitType === 'accessory') {
+      document.getElementById('submit-slug').value = suggestSlug(document.getElementById('submit-title').value, 'my-accessory');
+      if (raw && raw.author && !document.getElementById('submit-author').value.trim()) {
+        document.getElementById('submit-author').value = raw.author;
+      }
+      populateWornAccessoriesSelect();
+    }
+
+    updateSubmitPreview();
+    submitModal.hidden = false;
+  }
+
+  function closeSubmitModal() {
+    submitModal.hidden = true;
+  }
+
+  document.getElementById('btn-open-submit').addEventListener('click', () => openSubmitModal());
+  document.getElementById('btn-plaza-submit').addEventListener('click', () => openSubmitModal());
+  document.getElementById('btn-close-submit-modal').addEventListener('click', closeSubmitModal);
+  submitModal.addEventListener('click', (e) => { if (e.target === submitModal) closeSubmitModal(); });
+
+  document.querySelectorAll('#submit-type-seg .seg-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      submitType = btn.dataset.submitType;
+      document.querySelectorAll('#submit-type-seg .seg-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      if (submitType === 'accessory') {
+        populateWornAccessoriesSelect();
+        document.getElementById('submit-slug').value = suggestSlug(document.getElementById('submit-title').value, 'my-accessory');
+      } else {
+        const raw = window.KuroWorkshopAPI ? window.KuroWorkshopAPI.getRawSkin() : null;
+        if (raw) {
+          document.getElementById('submit-title').value = raw.name || '我的桌面小猫';
+          document.getElementById('submit-slug').value = suggestSlug(raw.name, 'my-kurocat');
+        }
+      }
+      updateSubmitPreview();
+    });
+  });
+
+  ['submit-slug', 'submit-title', 'submit-author', 'submit-author-url', 'submit-desc', 'submit-tags', 'submit-acc-anchor'].forEach((id) => {
+    document.getElementById(id).addEventListener('input', updateSubmitPreview);
+  });
+
+  document.getElementById('submit-acc-worn-select').addEventListener('change', (e) => {
+    if (e.target.value !== '') selectWornAccessory(parseInt(e.target.value, 10));
+  });
+
+  document.getElementById('submit-acc-file').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      submitAccPngB64 = String(reader.result || '').replace(/^data:[^;]+;base64,/, '');
+      submitAccTransform = { offsetX: 0, offsetY: 0, scale: 1, rotation: 0 };
+      document.getElementById('submit-acc-worn-select').value = '';
+      updateSubmitAccPreview();
+      updateSubmitPreview();
+      toast('已载入饰品 PNG');
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('btn-dl-submit-asset').addEventListener('click', () => {
+    if (submitType === 'skin') {
+      if (!window.KuroWorkshopAPI) return;
+      const exportObj = window.KuroWorkshopAPI.getExportObject();
+      exportObj.name = document.getElementById('submit-title').value.trim() || exportObj.name;
+      exportObj.author = document.getElementById('submit-author').value.trim() || exportObj.author;
+      const check = Spec.validateRawSkin(exportObj);
+      if (!check.ok) {
+        toast('当前皮肤未通过规范校验：' + check.error);
+        return;
+      }
+      const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json;charset=utf-8' });
+      triggerBlobDownload(blob, 'skin.kurocat');
+      toast('已下载 skin.kurocat');
+    } else {
+      if (!submitAccPngB64) {
+        toast('请先选择当前小猫已佩戴的配饰，或上传一张透明底 PNG');
+        return;
+      }
+      const bin = atob(submitAccPngB64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      triggerBlobDownload(new Blob([bytes], { type: 'image/png' }), 'accessory.png');
+      toast('已下载 accessory.png');
+    }
+  });
+
+  document.getElementById('btn-dl-submit-meta').addEventListener('click', () => {
+    const meta = buildSubmitMetaObject();
+    const blob = new Blob([JSON.stringify(meta, null, 2) + '\n'], { type: 'application/json;charset=utf-8' });
+    triggerBlobDownload(blob, 'meta.json');
+    toast('已下载 meta.json');
+  });
+
+  document.getElementById('btn-dl-submit-preview').addEventListener('click', () => {
+    if (!window.KuroWorkshopAPI) return;
+    const resolved = window.KuroWorkshopAPI.getResolvedSkin();
+    const b64 = Renderer.renderPreviewBase64(resolved, 'classicMilk', 'neonChartreuse');
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    triggerBlobDownload(new Blob([bytes], { type: 'image/png' }), 'preview.png');
+    toast('已下载 preview.png');
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (!playModal.hidden) closePlayModal();
+      else if (!submitModal.hidden) closeSubmitModal();
+    }
+  });
+
+  // Boot: honor URL hash (#plaza or #accessories)
+  const initialHash = window.location.hash.toLowerCase();
+  if (initialHash === '#plaza') setMainView('plaza', 'skins', true);
+  else if (initialHash === '#accessories') setMainView('plaza', 'accessories', true);
+})();

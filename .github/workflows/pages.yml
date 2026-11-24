@@ -20,6 +20,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate community skins and build plaza index.json
+        run: |
+          node scripts/validate-community.mjs
+          node scripts/build-plaza-index.mjs
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

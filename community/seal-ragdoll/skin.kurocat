@@ -1,0 +1,172 @@
+{
+  "formatVersion": 1,
+  "name": "海双布偶猫",
+  "author": "KuroCat 皮肤工坊",
+  "palette": {
+    "body": "#F7F1E7",
+    "bodyShade": "#E9DFD0",
+    "belly": "#FCF9F3",
+    "legs": "#F7F1E7",
+    "paws": "#FCF9F3",
+    "pawPads": "#E9A7AE",
+    "earOuter": "#5D483C",
+    "earInner": "#D6B7AE",
+    "nose": "#E89DA3",
+    "mouth": "#A98A7E",
+    "iris": "#89C8F0",
+    "tail": "#695346",
+    "tailTip": "#4E3B30",
+    "whiskers": "#8B796AA6",
+    "crease": "#9C8A7A75",
+    "outline": "#BFA99466"
+  },
+  "shape": {
+    "build": "standard",
+    "bodyWidth": 1.14,
+    "cheekFullness": 1.1,
+    "earSize": 1.04,
+    "tailThickness": 1.32,
+    "pawStagger": 0
+  },
+  "headSurface": "dome",
+  "regions": [
+    {
+      "space": "head",
+      "fill": "#654F42",
+      "anchors": [
+        {
+          "x": -64,
+          "y": -52,
+          "inX": -64,
+          "inY": -24,
+          "outX": -32,
+          "outY": -54
+        },
+        {
+          "x": -5,
+          "y": -48,
+          "inX": -18,
+          "inY": -54,
+          "outX": -3,
+          "outY": -26
+        },
+        {
+          "x": -12,
+          "y": 2,
+          "inX": -5,
+          "inY": -10,
+          "outX": -24,
+          "outY": 10
+        },
+        {
+          "x": -46,
+          "y": 18,
+          "inX": -34,
+          "inY": 16,
+          "outX": -58,
+          "outY": 16
+        },
+        {
+          "x": -64,
+          "y": 8,
+          "inX": -60,
+          "inY": 14,
+          "outX": -64,
+          "outY": -18
+        }
+      ]
+    },
+    {
+      "space": "head",
+      "fill": "#654F42",
+      "anchors": [
+        {
+          "x": 5,
+          "y": -48,
+          "inX": 3,
+          "inY": -26,
+          "outX": 18,
+          "outY": -54
+        },
+        {
+          "x": 64,
+          "y": -52,
+          "inX": 32,
+          "inY": -54,
+          "outX": 64,
+          "outY": -24
+        },
+        {
+          "x": 64,
+          "y": 8,
+          "inX": 64,
+          "inY": -18,
+          "outX": 60,
+          "outY": 14
+        },
+        {
+          "x": 46,
+          "y": 18,
+          "inX": 58,
+          "inY": 16,
+          "outX": 34,
+          "outY": 16
+        },
+        {
+          "x": 12,
+          "y": 2,
+          "inX": 24,
+          "inY": 10,
+          "outX": 5,
+          "outY": -10
+        }
+      ]
+    },
+    {
+      "space": "body",
+      "fill": "#E3D3BE",
+      "anchors": [
+        {
+          "x": -66,
+          "y": -64
+        },
+        {
+          "x": -34,
+          "y": -54
+        },
+        {
+          "x": -30,
+          "y": 4
+        },
+        {
+          "x": -66,
+          "y": 4
+        }
+      ],
+      "alpha": 0.72
+    },
+    {
+      "space": "body",
+      "fill": "#E3D3BE",
+      "anchors": [
+        {
+          "x": 34,
+          "y": -54
+        },
+        {
+          "x": 66,
+          "y": -64
+        },
+        {
+          "x": 66,
+          "y": 4
+        },
+        {
+          "x": 30,
+          "y": 4
+        }
+      ],
+      "alpha": 0.72
+    }
+  ]
+}

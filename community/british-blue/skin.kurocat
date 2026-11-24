@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "name": "英短蓝猫",
+  "author": "KuroCat 皮肤工坊",
+  "palette": {
+    "body": "#747D88",
+    "bodyShade": "#5E6670",
+    "belly": "#87909B",
+    "legs": "#747D88",
+    "paws": "#6C7580",
+    "pawPads": "#5C5458",
+    "earOuter": "#666E78",
+    "earInner": "#A3989D",
+    "nose": "#4D5259",
+    "mouth": "#4B5056",
+    "iris": "#E5A63B",
+    "tail": "#6A737D",
+    "whiskers": "#DCE2E8A8",
+    "crease": "#4C545E85"
+  },
+  "shape": {
+    "build": "standard",
+    "bodyWidth": 1.2,
+    "cheekFullness": 1.22,
+    "earSize": 0.9,
+    "earPointiness": 0.72,
+    "tailThickness": 1.22,
+    "pawStagger": 0
+  },
+  "headSurface": "dome"
+}

@@ -1,0 +1,25 @@
+name: Validate Community Plaza PR
+
+on:
+  pull_request:
+    paths:
+      - "community/**"
+      - "community-accessories/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate skins & accessories
+        run: node scripts/validate-community.mjs
+      - name: Dry-run plaza index build
+        run: node scripts/build-plaza-index.mjs
