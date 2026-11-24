@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KuroCat 皮肤工坊 · 照片一键生成你的桌面小猫</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Studio Header -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-paw" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="24" height="24" fill="currentColor">
+            <ellipse cx="9.2" cy="11.2" rx="2.9" ry="3.6" transform="rotate(-14 9.2 11.2)"/>
+            <ellipse cx="15.9" cy="8.6" rx="2.9" ry="3.7"/>
+            <ellipse cx="22.8" cy="11.2" rx="2.9" ry="3.6" transform="rotate(14 22.8 11.2)"/>
+            <path d="M16 14.4c-4.9 0-8.4 3.5-8.4 7.1 0 2.6 2 4.3 4.6 4.3 1.5 0 2.6-.6 3.8-.6s2.3.6 3.8.6c2.6 0 4.6-1.7 4.6-4.3 0-3.6-3.5-7.1-8.4-7.1z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>KuroCat 皮肤工坊</h1>
+          <span class="brand-sub">支持照片识别生成 · 导出 .kurocat 直接拖进换装间</span>
+        </div>
+      </div>
+
+      <div class="meta-fields">
+        <label class="inline-field">
+          <span>皮肤名</span>
+          <input id="skin-name" type="text" maxlength="40" value="我的桌面小猫" placeholder="例如：家里的橘猫" />
+        </label>
+        <label class="inline-field inline-field-author">
+          <span>作者</span>
+          <input id="skin-author" type="text" maxlength="40" value="KuroCat 皮肤工坊" placeholder="可选" />
+        </label>
+      </div>
+
+      <div class="top-actions">
+        <span id="validation-pill" class="validation-pill ok" title="符合 .kurocat v1 规范">✓ 规范校验通过</span>
+        <div class="history-btns" role="group" aria-label="撤销与重做">
+          <button type="button" class="icon-btn" id="btn-undo" title="撤销 (Ctrl/⌘+Z)" aria-label="撤销" disabled>
+            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 5 3.5 9l4 4M4 9h7.5a4.5 4.5 0 0 1 0 9H9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="icon-btn" id="btn-redo" title="重做 (Ctrl/⌘+Shift+Z)" aria-label="重做" disabled>
+            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M12.5 5l4 4-4 4M16 9H8.5a4.5 4.5 0 0 0 0 9H11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <label class="btn btn-secondary" for="import-kurocat-input" title="导入已有 .kurocat 文件继续编辑">
+          导入 .kurocat
+        </label>
+        <input id="import-kurocat-input" type="file" accept=".kurocat,application/json" hidden />
+        <button id="btn-export" class="btn btn-primary" type="button">
+          导出 .kurocat
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workbench -->
+    <main class="workbench">
+      <!-- Left: Interactive 2.5D Cat Stage -->
+      <section class="stage-column">
+        <div class="stage-card">
+          <div class="stage-header">
+            <div class="stage-title-group">
+              <span class="stage-badge" id="stage-coat-badge">实时 2.5D 预览</span>
+              <span class="stage-hint" id="stage-hint">移动鼠标让小猫转头看你 · 点击键盘区域体验敲键</span>
+            </div>
+            <div class="backdrop-pills" role="group" aria-label="预览背景">
+              <button type="button" class="chip active" data-bg="cream">暖米纸</button>
+              <button type="button" class="chip" data-bg="slate">浅灰</button>
+              <button type="button" class="chip" data-bg="dark">暗夜</button>
+              <button type="button" class="chip" data-bg="checker">透明</button>
+            </div>
+          </div>
+
+          <div class="canvas-frame bg-cream" id="canvas-frame">
+            <canvas id="cat-canvas" width="720" height="640"></canvas>
+            <div class="canvas-overlay-badge" id="edit-mode-banner" hidden>
+              <span>正在编辑曲线锚点：拖动圆点调形状，拖动小菱形调弧度</span>
+              <button type="button" id="btn-exit-region-edit" class="mini-btn">完成编辑</button>
+            </div>
+            <div class="canvas-overlay-badge pen-banner" id="pen-banner" hidden>
+              <span id="pen-banner-text">钢笔：点一下放锚点</span>
+              <span class="pen-banner-actions">
+                <button type="button" id="btn-pen-back" class="mini-btn">撤一个点</button>
+                <button type="button" id="btn-pen-finish" class="mini-btn pen-finish">完成</button>
+                <button type="button" id="btn-pen-cancel" class="mini-btn">退出</button>
+              </span>
+            </div>
+            <div class="canvas-overlay-badge" id="deco-banner" hidden>
+              <span>调整配饰：拖动移动位置 · 拖右下角缩放 · 拖顶部圆点旋转</span>
+              <button type="button" id="btn-exit-deco-edit" class="mini-btn">完成调整</button>
+            </div>
+          </div>
+
+          <div class="stage-controls">
+            <div class="pose-bar" role="group" aria-label="动作测试">
+              <button type="button" class="pose-btn active" data-pose="idle">待机</button>
+              <button type="button" class="pose-btn" data-pose="typing">敲键盘</button>
+              <button type="button" class="pose-btn" data-pose="hunt">捕猎大眼</button>
+              <button type="button" class="pose-btn" data-pose="petHead">摸头闭眼</button>
+              <button type="button" class="pose-btn" data-pose="petBody">半眯享受</button>
+              <button type="button" class="pose-btn" data-pose="hindFoot">三键踢脚</button>
+              <button type="button" class="pose-btn" data-pose="sleep">打瞌睡</button>
+            </div>
+
+            <div class="stage-subbar">
+              <div class="mini-group">
+                <span class="mini-label">键盘配色</span>
+                <select id="keyboard-theme-select">
+                  <option value="classicMilk">经典奶白暖黄</option>
+                  <option value="midnightHacker">暗夜极客黑</option>
+                  <option value="retroCream">复古奶油灰</option>
+                </select>
+              </div>
+              <div class="mini-group">
+                <span class="mini-label">默认瞳色（无自定虹膜时）</span>
+                <select id="eye-theme-select">
+                  <option value="neonChartreuse">荧光黄绿</option>
+                  <option value="siameseBlue">暹罗冰蓝</option>
+                  <option value="warmAmber">琥珀金瞳</option>
+                  <option value="softAmber">柔和琥珀</option>
+                  <option value="referenceHazel">淡金青绿</option>
+                  <option value="iceCyan">冰晶浅蓝</option>
+                </select>
+              </div>
+              <button type="button" id="btn-snapshot" class="mini-btn" title="保存当前预览 PNG">保存预览图</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Import Tip Card matching Dressing Room -->
+        <div class="usage-strip">
+          <div class="usage-step"><strong>1</strong> 上传真猫照片或选模板</div>
+          <div class="usage-arrow">→</div>
+          <div class="usage-step"><strong>2</strong> 微调毛色、花纹与体型</div>
+          <div class="usage-arrow">→</div>
+          <div class="usage-step"><strong>3</strong> 导出 .kurocat 拖进换装间</div>
+        </div>
+      </section>
+
+      <!-- Right: Studio Inspector Tabs -->
+      <aside class="panel-column">
+        <nav class="tab-bar" role="tablist">
+          <button type="button" class="tab-btn active" data-tab="photo" role="tab">照片生成</button>
+          <button type="button" class="tab-btn" data-tab="templates" role="tab">模板库</button>
+          <button type="button" class="tab-btn" data-tab="palette" role="tab">毛色五官</button>
+          <button type="button" class="tab-btn" data-tab="shape" role="tab">体型轮廓</button>
+          <button type="button" class="tab-btn" data-tab="regions" role="tab">分区花纹</button>
+          <button type="button" class="tab-btn" data-tab="decorations" role="tab">配饰装扮</button>
+        </nav>
+
+        <div class="tab-panels">
+          <!-- TAB 1: Photo-to-Skin Generator -->
+          <section class="tab-panel active" id="tab-photo">
+            <div class="photo-dropzone" id="photo-dropzone">
+              <input id="photo-file-input" type="file" accept="image/*" hidden />
+              <div class="dropzone-empty" id="dropzone-empty">
+                <div class="drop-icon" aria-hidden="true">
+                  <svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="6" y="10" width="36" height="28" rx="6"/>
+                    <circle cx="18" cy="21" r="3.5"/>
+                    <path d="M8 33l10-9 7 6 6-5 9 8"/>
+                  </svg>
+                </div>
+                <p class="drop-title">把真实猫咪照片拖到这里，或点击选择</p>
+                <p class="drop-sub">正面/半身清晰的猫咪照片效果最好 · 纯本地浏览器识别，不上传服务器</p>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-choose-photo">选择猫咪照片…</button>
+              </div>
+
+              <div class="photo-workspace" id="photo-workspace" hidden>
+                <div class="photo-canvas-wrap">
+                  <canvas id="photo-canvas" width="420" height="320"></canvas>
+                  <div class="photo-overlay-tip" id="photo-overlay-tip">橙色圈对准猫脸 · 拖动平移 · 滚轮缩放</div>
+                </div>
+                <div class="photo-toolbar">
+                  <button type="button" class="mini-btn" id="btn-recenter-frame" title="重新在照片里的猫鼻子上按住并拖到脸颊边缘">重新点猫鼻子</button>
+                  <button type="button" class="mini-btn" id="btn-skip-face" hidden title="不定位猫脸，直接按照片中间的大框分析">跳过，用整张照片</button>
+                  <button type="button" class="mini-btn" id="btn-eyedrop-iris" title="在照片中点一下猫眼虹膜，直接吸取瞳色">吸取瞳色</button>
+                  <button type="button" class="mini-btn" id="btn-eyedrop-body" title="在照片中点一下主毛色">吸取主毛色</button>
+                  <button type="button" class="mini-btn" id="btn-change-photo">换一张照片</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analysis Result & Controls -->
+            <div class="card-section" id="photo-result-card">
+              <div class="section-head">
+                <h3>照片色块向量化提取</h3>
+                <span class="status-tag" id="photo-archetype-tag">等待上传照片</span>
+              </div>
+
+              <div id="photo-summary-box" class="analysis-placeholder">
+                上传任意猫咪照片后，会直接按照片像素位置提取真实色块轮廓并拟合为可编辑的贝塞尔曲线分区（非固定套模板），支持导出后直接拖进换装间，也支持在「分区花纹」中拖动锚点二次微调。
+              </div>
+
+              <div id="photo-controls" hidden>
+                <div class="seg-preview-bar">
+                  <img id="photo-seg-img" class="seg-thumb" alt="提取的色块分布图" />
+                  <div class="swatch-row" id="photo-swatches"></div>
+                </div>
+
+                <div class="control-block">
+                  <div class="control-label">提取毛色数量（色块聚类数）</div>
+                  <div class="pill-grid" id="color-count-pills">
+                    <button type="button" class="pill" data-k="2">2 色（纯色/双色）</button>
+                    <button type="button" class="pill active" data-k="3">3 色（推荐）</button>
+                    <button type="button" class="pill" data-k="4">4 色（精细花纹）</button>
+                    <button type="button" class="pill" data-k="5">5 色（复杂斑块）</button>
+                  </div>
+                </div>
+
+                <div class="control-block">
+                  <div class="control-label">配色风格</div>
+                  <div class="pill-grid" id="tone-pills">
+                    <button type="button" class="pill active" data-tone="balanced">柔和还原</button>
+                    <button type="button" class="pill" data-tone="vivid">萌系提亮</button>
+                    <button type="button" class="pill" data-tone="faithful">原图直取</button>
+                  </div>
+                </div>
+
+                <div class="control-block">
+                  <div class="control-label">虎斑条纹叠加</div>
+                  <div class="pill-grid" id="tabby-pills">
+                    <button type="button" class="pill active" data-tabby="auto">自动检测</button>
+                    <button type="button" class="pill" data-tabby="on">强制叠加</button>
+                    <button type="button" class="pill" data-tabby="off">关闭条纹</button>
+                  </div>
+                </div>
+
+                <div class="slider-row">
+                  <label>色块曲线平滑度</label>
+                  <input type="range" id="photo-smoothness" min="0.4" max="1.6" step="0.1" value="1.0" />
+                  <span class="slider-val" id="photo-smoothness-val">1.0</span>
+                </div>
+
+                <div class="checkbox-row">
+                  <label><input type="checkbox" id="photo-opt-colorpoint" checked /> 重点色柔焦面罩</label>
+                  <label><input type="checkbox" id="photo-opt-nose" checked /> 小鼻头与嘴巴</label>
+                  <label><input type="checkbox" id="photo-opt-pads" checked /> 匹配肉垫</label>
+                  <label><input type="checkbox" id="photo-opt-iris" checked /> 提取瞳色</label>
+                </div>
+
+                <button type="button" class="btn btn-primary btn-full" id="btn-regenerate-photo">
+                  重新提取色块并生成皮肤
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 2: Built-in & Popular Breed Templates -->
+          <section class="tab-panel" id="tab-templates">
+            <div class="card-section">
+              <div class="section-head">
+                <h3>内置官方皮肤</h3>
+                <span class="muted-note">点击即可载入并二次修改</span>
+              </div>
+              <div class="template-grid" id="official-template-grid"></div>
+            </div>
+
+            <div class="card-section">
+              <div class="section-head">
+                <h3>热门猫咪预设</h3>
+                <span class="muted-note">全部采用曲线分区（v1 规范）</span>
+              </div>
+              <div class="template-grid" id="preset-template-grid"></div>
+            </div>
+          </section>
+
+          <!-- TAB 3: Palette -->
+          <section class="tab-panel" id="tab-palette">
+            <div class="card-section">
+              <div class="section-head">
+                <h3>毛色与五官调色板</h3>
+                <span class="muted-note">自动限制为 `#RRGGBB` / `#RRGGBBAA`</span>
+              </div>
+              <div id="palette-editor"></div>
+            </div>
+          </section>
+
+          <!-- TAB 4: Shape & Proportions -->
+          <section class="tab-panel" id="tab-shape">
+            <div class="card-section">
+              <div class="section-head">
+                <h3>骨架与头部投影</h3>
+                <button type="button" class="mini-btn" id="btn-reset-shape">恢复默认体型</button>
+              </div>
+
+              <div class="control-block">
+                <div class="control-label">基础骨架 (`shape.build`)</div>
+                <div class="segmented" id="build-segmented">
+                  <button type="button" class="seg-btn active" data-build="standard">圆润标准 (standard)</button>
+                  <button type="button" class="seg-btn" data-build="sleek">修长纤细 (sleek)</button>
+                </div>
+              </div>
+
+              <div class="control-block">
+                <div class="control-label">头部花纹曲面 (`headSurface`)</div>
+                <div class="segmented" id="surface-segmented">
+                  <button type="button" class="seg-btn active" data-surface="dome">3D 球面跟随 (dome)</button>
+                  <button type="button" class="seg-btn" data-surface="plane">平面贴图 (plane)</button>
+                </div>
+              </div>
+
+              <div id="shape-sliders" class="slider-list"></div>
+            </div>
+          </section>
+
+          <!-- TAB 5: Regions, Marks & JSON -->
+          <section class="tab-panel" id="tab-regions">
+            <div class="card-section pen-card">
+              <div class="section-head">
+                <h3>钢笔画分区</h3>
+                <span class="muted-note">单击 = 尖角 · 按住拖 = 圆滑弧线</span>
+              </div>
+              <div class="pen-row">
+                <span class="pen-label">画在</span>
+                <div class="pill-grid" id="pen-space-pills" role="group" aria-label="画在哪个部位">
+                  <button type="button" class="pill active" data-space="head">脸</button>
+                  <button type="button" class="pill" data-space="skull">头顶</button>
+                  <button type="button" class="pill" data-space="body">身体</button>
+                  <button type="button" class="pill" data-space="tail">尾巴</button>
+                </div>
+              </div>
+              <div class="pen-row">
+                <span class="pen-label">方式</span>
+                <div class="pill-grid" id="pen-mode-pills" role="group" aria-label="画法">
+                  <button type="button" class="pill active" data-mode="split">分割线，点一侧上色</button>
+                  <button type="button" class="pill" data-mode="closed">闭合色块</button>
+                  <button type="button" class="pill" data-mode="stroke">条纹笔触</button>
+                </div>
+              </div>
+              <div class="pen-row" id="pen-width-row" hidden>
+                <span class="pen-label">粗细</span>
+                <input type="range" id="pen-width" min="0.6" max="8" step="0.1" value="2.2" aria-label="条纹粗细" />
+                <span class="muted-note" id="pen-width-val">2.2</span>
+              </div>
+              <label class="pen-mirror-row">
+                <input type="checkbox" id="pen-mirror" />
+                <span class="pen-mirror-switch" aria-hidden="true"></span>
+                <span><b>左右对称</b> · 以脸 / 身体中线为轴，自动画出另一半（尾巴除外）</span>
+              </label>
+              <div class="pen-row">
+                <span class="pen-label">颜色</span>
+                <input type="color" id="pen-color" value="#FAF4EA" aria-label="分区颜色" />
+                <div class="pen-swatches" id="pen-swatches"></div>
+              </div>
+              <p class="pen-help" id="pen-help">在左边小猫身上画一条穿过部位的曲线，画好后点线的哪一侧，哪一侧就填上颜色。</p>
+              <button type="button" class="btn btn-primary btn-full" id="btn-pen-start">开始画</button>
+            </div>
+
+            <div class="card-section">
+              <div class="section-head">
+                <h3>快捷添加花纹分区</h3>
+                <span class="muted-note">自动贴合下颌线与轮廓裁切</span>
+              </div>
+              <div class="quick-add-grid">
+                <button type="button" class="mini-btn" data-add-preset="whiteBelly">+ 白肚皮/围脖</button>
+                <button type="button" class="mini-btn" data-add-preset="blazeFace">+ 八字白脸</button>
+                <button type="button" class="mini-btn" data-add-preset="muzzleWhite">+ 白嘴套</button>
+                <button type="button" class="mini-btn" data-add-preset="leftPatch">+ 左脸花斑</button>
+                <button type="button" class="mini-btn" data-add-preset="rightPatch">+ 右脸花斑</button>
+                <button type="button" class="mini-btn" data-add-preset="earTips">+ 深色耳尖</button>
+                <button type="button" class="mini-btn" data-add-preset="tabbyForehead">+ 额头 M 纹</button>
+                <button type="button" class="mini-btn" data-add-preset="tailRings">+ 尾巴环纹</button>
+              </div>
+            </div>
+
+            <div class="card-section">
+              <div class="section-head">
+                <h3>曲线分区列表 (`regions`)</h3>
+                <span class="muted-note" id="regions-count">0 / 64</span>
+              </div>
+              <div id="regions-list" class="layer-list"></div>
+            </div>
+
+            <div class="card-section">
+              <div class="section-head">
+                <h3>条纹与图形 (`marks`)</h3>
+                <div class="inline-actions">
+                  <span class="muted-note" id="marks-count">0 / 256</span>
+                  <button type="button" class="mini-btn danger" id="btn-clear-marks">清空条纹</button>
+                </div>
+              </div>
+              <div id="marks-list" class="layer-list"></div>
+            </div>
+
+            <details class="card-section json-details">
+              <summary>查看 / 复制 `.kurocat` JSON 源码</summary>
+              <div class="json-actions">
+                <button type="button" class="mini-btn" id="btn-copy-json">复制 JSON</button>
+                <span class="muted-note" id="json-size-note">0 KB</span>
+              </div>
+              <pre id="json-preview" class="json-code"></pre>
+            </details>
+          </section>
+
+          <!-- TAB 6: Accessories & Custom Sticker Upload -->
+          <section class="tab-panel" id="tab-decorations">
+            <!-- Worn Decorations Manager -->
+            <div class="card-section">
+              <div class="section-head">
+                <h3>已佩戴配饰</h3>
+                <div class="inline-actions">
+                  <span class="muted-note" id="decos-count">0 / 8</span>
+                  <button type="button" class="mini-btn danger" id="btn-clear-decos">全部摘下</button>
+                </div>
+              </div>
+              <div id="decos-active-list" class="layer-list"></div>
+
+              <!-- Fine-tune Inspector for Selected Decoration -->
+              <div id="deco-inspector" class="deco-inspector" hidden>
+                <div class="deco-inspector-head">
+                  <strong id="deco-inspector-title">正在微调配饰</strong>
+                  <div class="inline-actions">
+                    <button type="button" class="mini-btn" id="btn-deco-center">水平居中</button>
+                    <button type="button" class="mini-btn" id="btn-deco-reset">重置位置</button>
+                  </div>
+                </div>
+
+                <div class="control-block">
+                  <div class="control-label">佩戴部位（决定随头/身体/尾巴联动）</div>
+                  <div class="pill-grid" id="deco-anchor-pills">
+                    <button type="button" class="pill" data-anchor="headTop">头顶</button>
+                    <button type="button" class="pill" data-anchor="face">脸部</button>
+                    <button type="button" class="pill" data-anchor="neck">颈部</button>
+                    <button type="button" class="pill" data-anchor="tailTip">尾尖</button>
+                  </div>
+                </div>
+
+                <div class="slider-list deco-sliders">
+                  <div class="slider-row">
+                    <label>左右偏移</label>
+                    <input type="range" id="deco-offset-x" min="-120" max="120" step="1" value="0" />
+                    <span class="slider-val" id="deco-offset-x-val">0</span>
+                  </div>
+                  <div class="slider-row">
+                    <label>上下偏移</label>
+                    <input type="range" id="deco-offset-y" min="-120" max="120" step="1" value="0" />
+                    <span class="slider-val" id="deco-offset-y-val">0</span>
+                  </div>
+                  <div class="slider-row">
+                    <label>大小缩放</label>
+                    <input type="range" id="deco-scale" min="0.15" max="3.0" step="0.02" value="1.0" />
+                    <span class="slider-val" id="deco-scale-val">1.00</span>
+                  </div>
+                  <div class="slider-row">
+                    <label>旋转角度</label>
+                    <input type="range" id="deco-rotation" min="-180" max="180" step="1" value="0" />
+                    <span class="slider-val" id="deco-rotation-val">0°</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom Sticker Upload -->
+            <div class="card-section">
+              <div class="section-head">
+                <h3>上传自定义配饰 / 贴纸</h3>
+                <span class="muted-note">支持 PNG / WebP / JPG / SVG</span>
+              </div>
+              <div class="deco-upload-zone" id="deco-upload-zone">
+                <input id="deco-file-input" type="file" accept="image/png,image/webp,image/jpeg,image/gif,image/svg+xml" hidden />
+                <p class="deco-upload-title">拖入透明贴纸或任意配饰图片，或点击上传</p>
+                <p class="deco-upload-sub">自动缩放到规范尺寸并打包进 .kurocat，导入软件后直接跟着小猫动</p>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-upload-deco">选择配饰图片…</button>
+              </div>
+              <div class="deco-upload-opts">
+                <div class="mini-group">
+                  <span class="mini-label">默认佩戴到</span>
+                  <select id="deco-upload-anchor">
+                    <option value="headTop">头顶（帽子/发卡）</option>
+                    <option value="face">脸部（眼镜/贴纸）</option>
+                    <option value="neck">颈部（项圈/围巾）</option>
+                    <option value="tailTip">尾尖（蝴蝶结/挂件）</option>
+                  </select>
+                </div>
+                <label class="deco-bg-check">
+                  <input type="checkbox" id="deco-upload-remove-bg" />
+                  <span>自动去纯色底（适合白底图片）</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Built-in Accessory Wardrobe -->
+            <div class="card-section">
+              <div class="section-head">
+                <h3>内置装扮库（点一下立刻佩戴）</h3>
+                <span class="muted-note">最多同时戴 8 件</span>
+              </div>
+              <div class="pill-grid deco-cat-pills" id="deco-category-pills">
+                <button type="button" class="pill active" data-cat="all">全部 (18)</button>
+                <button type="button" class="pill" data-cat="headTop">头顶</button>
+                <button type="button" class="pill" data-cat="face">脸部</button>
+                <button type="button" class="pill" data-cat="neck">颈部</button>
+                <button type="button" class="pill" data-cat="tailTip">尾尖</button>
+              </div>
+              <div class="deco-gallery" id="deco-gallery"></div>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="spec.js"></script>
+  <script src="renderer.js"></script>
+  <script src="decorations.js"></script>
+  <script src="photo-analyzer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
