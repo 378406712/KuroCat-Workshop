@@ -1101,10 +1101,10 @@
 
     const sy = state.bodySquash, sx = 1 + (1 - sy) * 0.55;
     const c = Math.cos(state.bodyTilt), s = Math.sin(state.bodyTilt);
-    const faceBottom = 126 + bd.headLift + state.headOffsetY + state.headPitch * 4.8 + breath * 1.1 + 52;
+    const faceBottom = 126 + bd.headLift + state.headOffsetY + state.headPitch * 4.8 + breath * 1.1 + 42;
     const shoulder = (x) => ({
-      x: seatX + x * sx * c + 43 * sy * s,
-      y: Math.max(seatY + x * sx * s - 43 * sy * c, faceBottom)
+      x: seatX + x * sx * c + 58 * sy * s,
+      y: Math.max(seatY + x * sx * s - 58 * sy * c, faceBottom)
     });
 
     const lPos = state.leftPaw, rPos = state.rightPaw;
