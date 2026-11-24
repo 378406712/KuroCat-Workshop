@@ -24,7 +24,7 @@
     all: `请帮我把作品投稿到开源项目 KuroCat-Workshop（https://github.com/chanke17/KuroCat-Workshop）的社区广场。
 
 请按仓库规范自动完成以下全部步骤：
-1. Fork 并 clone https://github.com/chanke17/KuroCat-Workshop（若本地已有目录则同步最新 main）；
+1. Fork 并 Star 并 clone https://github.com/chanke17/KuroCat-Workshop（若本地已有目录则同步最新 main）；
 2. 根据我提供的素材自动判断投稿类型并放入对应独立目录（slug 仅用小写字母/数字/连字符，绝不手动修改 index.json）：
    - 皮肤：community/<slug>/ 放 skin.kurocat + meta.json（可选 preview.gif 或 preview.png）
    - 饰品：community-accessories/<slug>/ 放透明底 accessory.png（≤1MB, ≤1024×1024）+ meta.json（含 anchor/offsetX/offsetY/scale/rotation）
@@ -39,7 +39,7 @@
 - 文件或配色需求：（把 .kurocat / PNG 拖进来，或直接描述你想要的键盘配色）`,
 
     skin: `请帮我把一款猫咪皮肤投稿到 https://github.com/chanke17/KuroCat-Workshop 的「皮肤广场」：
-1. Fork 并 clone 仓库，新建目录 community/<英文slug>/；
+1. Fork 并 Star 并 clone 仓库，新建目录 community/<英文slug>/；
 2. 放入 skin.kurocat（v1 规范，≤2MB）、meta.json（含 title / author / authorUrl / description / tags / createdAt），以及可选的 preview.gif 或 preview.png（≤5MB）；
 3. 严禁修改 community/index.json；运行 node scripts/validate-community.mjs 验证全部通过；
 4. 发起 Pull Request 到 chanke17/KuroCat-Workshop 的 main 分支。
@@ -51,7 +51,7 @@
 - 标签：`,
 
     accessory: `请帮我把一款自定义配饰投稿到 https://github.com/chanke17/KuroCat-Workshop 的「饰品广场」：
-1. Fork 并 clone 仓库，新建目录 community-accessories/<英文slug>/；
+1. Fork 并 Star 并 clone 仓库，新建目录 community-accessories/<英文slug>/；
 2. 放入透明底 accessory.png（≤1MB，≤1024×1024，如需抠去白底请自动帮我抠成透明底并裁剪空白边）；
 3. 生成 meta.json，包含 title / author / authorUrl / description / anchor（headTop|face|neck|tailTip）/ offsetX / offsetY / scale / rotation / tags / createdAt；
 4. 严禁修改 community-accessories/index.json；运行 node scripts/validate-community.mjs 验证通过后提交 PR。
@@ -62,7 +62,7 @@
 - 制作人与简介：`,
 
     keyboard: `请帮我制作并投稿一套 65% 机械键盘配色到 https://github.com/chanke17/KuroCat-Workshop 的「键盘广场」：
-1. Fork 并 clone 仓库，新建目录 community-keyboards/<英文slug>/；
+1. Fork 并 Star 并 clone 仓库，新建目录 community-keyboards/<英文slug>/；
 2. 创建 keyboard.json（formatVersion: 1，含 name、author 和 colors：mouseBody / mouseBorder / wheel / base / deck / key / keyBorder / accent 8 个 #RRGGBB 色值及 darkText 布尔值）；
 3. 创建 meta.json（含 title / author / authorUrl / description / tags / createdAt）；
 4. 严禁修改 community-keyboards/index.json；运行 node scripts/validate-community.mjs 验证通过后提交 PR。
