@@ -536,6 +536,14 @@
       attachLiveCardCanvas(canvas, item);
     }
 
+    const isEaster = (item.tags || []).includes('彩蛋限定');
+    if (isEaster) {
+      const easterBadge = document.createElement('span');
+      easterBadge.className = 'media-badge easter';
+      easterBadge.textContent = '彩蛋限定';
+      media.appendChild(easterBadge);
+    }
+
     const decoCnt = item.decorationCount || 0;
     if (decoCnt > 0) {
       const decoBadge = document.createElement('span');
@@ -769,8 +777,8 @@
       <p class="plaza-desc" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</p>
       <div class="plaza-tags">${tagsHtml}</div>
       <div class="plaza-card-actions">
-        <button type="button" class="btn btn-primary btn-xs" data-act="apply">应用到当前小猫</button>
-        <button type="button" class="mini-btn" data-act="download">下载 JSON</button>
+        <button type="button" class="btn btn-primary btn-xs" data-act="download">下载 .kurokb</button>
+        <button type="button" class="mini-btn" data-act="apply">预览到工坊小猫</button>
       </div>
     `;
 
@@ -785,8 +793,8 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
         const safeName = (item.title || item.slug).replace(/[\\/:*?"<>|]/g, '_');
-        triggerBlobDownload(blob, `${safeName}.keyboard.json`);
-        toast(`已下载键盘配色「${safeName}.keyboard.json」`);
+        triggerBlobDownload(blob, `${safeName}.kurokb`);
+        toast(`已下载「${safeName}.kurokb」，直接拖到小猫身上即可换键盘皮肤！`);
       } catch (err) {
         toast('下载失败：' + err.message);
       }

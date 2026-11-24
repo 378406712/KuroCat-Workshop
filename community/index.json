@@ -1,7 +1,32 @@
 {
-  "generatedAt": "2026-11-24T15:05:51.168Z",
-  "count": 5,
+  "generatedAt": "2026-11-24T17:32:59.249Z",
+  "count": 6,
   "skins": [
+    {
+      "slug": "xiao-douni",
+      "title": "小豆泥（彩蛋限定）",
+      "author": "KuroCat 彩蛋企划",
+      "authorUrl": "https://github.com/chanke17/KuroCat",
+      "description": "彩蛋限定皮肤！按小豆泥原画手绘复刻：软糯麻薯圆脸、黑巧手绘描边、耳内绒毛与冰蓝大眼；打字会触发专属狂拍键盘动作，拎起来拖拽还会四脚悬空晃荡！",
+      "tags": [
+        "彩蛋限定",
+        "小豆泥",
+        "专属动作",
+        "手绘风"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/xiao-douni/skin.kurocat",
+      "previewPath": "./community/xiao-douni/preview.gif",
+      "previewType": "gif",
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 772,
+      "paletteSummary": [
+        "#F5EDE5",
+        "#A7947E",
+        "#CDECF2"
+      ]
+    },
     {
       "slug": "royal-tuxedo",
       "title": "皇家墨镜奶牛猫",

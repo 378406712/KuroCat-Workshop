@@ -1,0 +1,35 @@
+{
+  "formatVersion": 1,
+  "name": "小豆泥（彩蛋限定）",
+  "author": "KuroCat 彩蛋企划",
+  "renderStyle": "douni",
+  "typingStyle": "douni",
+  "palette": {
+    "body": "#F5EDE5",
+    "bodyShade": "#EFE4D8",
+    "points": "#A7947E",
+    "pointsMid": "#C8B8A5",
+    "legs": "#A7947E",
+    "paws": "#A7947E",
+    "earOuter": "#A7947E",
+    "tail": "#A7947E",
+    "iris": "#CDECF2",
+    "outline": "#2C241B",
+    "crease": "#2C241B",
+    "whiskers": "#2C241B"
+  },
+  "shape": {
+    "build": "standard",
+    "bodyWidth": 1.12,
+    "headScale": 1.07,
+    "cheekFullness": 1.24,
+    "earSize": 1.14,
+    "earPointiness": 0.72,
+    "tailLength": 0.96,
+    "tailThickness": 1.14,
+    "pawStagger": 0
+  },
+  "headSurface": "dome",
+  "idleLegs": "chest",
+  "marks": []
+}

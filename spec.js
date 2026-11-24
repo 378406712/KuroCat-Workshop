@@ -448,6 +448,8 @@
       palette: pal,
       shape,
       headSurface: raw.headSurface === 'plane' ? 'plane' : 'dome',
+      renderStyle: raw.renderStyle === 'douni' ? 'douni' : 'standard',
+      typingStyle: raw.typingStyle === 'douni' ? 'douni' : 'standard',
       // "legs" (default): sitting front legs tinted with palette.legs; "chest": built-in coat look
       idleLegsTinted: raw.idleLegs !== 'chest',
       regions,
@@ -490,6 +492,8 @@
     }
     clean.shape = shape;
     clean.headSurface = raw.headSurface === 'plane' ? 'plane' : 'dome';
+    if (raw.renderStyle === 'douni') clean.renderStyle = 'douni';
+    if (raw.typingStyle === 'douni') clean.typingStyle = 'douni';
     if (raw.idleLegs === 'chest') clean.idleLegs = 'chest';
 
     if (raw.regions && raw.regions.length > 0) {

@@ -1,7 +1,34 @@
 {
-  "generatedAt": "2026-11-24T15:05:51.168Z",
-  "count": 4,
+  "generatedAt": "2026-11-24T17:32:59.249Z",
+  "count": 5,
   "keyboards": [
+    {
+      "slug": "douni-retro",
+      "title": "小豆泥复古灰键",
+      "author": "KuroCat 彩蛋企划",
+      "authorUrl": "https://github.com/chanke17/KuroCat",
+      "description": "小豆泥狂拍同款复古灰白键帽与暖咖功能键，下载 .kurokb 直接拖到小猫身上即可一键更换！",
+      "tags": [
+        "彩蛋同款",
+        "复古灰",
+        "手绘风"
+      ],
+      "createdAt": "2026-11-25",
+      "keyboardPath": "./community-keyboards/douni-retro/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#D6D7D4",
+        "mouseBorder": "#2C241B",
+        "wheel": "#A7947E",
+        "base": "#444441",
+        "deck": "#686966",
+        "key": "#C2C3C0",
+        "keyBorder": "#444441",
+        "accent": "#A7947E",
+        "darkText": true
+      },
+      "sizeBytes": 402
+    },
     {
       "slug": "sakura-milk",
       "title": "樱花奶盖 65%",

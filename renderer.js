@@ -466,8 +466,36 @@
 
     ctx.save();
     traceEar();
+    const isDouni = skin.renderStyle === 'douni';
+    const douniInk = skin.palette.outline ? rgbaToCss(skin.palette.outline) : '#2C241B';
+    if (isDouni) {
+      ctx.strokeStyle = douniInk;
+      ctx.lineWidth = 4.6;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    }
     ctx.fillStyle = rgbaToCss(skin.palette.earOuter);
     ctx.fill();
+
+    if (isDouni) {
+      const bMid = { x: innerBase.x * 0.62 + outerBase.x * 0.38, y: innerBase.y * 0.62 + outerBase.y * 0.38 };
+      const anchor = { x: bMid.x + (tip.x - bMid.x) * 0.34, y: bMid.y + (tip.y - bMid.y) * 0.34 };
+      const dx = tip.x - bMid.x, dy = tip.y - bMid.y;
+      const dLen = Math.max(1, Math.hypot(dx, dy));
+      const ux = dx / dLen, uy = dy / dLen, px = -uy, py = ux;
+      ctx.save();
+      ctx.strokeStyle = douniInk;
+      ctx.lineWidth = 1.9;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (const [off, len] of [[-4.4, 7.2], [0, 9.6], [4.4, 6.8]]) {
+        const s0x = anchor.x + px * off, s0y = anchor.y + py * off;
+        ctx.moveTo(s0x, s0y);
+        ctx.lineTo(s0x + ux * len + px * off * 0.12, s0y + uy * len + py * off * 0.12);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
 
     if (skin.palette.earInner) {
       const inI = { x: innerBase.x + (tip.x - innerBase.x) * 0.24 + sign * 3.0, y: innerBase.y + (tip.y - innerBase.y) * 0.16 };
@@ -664,7 +692,67 @@
     }
     ctx.restore();
 
-    if (pal.outline) {
+    const isDouni = skin.renderStyle === 'douni';
+    const douniInk = pal.outline ? rgbaToCss(pal.outline) : '#2C241B';
+    if (isDouni) {
+      ctx.save();
+      traceSilhouette();
+      ctx.strokeStyle = douniInk;
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      // Squishy mochi oval head overlapping neck + centered milk-tea taupe muzzle circle!
+      const rx = cheekHalfW * 1.05;
+      const topY = bd.crownBaseY + crownDrop + 0.5;
+      const midY = bd.cheekY - 1.0;
+      const botY = bd.cheekY + 25.5;
+      const lx = -rx + cheekShift * 0.4, rxp = rx + cheekShift * 0.4;
+      const traceHead = () => {
+        const p0 = H(cheekShift * 0.2, topY), p1 = H(rxp, midY), p2 = H(cheekShift * 0.2, botY), p3 = H(lx, midY);
+        const c1a = H(rx * 0.58 + cheekShift * 0.3, topY - 1.5), c1b = H(rxp + 2.5, topY + 10);
+        const c2a = H(rxp + 1.5, botY - 4), c2b = H(rx * 0.52 + cheekShift * 0.3, botY + 1.5);
+        const c3a = H(-rx * 0.52 + cheekShift * 0.3, botY + 1.5), c3b = H(lx - 1.5, botY - 4);
+        const c4a = H(lx - 2.5, topY + 10), c4b = H(-rx * 0.58 + cheekShift * 0.3, topY - 1.5);
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        ctx.bezierCurveTo(c1a.x, c1a.y, c1b.x, c1b.y, p1.x, p1.y);
+        ctx.bezierCurveTo(c2a.x, c2a.y, c2b.x, c2b.y, p2.x, p2.y);
+        ctx.bezierCurveTo(c3a.x, c3a.y, c3b.x, c3b.y, p3.x, p3.y);
+        ctx.bezierCurveTo(c4a.x, c4a.y, c4b.x, c4b.y, p0.x, p0.y);
+        ctx.closePath();
+      };
+      traceHead();
+      ctx.fillStyle = rgbaToCss(pal.body);
+      ctx.fill();
+      if (pal.points) {
+        ctx.save();
+        traceHead();
+        ctx.clip();
+        const yawRad = yaw * 0.50, pitchRad = pitch * 0.36;
+        ctx.translate(headCenter.x, headCenter.y);
+        ctx.rotate(hTilt);
+        if (hs !== 1) ctx.scale(hs, hs);
+        const mp = projectHead3D(0, 2.5, 27.5, yawRad, pitchRad);
+        ctx.translate(mp.x, mp.y);
+        ctx.scale(Math.max(0.74, Math.cos(yawRad * 0.72)), Math.max(0.80, Math.cos(pitchRad * 0.72)));
+        const mg = ctx.createRadialGradient(0, 0, 0, 0, 0, 17.5);
+        mg.addColorStop(0, rgbaToCss(pal.points, 1.0));
+        mg.addColorStop(0.76, rgbaToCss(pal.points, 0.95));
+        mg.addColorStop(1, rgbaToCss(pal.points, 0.0));
+        ctx.fillStyle = mg;
+        ctx.beginPath();
+        ctx.arc(0, 0, 18, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      traceHead();
+      ctx.strokeStyle = douniInk;
+      ctx.lineWidth = 2.45;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+      ctx.restore();
+    } else if (pal.outline) {
       ctx.save();
       traceSilhouette();
       ctx.strokeStyle = rgbaToCss(pal.outline);
@@ -739,7 +827,9 @@
       : `rgb(${eyeTheme.primary[0]},${eyeTheme.primary[1]},${eyeTheme.primary[2]})`;
     const siameseBlue = !customIris && eyeThemeName === 'siameseBlue';
 
-    const proj = projectHead3D(sign * 17.2, -2.0, 27.5, yawRad, pitchRad);
+    const isDouni = skin.renderStyle === 'douni';
+    const douniInk = skin.palette.outline ? rgbaToCss(skin.palette.outline) : '#2C241B';
+    const proj = projectHead3D(sign * (isDouni ? 16.0 : 17.2), isDouni ? 0.5 : -2.0, 27.5, yawRad, pitchRad);
     const eyeNormalAngle = yawRad + sign * 0.34;
     const fx = clamp(Math.cos(eyeNormalAngle) / Math.cos(0.34), 0.64, 1.06);
     const fy = clamp(Math.cos(pitchRad * 0.85), 0.78, 1.03);
@@ -748,20 +838,20 @@
     ctx.translate(proj.x, proj.y);
     ctx.scale(fx, fy);
 
-    if (state.petHead > 0.45) {
-      ctx.strokeStyle = eyeColorCss;
-      ctx.lineWidth = 2.6;
+    if (state.petHead > 0.45 || (isDouni && state.sleepiness > 0.55)) {
+      ctx.strokeStyle = isDouni ? douniInk : eyeColorCss;
+      ctx.lineWidth = isDouni ? 2.4 : 2.6;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(-11.5, 1.0);
-      ctx.quadraticCurveTo(sign * 1.5, 3.4, 11.5, 1.0);
+      ctx.quadraticCurveTo(sign * 1.5, isDouni ? -1.4 : 3.4, 11.5, 1.0);
       ctx.stroke();
       ctx.restore();
       return;
     }
 
     if (state.petBody > 0.35) {
-      ctx.fillStyle = eyeColorCss;
+      ctx.fillStyle = isDouni ? douniInk : eyeColorCss;
       ctx.beginPath();
       ctx.moveTo(-11.5, -0.5);
       ctx.quadraticCurveTo(0, 0.6, 11.5, -0.5);
@@ -773,10 +863,10 @@
     }
 
     const hunt = clamp(state.huntIntensity, 0, 1);
-    ctx.rotate(sign * (0.06 * (1 - hunt * 0.6)));
+    if (!isDouni) ctx.rotate(sign * (0.06 * (1 - hunt * 0.6)));
     const isSiameseEye = getBuild(skin).sleekEyes && siameseBlue;
-    const rx = isSiameseEye ? 11.4 + hunt * 1.3 : 12.0 + hunt * 1.1;
-    const ry = isSiameseEye ? 9.8 + hunt * 2.0 : 10.8 + hunt * 1.8;
+    const rx = isDouni ? 14.5 + hunt * 1.0 : (isSiameseEye ? 11.4 + hunt * 1.3 : 12.0 + hunt * 1.1);
+    const ry = isDouni ? 13.8 + hunt * 1.2 : (isSiameseEye ? 9.8 + hunt * 2.0 : 10.8 + hunt * 1.8);
 
     const closure = clamp(Math.max(state.blinkProgress, state.sleepiness * 0.92), 0, 1);
     if (closure >= 0.99) {
@@ -806,13 +896,14 @@
     }
     ctx.fillRect(-rx - 1, -ry - 1, rx * 2 + 2, ry * 2 + 2);
 
-    const px = state.eyeGazeX * (4.2 - hunt * 1.2);
-    const py = state.eyeGazeY * (3.6 - hunt * 1.0);
+    const boba = isDouni ? Math.max(0.88, hunt) : hunt;
+    const px = state.eyeGazeX * (4.2 - boba * (isDouni ? 1.4 : 1.2));
+    const py = state.eyeGazeY * (3.6 - boba * (isDouni ? 1.2 : 1.0));
     const normalW = 5.0 * state.pupilScale;
     const normalH = 13.5 * Math.min(1.12, state.pupilScale);
-    const huntD = 18.8;
-    const pupilW = normalW + (huntD - normalW) * hunt;
-    const pupilH = normalH + (huntD - normalH) * hunt;
+    const huntD = isDouni ? 21.6 : 18.8;
+    const pupilW = normalW + (huntD - normalW) * boba;
+    const pupilH = normalH + (huntD - normalH) * boba;
 
     if (!customIris && eyeThemeName === 'referenceHazel') {
       for (let i = 0; i <= 16; i++) {
@@ -826,12 +917,20 @@
       }
     }
 
-    ctx.fillStyle = CAT_BLACK;
+    ctx.fillStyle = isDouni ? '#050505' : CAT_BLACK;
     ctx.beginPath();
     ctx.ellipse(px, py, pupilW * 0.5, pupilH * 0.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    if (hunt > 0.25) {
+    if (isDouni) {
+      ctx.fillStyle = 'rgba(255,255,255,0.96)';
+      ctx.beginPath();
+      ctx.arc(px - pupilW * 0.12, py - pupilH * 0.24, 3.0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(px + pupilW * 0.14, py + pupilH * 0.18, 1.55, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (hunt > 0.25) {
       const alpha = Math.min(1, (hunt - 0.25) / 0.55) * 0.92;
       const gr = 2.1 + hunt * 0.9;
       ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
@@ -846,6 +945,13 @@
     }
 
     ctx.restore();
+    if (isDouni) {
+      ctx.strokeStyle = douniInk;
+      ctx.lineWidth = 2.15;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 

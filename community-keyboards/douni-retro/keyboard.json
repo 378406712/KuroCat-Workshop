@@ -1,0 +1,17 @@
+{
+  "formatVersion": 1,
+  "name": "小豆泥复古灰键",
+  "author": "KuroCat 彩蛋企划",
+  "authorUrl": "https://github.com/chanke17/KuroCat-Workshop",
+  "colors": {
+    "mouseBody": "#D6D7D4",
+    "mouseBorder": "#2C241B",
+    "wheel": "#A7947E",
+    "base": "#444441",
+    "deck": "#686966",
+    "key": "#C2C3C0",
+    "keyBorder": "#444441",
+    "accent": "#A7947E",
+    "darkText": true
+  }
+}

@@ -1914,6 +1914,14 @@ textarea {
   border-color: transparent;
 }
 
+.media-badge.easter {
+  left: 10px;
+  right: auto;
+  background: #2C241B;
+  color: #FFE49E;
+  border-color: rgba(255, 228, 158, 0.45);
+}
+
 .media-badge.live {
   background: #2C221A;
   color: #FFFCF8;
