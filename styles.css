@@ -4101,13 +4101,395 @@ textarea {
   }
 }
 
-@media (max-width: 640px) {
-  .workbench.mode-hero {
-    padding: 14px 10px 28px;
+@media (max-width: 760px) {
+  html,
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  .studio-shell,
+  .studio-main,
+  .view-pane {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+    box-sizing: border-box;
+  }
+
+  .canvas-frame {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #cat-canvas {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
+  .guide-shell {
+    padding: 12px 10px 36px;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .guide-article,
+  .guide-section,
+  .guide-lead {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .guide-code {
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
+
+  /* Compact mobile topbar that strictly stays within viewport width */
+  .topbar {
+    height: auto;
+    min-height: 50px;
+    padding: 8px 10px;
+    gap: 6px 8px;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .topbar-left {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .topbar-right {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  #topbar-workshop-right,
+  #topbar-plaza-right,
+  #topbar-guide-right {
+    flex: 1 1 100%;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  #topbar-workshop-right {
+    justify-content: flex-end;
+  }
+
+  .meta-fields {
+    flex: 1 1 0;
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .inline-field {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 140px;
+    padding: 0 7px;
+    height: 30px;
+  }
+
+  .inline-field span {
+    display: none;
+  }
+
+  .inline-field input {
+    width: 100%;
+    min-width: 0;
+    font-size: 12.5px;
+  }
+
+  .history-btns,
+  .help-anchor,
+  .page-heading-meta {
+    display: none;
+  }
+
+  .topbar-right .btn {
+    height: 30px;
+    padding: 0 9px;
+    font-size: 12px;
+  }
+
+  .page-heading-bar {
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .page-heading-bar h1 {
+    font-size: 15px;
+  }
+
+  .search-field {
+    flex: 1 1 120px;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: 30px;
+    padding: 0 8px;
+  }
+
+  .search-field input {
+    font-size: 12px;
+  }
+
+  /* Workbench & Stage on mobile */
+  .workbench,
+  .workbench.mode-hero,
+  .workbench.mode-editing {
+    padding: 10px 10px 24px;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 0;
+  }
+
+  .stage-column,
+  .stage-card,
+  .inspector-panel,
+  .exploded-pane,
+  .exploded-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .stage-card {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .stage-header {
+    gap: 6px;
+  }
+
+  .stage-hint {
+    display: none;
+  }
+
+  .stage-header-actions {
+    gap: 6px;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .backdrop-pills {
+    flex-wrap: nowrap;
+  }
+
+  .workbench.mode-editing .canvas-frame {
+    min-height: 0;
+    max-height: 320px;
+  }
+
+  .stage-pose-bar,
+  .play-pose-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 6px;
+  }
+
+  .stage-pose-bar::-webkit-scrollbar,
+  .play-pose-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pose-pill {
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .stage-subbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .stage-subbar-group {
+    justify-content: space-between;
+  }
+
+  .stage-subbar-group select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .workbench.mode-editing .exploded-canvas-wrap {
+    height: 290px;
+    flex: 0 0 auto;
   }
 
   .exploded-card {
     padding: 10px;
+  }
+
+  /* Inspector tabs & controls */
+  .inspector-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .inspector-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .inspector-tab {
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    font-size: 12.5px;
+  }
+
+  .ctx-sliders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .deco-gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Paint Studio mobile ribbon & canvas */
+  .paint-shell {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .paint-ribbon {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .paint-ribbon-group {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .paint-part-tabs,
+  .paint-tool-grid,
+  .paint-props-row,
+  .paint-palette-row {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .paint-canvas-wrap,
+  #paint-canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Community Plaza mobile layout */
+  .plaza-shell {
+    padding: 12px 10px 28px;
+    gap: 12px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .plaza-tabs-bar {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .plaza-tab-pill {
+    padding: 6px 4px;
+    font-size: 12px;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .plaza-filter-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    max-width: 100%;
+  }
+
+  .plaza-filter-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .plaza-filter-row .chip,
+  .plaza-filter-row .filter-chip,
+  .plaza-filter-row .pill {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .plaza-grid,
+  .plaza-acc-grid,
+  .plaza-kb-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .plaza-card,
+  .plaza-acc-card,
+  .plaza-kb-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .plaza-card-body {
+    padding: 11px 12px;
+  }
+
+  .plaza-card-head {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .plaza-card-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .plaza-card-actions .btn,
+  .plaza-card-actions .mini-btn {
+    flex: 1 1 auto;
+  }
+
+  /* Modals & Floating Cards */
+  .modal-card,
+  .modal-play,
+  .modal-submit,
+  .reward-floating-card {
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+
+  .modal-head {
+    padding: 12px 14px;
+  }
+
+  .modal-body {
+    padding: 12px 14px;
   }
 
   .btn-ghost {
@@ -4118,5 +4500,15 @@ textarea {
   .help-popover {
     width: 276px;
     right: -28px;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar-right .btn-secondary {
+    padding: 0 7px;
+  }
+  .hero-start-btn {
+    width: 100%;
+    max-width: 260px;
   }
 }
