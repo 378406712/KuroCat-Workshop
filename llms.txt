@@ -1,0 +1,15 @@
+# KuroCat Skin Workshop & Community Plaza
+
+> Official web editor and community gallery for KuroCat desktop pet skins (`.kurocat`), 2.5D sticker accessories, and custom keyboard skins (`.kurokb`).
+
+## Links
+- Skin Workshop & Plaza: https://chanke17.github.io/KuroCat-Workshop/
+- KuroCat Official Homepage: https://chanke17.github.io/KuroCat/
+- Fast Direct Download Mirror: https://kurocat-download.app.workbuddy.host/?sharecode=JVAABIVZ7L
+- KuroCat Source Repository: https://github.com/chanke17/KuroCat
+- Workshop Source & PR Submissions: https://github.com/chanke17/KuroCat-Workshop
+
+## Features
+- Browser based 2.5D cat coat editor with photo color analysis, cubic bezier coat regions, shape tuning, and 2.5D sticker accessories.
+- Free community gallery with real time interactive 2.5D previews, including Xiao Douni, Monster Hunter Dazed Cat (Palico), Brown Mackerel Tabby, Chinese Li Hua Tabby, Abyssinian, and custom 65% mechanical keyboard palettes.
+- One click export to `.kurocat` or `.kurokb` for drag and drop import into KuroCat on macOS, Windows, and Linux.
