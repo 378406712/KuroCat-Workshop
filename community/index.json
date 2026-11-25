@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-25T04:12:06.054Z",
+  "generatedAt": "2026-11-25T04:22:17.404Z",
   "count": 8,
   "skins": [
     {
@@ -15,8 +15,8 @@
       ],
       "createdAt": "2026-11-25",
       "skinPath": "./community/abyssinian-farmer/skin.kurocat",
-      "previewPath": "./community/abyssinian-farmer/preview.png",
-      "previewType": "png",
+      "previewPath": null,
+      "previewType": null,
       "decorationCount": 1,
       "regionCount": 0,
       "sizeBytes": 65914,
