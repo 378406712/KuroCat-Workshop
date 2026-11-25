@@ -1,7 +1,30 @@
 {
-  "generatedAt": "2026-11-25T04:04:07.135Z",
-  "count": 7,
+  "generatedAt": "2026-11-25T04:12:06.054Z",
+  "count": 8,
   "skins": [
+    {
+      "slug": "abyssinian-farmer",
+      "title": "埃及农民（阿比西尼亚）",
+      "author": "kokawaii",
+      "authorUrl": "https://github.com/kokawaiii",
+      "description": "嘿嘿手搓一只农民 可能不太像但也挺像了",
+      "tags": [
+        "棕色",
+        "高贵",
+        "典雅"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/abyssinian-farmer/skin.kurocat",
+      "previewPath": "./community/abyssinian-farmer/preview.png",
+      "previewType": "png",
+      "decorationCount": 1,
+      "regionCount": 0,
+      "sizeBytes": 65914,
+      "paletteSummary": [
+        "#956749",
+        "#CC9B5C"
+      ]
+    },
     {
       "slug": "brown-tabby",
       "title": "狸花猫（中华田园虎斑）",
