@@ -3861,16 +3861,35 @@
 
   function hitTestCat(pos, skin, state) {
     if (skin && skin.renderStyle === 'douni') {
-      const loafing = state && (state.douniLoafBlend || 0) > 0.5;
-      if (!loafing && pos.x < 118 && pos.y > 100 && pos.y < 180) return 'mouse';
-      if (!loafing && pos.y > 180) return 'keyboard';
-      const headX = loafing ? 151 : (250 + (state ? state.bodyShiftX : 0));
-      const headY = loafing ? 209 : 132;
-      const hdx = (pos.x - headX) / (loafing ? 105 : 74);
-      const hdy = (pos.y - headY) / (loafing ? 56 : 52);
+      const loaf = clamp(state ? (state.douniLoafBlend || 0) : 0, 0, 1);
+      const loafS = smoothstep(0, 1, loaf);
+      const scruff = clamp(state ? (state.scruffDrag || 0) : 0, 0, 1);
+      if (scruff > 0.25) {
+        const d = Math.hypot((pos.x - 178) / 118, (pos.y - 165) / 96);
+        return d <= 1.0 ? 'body' : 'none';
+      }
+      if (loafS < 0.45 && pos.x < 118 && pos.y > 100 && pos.y < 180) return 'mouse';
+      // Continuously interpolate head hit zone from Video 2 desk -> Video 1 loaf so petting never drops or ping-pongs mid-morph
+      const shiftX = state ? (state.bodyShiftX || 0) : 0;
+      const hx = lerpNum(250 + shiftX, 151 + shiftX, loafS);
+      const hy = lerpNum(132, 209, loafS);
+      const hrx = lerpNum(76, 102, loafS);
+      const hry = lerpNum(54, 58, loafS);
+      const hdx = (pos.x - hx) / hrx;
+      const hdy = (pos.y - hy) / hry;
       if (hdx * hdx + hdy * hdy <= 1.0) return 'head';
-      const bdx = (pos.x - (loafing ? 210 : 250)) / 86;
-      const bdy = (pos.y - (loafing ? 200 : 176)) / 62;
+      if ((loaf > 0.03 || (state && state.petHead > 0.05)) && loaf < 0.90) {
+        const v2dx = (pos.x - (250 + shiftX)) / 76;
+        const v2dy = (pos.y - 132) / 56;
+        if (v2dx * v2dx + v2dy * v2dy <= 1.0) return 'head';
+      }
+      if (loafS < 0.45 && pos.y > 180) return 'keyboard';
+      const bx = lerpNum(250 + shiftX, 205 + shiftX, loafS);
+      const by = lerpNum(176, 200, loafS);
+      const brx = lerpNum(86, 118, loafS);
+      const bry = lerpNum(62, 68, loafS);
+      const bdx = (pos.x - bx) / brx;
+      const bdy = (pos.y - by) / bry;
       if (bdx * bdx + bdy * bdy <= 1.0) return 'body';
       return 'none';
     }
@@ -4215,14 +4234,16 @@
       drawLimb(ctx, hip, mid, target, 15.0, 12.0, true, 0.85 * state.hindFootActive, skin);
     }
 
-    // Neck decorations over torso/chest, behind face features & front paws
+    // Front arms/paws emerge from shoulders underneath neck accessories (collar/scarf/bowtie)
+    drawFrontPaws(ctx, seatX, seatY, breath, state, skin);
+
+    // Neck decorations over chest & arm roots, behind face features
     if (hasDecos) {
       drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['neck'] });
     }
 
     drawHeadFeatures(ctx, headCenter, state, eyeTheme, skin);
-    drawFrontPaws(ctx, seatX, seatY, breath, state, skin);
-    // Face & head-top decorations cleanly above head, ears, features & paws
+    // Face & head-top decorations cleanly above head, ears & features
     if (hasDecos) {
       drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['face', 'headTop'] });
     }
