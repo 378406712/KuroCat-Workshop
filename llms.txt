@@ -1,15 +1,24 @@
-# KuroCat Skin Workshop & Community Plaza
+# KuroCat Skin Workshop & Community Plaza (workshop.kurocat.cc)
 
-> Official web editor and community gallery for KuroCat desktop pet skins (`.kurocat`), 2.5D sticker accessories, and custom keyboard skins (`.kurokb`).
+> Official free browser-based 2.5D cat skin editor, accessory studio, and community plaza for KuroCat (`https://kurocat.cc/`), the native open-source desktop cat pet for macOS, Windows, Linux, and UOS.
 
-## Links
-- Skin Workshop & Plaza: https://workshop.kurocat.cc/
-- KuroCat Official Homepage: https://kurocat.cc/
-- Fast Direct Download Mirror: https://kurocat-download.app.workbuddy.host/?sharecode=JVAABIVZ7L
-- KuroCat Source Repository: https://github.com/chanke17/KuroCat
-- Workshop Source & PR Submissions: https://github.com/chanke17/KuroCat-Workshop
+## Official Links
+- [KuroCat Skin Workshop & Plaza](https://workshop.kurocat.cc/)
+- [KuroCat Official Homepage (Chinese)](https://kurocat.cc/)
+- [KuroCat Official Homepage (English)](https://kurocat.cc/en/)
+- [OBS & Streaming Setup Guide](https://kurocat.cc/obs-guide/)
+- [Full Technical Reference (`llms-full.txt`)](https://kurocat.cc/llms-full.txt)
+- [KuroCat Source Repository](https://github.com/chanke17/KuroCat)
+- [Workshop Repository & Community PRs](https://github.com/chanke17/KuroCat-Workshop)
 
-## Features
-- Browser based 2.5D cat coat editor with photo color analysis, cubic bezier coat regions, shape tuning, and 2.5D sticker accessories.
-- Free community gallery with real time interactive 2.5D previews, including Xiao Douni, Monster Hunter Dazed Cat (Palico), Brown Mackerel Tabby, Chinese Li Hua Tabby, Abyssinian, and custom 65% mechanical keyboard palettes.
-- One click export to `.kurocat` or `.kurokb` for drag and drop import into KuroCat on macOS, Windows, and Linux.
+## Featured Free Community Skins (`.kurocat`)
+- **小豆泥（彩蛋限定 / Xiao Douni）**: Comic-style special renderer with hand-drawn wired keyboard, impact sparks, mochi-flatten petting, and ice-blue lifted eyes.
+- **怪猎呆猫（艾露猫 / Monster Hunter Dazed Cat Palico）**: Native `renderStyle: "dazed"` renderer with indigo hood, flared cuffs, wide black-rimmed eyes, and back greatsword.
+- **狸花猫（中华田园虎斑 / Chinese Li Hua Tabby）**, **棕虎斑（暖棕鲭鱼纹 / Brown Mackerel Tabby）**, **埃及农民（阿比西尼亚 / Abyssinian）**, **皇家墨镜奶牛猫（Royal Tuxedo）**, **胖橘白（Chubby Orange & White）**, **软萌三花猫（Soft Calico）**, **海双布偶猫（Seal Ragdoll）**, **圆脸英短蓝猫（British Blue）**.
+
+## Featured Free Accessories & Mechanical Keyboards (`.kurokb`)
+- **Accessories**: 招财小鱼发卡, 8-bit 像素大佬墨镜, 魔法小尖帽, 抹茶奶油小领结.
+- **65% Keyboards**: 小豆泥复古灰键 (`douni-retro`), 樱花奶盖 65% (`sakura-milk`), 抹茶拿铁 65% (`matcha-latte`), 赛博电青 65% (`cyber-vapor`), 复古掌机 DMG (`gameboy-retro`).
+
+## How to Install Any Skin or Keyboard
+- Drag and drop any `.kurocat` or `.kurokb` file directly onto your running KuroCat desktop pet window on macOS, Windows, or Linux to apply immediately.

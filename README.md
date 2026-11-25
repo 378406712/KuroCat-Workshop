@@ -3,11 +3,12 @@
 为桌面互动小猫 **[KuroCat](https://github.com/chanke17/KuroCat)** 打造的纯前端皮肤制作、配饰 DIY 与社区分享平台。  
 无需安装依赖、无需后端服务器，打开网页就能用**自家猫照片**、**自己手绘的小猫图**或**自由画笔/钢笔**做出专属 `.kurocat` 皮肤，也能逛社区**皮肤广场**和**饰品广场**一键下载或试戴！
 
-- 🎨 **在线皮肤工坊**：https://chanke17.github.io/KuroCat-Workshop/
-- ✨ **社区皮肤广场**：https://chanke17.github.io/KuroCat-Workshop/#plaza
-- 🎀 **社区饰品广场**：https://chanke17.github.io/KuroCat-Workshop/#accessories
-- ⌨️ **社区键盘广场**：https://chanke17.github.io/KuroCat-Workshop/#keyboards
-- 📖 **AI Agent 投稿指南**：https://chanke17.github.io/KuroCat-Workshop/#guide
+- 🌐 **KuroCat 官方网站**：https://kurocat.cc/ （[English](https://kurocat.cc/en/) · [OBS 直播指南](https://kurocat.cc/obs-guide/)）
+- 🎨 **在线皮肤工坊**：https://workshop.kurocat.cc/
+- ✨ **社区皮肤广场**：https://workshop.kurocat.cc/#plaza
+- 🎀 **社区饰品广场**：https://workshop.kurocat.cc/#accessories
+- ⌨️ **社区键盘广场**：https://workshop.kurocat.cc/#keyboards
+- 📖 **AI Agent 投稿指南**：https://workshop.kurocat.cc/#guide
 
 ---
 
