@@ -866,11 +866,11 @@
       }
     }
 
-    // Representative colour of a chromatic coat cluster = its sunlit half for real photos
-    // (skip for hand-drawn illustrations so exact drawn flat colors stay untouched!)
+    // Representative colour of a coat cluster = its sunlit half for real photos
+    // (skip dark achromatic coats so black fur stays deep, and skip hand-drawn art so flat colors stay untouched)
     if (!isDrawing) {
       for (let c = 0; c < coatClusters.length; c++) {
-        if (coatClusters[c].chroma <= 14) continue;
+        if (coatClusters[c].chroma <= 14 && coatClusters[c].lab[0] < 48) continue;
         const ls = [];
         for (let idx = 0; idx < N; idx++) if (labelGrid[idx] === c) ls.push(pixelLab[idx][0]);
         if (ls.length < 12) continue;

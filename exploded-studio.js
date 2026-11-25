@@ -738,7 +738,7 @@
       ctx.save();
       drawFloatingShadow(ctx, isHov);
       traceHead();
-      ctx.fillStyle = partFillStyle(ctx, skin, 'head', 0, -ry, 0, ry, pal.body);
+      ctx.fillStyle = partFillStyle(ctx, skin, 'head', 0, -ry, 0, ry, pal.headBody || pal.body);
       ctx.fill();
       ctx.restore();
 
@@ -779,14 +779,17 @@
       ctx.beginPath();
       ctx.ellipse(0, 7.5 * hS, 3.2 * hS, 2.2 * hS, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = pal.mouth ? rgbaCss(pal.mouth) : 'rgba(110,92,84,0.75)';
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.arc(-3.5 * hS, 11 * hS, 3.6 * hS, 0.15, Math.PI - 0.15);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(3.5 * hS, 11 * hS, 3.6 * hS, 0.15, Math.PI - 0.15);
-      ctx.stroke();
+      const mouthHidden = !!(pal.mouth && pal.mouth.a !== undefined && pal.mouth.a < 0.01);
+      if (!mouthHidden) {
+        ctx.strokeStyle = pal.mouth ? rgbaCss(pal.mouth) : 'rgba(110,92,84,0.75)';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(-3.5 * hS, 11 * hS, 3.6 * hS, 0.15, Math.PI - 0.15);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(3.5 * hS, 11 * hS, 3.6 * hS, 0.15, Math.PI - 0.15);
+        ctx.stroke();
+      }
 
       traceHead();
       ctx.strokeStyle = isHov ? '#D97736' : 'rgba(92, 76, 64, 0.16)';
@@ -1148,6 +1151,20 @@
         ctx.beginPath();
         ctx.ellipse(n.x, n.y, 3.2 * hs, 2.2 * hs, 0, 0, Math.PI * 2);
         ctx.fill();
+        const mouthHidden = !!(pal.mouth && pal.mouth.a !== undefined && pal.mouth.a < 0.01);
+        if (!mouthHidden) {
+          const mL = toPartCanvas('head', { x: -3.5, y: 11 });
+          const mR = toPartCanvas('head', { x: 3.5, y: 11 });
+          ctx.strokeStyle = pal.mouth ? rgbaCss(pal.mouth, 0.9) : 'rgba(110,92,84,0.75)';
+          ctx.lineWidth = 1.6;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.arc(mL.x, mL.y, 3.6 * hs, 0.15, Math.PI - 0.15);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(mR.x, mR.y, 3.6 * hs, 0.15, Math.PI - 0.15);
+          ctx.stroke();
+        }
         ctx.restore();
       }
     };
@@ -1167,7 +1184,7 @@
         ctx.restore();
       }
     } else if (partId === 'head') {
-      drawSingleUnit('head', pal.body);
+      drawSingleUnit('head', pal.headBody || pal.body);
     } else if (partId === 'body') {
       drawSingleUnit('body', pal.body);
     } else if (partId === 'leftArm' || partId === 'rightArm') {
@@ -1371,7 +1388,16 @@
     notifyChange(true);
   }
 
-  // Eraser: removes marks/regions near pointer in part space
+  function distPointToSegment(px, py, ax, ay, bx, by) {
+    const dx = bx - ax;
+    const dy = by - ay;
+    const len2 = dx * dx + dy * dy;
+    if (len2 <= 1e-9) return Math.hypot(px - ax, py - ay);
+    const t = clamp(((px - ax) * dx + (py - ay) * dy) / len2, 0, 1);
+    return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+  }
+
+  // Eraser: removes marks/regions near pointer in part space (using point-to-segment distance)
   function eraseAtPoint(space, pt) {
     const raw = getRaw();
     if (!raw) return false;
@@ -1393,11 +1419,28 @@
       const before = raw.marks.length;
       raw.marks = raw.marks.filter((m) => {
         if (spacesToHit.indexOf(m.space) === -1) return true;
+        const pts = m.points;
+        if (!pts || !pts.length) return true;
+        const tol = hitR + (m.width || 2) * 0.5;
+        const polyPts = m.kind === 'polygon' && pts.length >= 3
+          ? pts.map((p) => ({ x: p[0], y: p[1] }))
+          : null;
         for (let k = 0; k < ptsToHit.length; k++) {
           const hp = ptsToHit[k];
-          for (let j = 0; j < m.points.length; j++) {
-            const mp = m.points[j];
-            if (Math.hypot(mp[0] - hp.x, mp[1] - hp.y) <= hitR + (m.width || 2) * 0.5) {
+          if (polyPts && Spec.pointInPolygon(hp, polyPts)) return false;
+          if (pts.length === 1) {
+            if (Math.hypot(pts[0][0] - hp.x, pts[0][1] - hp.y) <= tol) return false;
+            continue;
+          }
+          for (let j = 0; j < pts.length - 1; j++) {
+            const a = pts[j], b = pts[j + 1];
+            if (distPointToSegment(hp.x, hp.y, a[0], a[1], b[0], b[1]) <= tol) {
+              return false;
+            }
+          }
+          if (polyPts) {
+            const a = pts[pts.length - 1], b = pts[0];
+            if (distPointToSegment(hp.x, hp.y, a[0], a[1], b[0], b[1]) <= tol) {
               return false;
             }
           }
@@ -1416,7 +1459,9 @@
           const hp = ptsToHit[k];
           if (Spec.pointInPolygon(hp, flat)) return false;
           for (let j = 0; j < flat.length; j++) {
-            if (Math.hypot(flat[j].x - hp.x, flat[j].y - hp.y) <= hitR) return false;
+            const a = flat[j];
+            const b = flat[(j + 1) % flat.length];
+            if (distPointToSegment(hp.x, hp.y, a.x, a.y, b.x, b.y) <= hitR) return false;
           }
         }
         return true;
@@ -1453,9 +1498,14 @@
     if (!raw) return;
     if (!raw.palette) raw.palette = {};
     const c = hex.toUpperCase();
-    if (partId === 'head' || partId === 'body') {
+    if (partId === 'head') {
+      raw.palette.headBody = c;
+      delete raw.palette.bodyShade;
+      if (raw.partGradients) delete raw.partGradients.head;
+    } else if (partId === 'body') {
       raw.palette.body = c;
-      if (raw.partGradients) delete raw.partGradients[partId];
+      delete raw.palette.bodyShade;
+      if (raw.partGradients) delete raw.partGradients.body;
     } else if (partId === 'ears') {
       raw.palette.earOuter = c;
       if (raw.partGradients) {
@@ -1481,6 +1531,9 @@
     }
     notifyChange(true);
     renderPartInspector();
+    const part = PART_BY_ID[partId];
+    const api = API();
+    if (api && part) api.showToast('已将「' + part.label + '」底色填充为 ' + c);
   }
 
   // -------------------------------------------------------------------------
@@ -1805,7 +1858,14 @@
   // -------------------------------------------------------------------------
   // Contextual Per-Part Inspector (2-4 Sliders + Part Colors + Gradient Toggle)
   // -------------------------------------------------------------------------
+  let lastVisibleMouthHex = '#6E5C54';
+
+  function isMouthHidden(pal) {
+    return !!(pal && pal.mouth && pal.mouth.a !== undefined && pal.mouth.a < 0.01);
+  }
+
   function getPaletteHexForChip(pal, key) {
+    if (key === 'headBody') return colorToHex(pal.headBody || pal.body, '#1A1A1E');
     if (key === 'belly') return colorToHex(pal.belly || pal.body, '#FFFFFF');
     if (key === 'tailTip') return colorToHex(pal.tailTip || pal.tail, '#FFFFFF');
     if (key === 'hindLeg') return colorToHex(pal.hindLeg || pal.legs, '#1A1A1E');
@@ -1813,6 +1873,10 @@
     if (key === 'irisLeft') return colorToHex(pal.irisLeft || pal.iris, '#D2E83A');
     if (key === 'irisRight') return colorToHex(pal.irisRight || pal.iris, '#D2E83A');
     if (key === 'pupil') return colorToHex(pal.pupil || pal.pupilLeft, '#141416');
+    if (key === 'mouth') {
+      if (pal.mouth && !isMouthHidden(pal)) return colorToHex(pal.mouth, lastVisibleMouthHex);
+      return lastVisibleMouthHex;
+    }
     return colorToHex(pal[key], '#1A1A1E');
   }
 
@@ -1827,6 +1891,11 @@
       if (inp === document.activeElement) continue;
       const hex = getPaletteHexForChip(pal, inp.dataset.ctxPal);
       if (inp.value.toUpperCase() !== hex.toUpperCase()) inp.value = hex;
+    }
+
+    const hideMouthCb = inspectorEl.querySelector('#ctx-hide-mouth');
+    if (hideMouthCb) {
+      hideMouthCb.checked = isMouthHidden(pal);
     }
 
     const gFrom = inspectorEl.querySelector('#ctx-grad-from');
@@ -1873,7 +1942,7 @@
     const gradSpace = partId === 'ears' ? 'leftEar' : partId;
     const rawGrad = raw.partGradients && raw.partGradients[gradSpace];
     const hasGrad = !!(rawGrad && Spec.isValidHex(rawGrad.from) && Spec.isValidHex(rawGrad.to));
-    let gradFrom = colorToHex(pal.body, '#1A1A1E');
+    let gradFrom = colorToHex(partId === 'head' ? (pal.headBody || pal.body) : pal.body, '#1A1A1E');
     let gradTo = colorToHex(pal.paws, '#FFFFFF');
     if (hasGrad) {
       gradFrom = rawGrad.from;
@@ -1919,12 +1988,21 @@
         sliderRow('后腿粗细', 'hindLegWidth', 0.70, 1.45, 0.02, shape.hindLegWidth || 1.0, '×') +
         sliderRow('伸出长度', 'hindLegReach', 0.75, 1.35, 0.02, shape.hindLegReach || 1.0, '×');
     } else if (partId === 'head') {
+      const mouthHidden = isMouthHidden(pal);
+      if (pal.mouth && !mouthHidden) {
+        lastVisibleMouthHex = colorToHex(pal.mouth, lastVisibleMouthHex);
+      }
       colorsHtml =
-        colorChip('头部底色', 'body', colorToHex(pal.body, '#1A1A1E')) +
+        colorChip('头部底色', 'headBody', colorToHex(pal.headBody || pal.body, '#1A1A1E')) +
         colorChip('左眼', 'irisLeft', colorToHex(pal.irisLeft || pal.iris, '#D2E83A')) +
         colorChip('右眼', 'irisRight', colorToHex(pal.irisRight || pal.iris, '#D2E83A')) +
         colorChip('瞳孔', 'pupil', colorToHex(pal.pupil || pal.pupilLeft, '#141416')) +
         colorChip('鼻尖', 'nose', colorToHex(pal.nose, '#EB9CA8')) +
+        colorChip('嘴巴', 'mouth', getPaletteHexForChip(pal, 'mouth')) +
+        '<label class="ctx-grad-toggle">' +
+          '<input type="checkbox" id="ctx-hide-mouth"' + (mouthHidden ? ' checked' : '') + ' />' +
+          '<span>隐藏嘴巴</span>' +
+        '</label>' +
         colorChip('胡须', 'whiskers', colorToHex(pal.whiskers, '#DCDCDC'));
       slidersHtml =
         sliderRow('头部大小', 'headScale', 0.90, 1.15, 0.01, shape.headScale || 1.0, '×') +
@@ -1984,13 +2062,23 @@
         if (key === 'irisLeft') {
           if (!r.palette.irisRight && r.palette.iris) r.palette.irisRight = r.palette.iris;
           r.palette.irisLeft = val;
+          r.palette.iris = r.palette.irisLeft || r.palette.irisRight;
         } else if (key === 'irisRight') {
           if (!r.palette.irisLeft && r.palette.iris) r.palette.irisLeft = r.palette.iris;
           r.palette.irisRight = val;
+          r.palette.iris = r.palette.irisLeft || r.palette.irisRight;
         } else if (key === 'pupil') {
           r.palette.pupil = val;
           delete r.palette.pupilLeft;
           delete r.palette.pupilRight;
+        } else if (key === 'body' || key === 'headBody') {
+          r.palette[key] = val;
+          delete r.palette.bodyShade;
+        } else if (key === 'mouth') {
+          r.palette.mouth = val;
+          lastVisibleMouthHex = val;
+          const hideMouthCb = inspectorEl.querySelector('#ctx-hide-mouth');
+          if (hideMouthCb && hideMouthCb.checked) hideMouthCb.checked = false;
         } else {
           r.palette[key] = val;
         }
@@ -1998,6 +2086,27 @@
         notifyChange(false);
       });
       pInputs[i].addEventListener('change', function () { notifyChange(true); });
+    }
+
+    const hideMouthCheck = inspectorEl.querySelector('#ctx-hide-mouth');
+    if (hideMouthCheck) {
+      hideMouthCheck.addEventListener('change', function () {
+        const r = getRaw();
+        if (!r) return;
+        if (!r.palette) r.palette = {};
+        if (this.checked) {
+          const curMouth = r.palette.mouth;
+          if (curMouth && Spec.isValidHex(curMouth)) {
+            const parsed = Spec.parseHexColor(curMouth);
+            if (parsed && parsed.a >= 0.01) lastVisibleMouthHex = curMouth.slice(0, 7).toUpperCase();
+          }
+          r.palette.mouth = '#00000000';
+        } else {
+          const mouthInp = inspectorEl.querySelector('[data-ctx-pal="mouth"]');
+          r.palette.mouth = (mouthInp && Spec.isValidHex(mouthInp.value) ? mouthInp.value.toUpperCase() : lastVisibleMouthHex) || '#6E5C54';
+        }
+        notifyChange(true);
+      });
     }
 
     // Bind gradient controls
@@ -2397,6 +2506,10 @@
     activeTool = tool;
     if (tool !== 'eyedropper' && tool !== 'bucket') prevDrawTool = tool;
     if (panToolActive) setPanToolActive(false);
+    if (tool === 'bucket') {
+      const api = API();
+      if (api) api.showToast('油漆桶：点击画布填充当前部位底色');
+    }
     if (!brushDockEl) return;
     const btns = brushDockEl.querySelectorAll('[data-brush-tool]');
     for (let i = 0; i < btns.length; i++) {

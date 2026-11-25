@@ -103,9 +103,11 @@
     });
   });
 
-  function screenQuadPoint(su, sv) {
-    const tl = { x: 109, y: 238 }, tr = { x: 281, y: 247 };
-    const bl = { x: 103, y: 282 }, br = { x: 286, y: 292 };
+  function screenQuadPoint(su, sv, angled) {
+    const tl = angled ? { x: 109, y: 238 } : { x: 109, y: 242 };
+    const tr = angled ? { x: 281, y: 247 } : { x: 281, y: 242 };
+    const bl = angled ? { x: 103, y: 282 } : { x: 103, y: 287 };
+    const br = angled ? { x: 286, y: 292 } : { x: 287, y: 287 };
     const topX = tl.x + (tr.x - tl.x) * su;
     const topY = tl.y + (tr.y - tl.y) * su;
     const botX = bl.x + (br.x - bl.x) * su;
@@ -146,8 +148,12 @@
 
   function bodyPoint(p, skin, seatX, seatY, state) {
     const bw = skin.shape.bodyWidth;
-    const sy = state.bodySquash, sx = 1 + (1 - sy) * 0.55;
-    const c = Math.cos(state.bodyTilt), s = Math.sin(state.bodyTilt);
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const lieS = lie * lie * (3.0 - 2.0 * lie);
+    const squash = state.bodySquash || 1.0;
+    const sy = squash * (1.0 - lieS * 0.42);
+    const sx = (1 + (1 - squash) * 0.55) * (1.0 + lieS * 0.03);
+    const c = Math.cos(state.bodyTilt || 0), s = Math.sin(state.bodyTilt || 0);
     return {
       x: seatX + p.x * bw * sx * c - p.y * sy * s,
       y: seatY + p.x * bw * sx * s + p.y * sy * c
@@ -630,7 +636,7 @@
       }
       ctx.save();
       ctx.translate(cx, cy);
-      ctx.rotate(Math.PI + 0.052);
+      ctx.rotate(Math.PI);
       ctx.font = `600 ${cap.legend.length <= 1 ? 5.1 : 4.1}px -apple-system, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -755,11 +761,28 @@
   }
 
   function drawDazedSilhouette(ctx, seatX, seatY, headCenter, state) {
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const lieS = lie * lie * (3.0 - 2.0 * lie);
+    const squash = state.bodySquash || 1.0;
+    const sy = squash * (1.0 - lieS * 0.42);
+    const sx = (1.0 + (1.0 - squash) * 0.55) * (1.0 + lieS * 0.03);
+    const bTilt = state.bodyTilt || 0;
+    const cB = Math.cos(bTilt), sB = Math.sin(bTilt);
+    const B = (lx, ly) => {
+      const rx = lx * sx, ry = ly * sy;
+      return { x: seatX + rx * cB - ry * sB, y: seatY + rx * sB + ry * cB };
+    };
+    const hTilt = state.headTilt || 0;
+    const cH = Math.cos(hTilt), sH = Math.sin(hTilt);
+    const H = (lx, ly) => ({
+      x: headCenter.x + lx * cH - ly * sH,
+      y: headCenter.y + lx * sH + ly * cH
+    });
+
     ctx.save();
     ctx.translate(seatX, seatY);
-    ctx.rotate(state.bodyTilt || 0);
-    const squash = state.bodySquash || 1.0;
-    ctx.scale(1.0 + (1.0 - squash) * 0.55, squash);
+    ctx.rotate(bTilt);
+    ctx.scale(sx, sy);
 
     drawDazedPaw(ctx, -34.0, -2.0, 19.0, 18.0);
     if ((state.hindFootActive || 0) < 0.35) {
@@ -777,23 +800,42 @@
     bellyGrad.addColorStop(1, '#C8A77A');
     ctx.fillStyle = bellyGrad;
     ctx.fill();
+    ctx.restore();
 
-    // Indigo Palico tunic
+    // Indigo Palico tunic: collar dynamically tracks headCenter lower edge, hem squashes with lieS
+    const lCollar = H(-21.0, 27.0);
+    const rCollar = H(21.0, 27.0);
+    const cL1 = H(-34.0, 36.0);
+    const cL2 = B(-44.0, -35.0);
+    const lHem = B(-44.0, -17.0);
+    const cB1 = B(-37.0, -2.0);
+    const cB2 = B(37.0, -2.0);
+    const rHem = B(44.0, -17.0);
+    const cR1 = B(44.0, -35.0);
+    const cR2 = H(34.0, 36.0);
+
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(-21.0, -65.0);
-    ctx.bezierCurveTo(-34.0, -56.0, -44.0, -35.0, -44.0, -17.0);
-    ctx.bezierCurveTo(-37.0, -2.0, 37.0, -2.0, 44.0, -17.0);
-    ctx.bezierCurveTo(44.0, -35.0, 34.0, -56.0, 21.0, -65.0);
+    ctx.moveTo(lCollar.x, lCollar.y);
+    ctx.bezierCurveTo(cL1.x, cL1.y, cL2.x, cL2.y, lHem.x, lHem.y);
+    ctx.bezierCurveTo(cB1.x, cB1.y, cB2.x, cB2.y, rHem.x, rHem.y);
+    ctx.bezierCurveTo(cR1.x, cR1.y, cR2.x, cR2.y, rCollar.x, rCollar.y);
     ctx.closePath();
-    const clothGrad = ctx.createLinearGradient(-16.0, -65.0, 12.0, -5.0);
+    const gStart = H(-16.0, 27.0);
+    const gEnd = B(12.0, -5.0);
+    const clothGrad = ctx.createLinearGradient(gStart.x, gStart.y, gEnd.x, gEnd.y);
     clothGrad.addColorStop(0, '#555F9B');
     clothGrad.addColorStop(1, '#252E58');
     ctx.fillStyle = clothGrad;
     ctx.fill();
 
+    const hL = B(-39.0, -15.0);
+    const hC1 = B(-28.0, -6.0);
+    const hC2 = B(28.0, -6.0);
+    const hR = B(39.0, -15.0);
     ctx.beginPath();
-    ctx.moveTo(-39.0, -15.0);
-    ctx.bezierCurveTo(-28.0, -6.0, 28.0, -6.0, 39.0, -15.0);
+    ctx.moveTo(hL.x, hL.y);
+    ctx.bezierCurveTo(hC1.x, hC1.y, hC2.x, hC2.y, hR.x, hR.y);
     ctx.strokeStyle = 'rgba(124, 134, 188, 0.61)';
     ctx.lineWidth = 1.1;
     ctx.stroke();
@@ -1332,8 +1374,9 @@
       ctx.fill();
     }
 
+    const hasHeadBody = !!(pal.headBody && !sameColor(pal.headBody, pal.body));
     const hasPartGrad = skin.partGradients && (skin.partGradients.body || skin.partGradients.head);
-    if (pal.bodyShade || skin.colorpoint || hasPartRegions || hasPartMarks || hasPartGrad) {
+    if (pal.bodyShade || hasHeadBody || skin.colorpoint || hasPartRegions || hasPartMarks || hasPartGrad) {
       ctx.save();
       traceSilhouette();
       ctx.clip();
@@ -1344,6 +1387,15 @@
         grad.addColorStop(1.0, rgbaToCss(pal.bodyShade));
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 360, 320);
+      }
+
+      if (hasHeadBody) {
+        ctx.save();
+        drawPolyline(ctx, jawSide(true, skin.shape.cheekFullness), true, headMap);
+        ctx.clip();
+        ctx.fillStyle = rgbaToCss(pal.headBody);
+        ctx.fillRect(0, 0, 360, 320);
+        ctx.restore();
       }
 
       if (skin.partGradients && skin.partGradients.body) {
@@ -1422,10 +1474,18 @@
         ctx.restore();
       }
 
-      // Marks (stripes/polygons)
+      // Marks (body marks clipped below jawline first, then skull/head marks on top)
+      const bodyJawSide = jawSide(false, skin.shape.cheekFullness);
       for (const mk of skin.marks) {
-        if (mk.space === 'body') drawMark(ctx, mk, 'round', bodyMap);
-        else if (mk.space === 'skull') drawMark(ctx, mk, 'round', skullMap);
+        if (mk.space !== 'body') continue;
+        ctx.save();
+        drawPolyline(ctx, bodyJawSide, true, headMap);
+        ctx.clip();
+        drawMark(ctx, mk, 'round', bodyMap);
+        ctx.restore();
+      }
+      for (const mk of skin.marks) {
+        if (mk.space === 'skull') drawMark(ctx, mk, 'round', skullMap);
         else if (mk.space === 'head') drawMark(ctx, mk, 'round', headMap);
       }
 
@@ -1546,7 +1606,8 @@
       return;
     }
 
-    const bodyLuma = 0.299 * skin.palette.body.r + 0.587 * skin.palette.body.g + 0.114 * skin.palette.body.b;
+    const headBaseCol = skin.palette.headBody || skin.palette.body;
+    const bodyLuma = 0.299 * headBaseCol.r + 0.587 * headBaseCol.g + 0.114 * headBaseCol.b;
     const pointsLuma = skin.palette.points
       ? (0.299 * skin.palette.points.r + 0.587 * skin.palette.points.g + 0.114 * skin.palette.points.b)
       : 1.0;
@@ -1718,7 +1779,8 @@
     drawEye3D(ctx, true, yawRad, pitchRad, state, eyeThemeName, skin, scruffStartle, scruffWide);
     drawEye3D(ctx, false, yawRad, pitchRad, state, eyeThemeName, skin, scruffStartle, scruffWide);
 
-    if (skin.palette.nose || skin.palette.mouth) {
+    const showMouth = !!(skin.palette.mouth && (skin.palette.mouth.a === undefined || skin.palette.mouth.a >= 0.01));
+    if (skin.palette.nose || showMouth) {
       ctx.save();
       if (skin.palette.nose) {
         const n = projectHead3D(0, 8.2, 29.0, yawRad, pitchRad);
@@ -1731,7 +1793,7 @@
         ctx.closePath();
         ctx.fill();
       }
-      if (skin.palette.mouth && (state.yawnAmount || 0) < 0.15) {
+      if (showMouth && (state.yawnAmount || 0) < 0.15) {
         const mL = projectHead3D(-4.2, 12.2, 28.4, yawRad, pitchRad);
         const mM = projectHead3D(0, 11.2, 28.8, yawRad, pitchRad);
         const mR = projectHead3D(4.2, 12.2, 28.4, yawRad, pitchRad);
@@ -4942,6 +5004,15 @@
         ctx.fillRect(0, 0, 360, 320);
       }
 
+      if (pal.headBody && !sameColor(pal.headBody, pal.body)) {
+        ctx.save();
+        drawPolyline(ctx, jawSide(true, skin.shape.cheekFullness), true, headMap);
+        ctx.clip();
+        ctx.fillStyle = rgbaToCss(pal.headBody);
+        ctx.fillRect(0, 0, 360, 320);
+        ctx.restore();
+      }
+
       if (skin.partGradients && skin.partGradients.body) {
         const bg = skin.partGradients.body;
         const g = ctx.createLinearGradient(headCenter.x, headCenter.y + 20, rumpCenterX, torsoBottomY + bottomDip);
@@ -4992,9 +5063,15 @@
         ctx.restore();
       }
 
-      // Marks (body marks first, then skull/head marks on top, exactly matching seated draw order!)
+      // Marks (body marks clipped below jawline first, then skull/head marks on top, matching seated draw order!)
+      const dragBodyJawSide = jawSide(false, skin.shape.cheekFullness);
       for (const m of skin.marks) {
-        if (m.space === 'body') drawMark(ctx, m, 'round', dragBodyMap);
+        if (m.space !== 'body') continue;
+        ctx.save();
+        drawPolyline(ctx, dragBodyJawSide, true, headMap);
+        ctx.clip();
+        drawMark(ctx, m, 'round', dragBodyMap);
+        ctx.restore();
       }
       for (const m of skin.marks) {
         if (m.space === 'skull') drawMark(ctx, m, 'round', skullMap);

@@ -5,7 +5,7 @@
   const VALID_SPACES = ['head', 'skull', 'body', 'tail', 'leftEar', 'rightEar', 'leftArm', 'rightArm', 'hindLeg'];
   const VALID_BRUSHES = ['round', 'soft', 'airbrush', 'smudge'];
   const PALETTE_KEYS = [
-    'body', 'bodyShade', 'belly', 'legs', 'paws', 'pawPads',
+    'body', 'headBody', 'bodyShade', 'belly', 'legs', 'paws', 'pawPads',
     'hindLeg', 'hindPaw',
     'earOuter', 'earInner', 'nose', 'mouth',
     'iris', 'irisLeft', 'irisRight', 'pupil', 'pupilLeft', 'pupilRight',
