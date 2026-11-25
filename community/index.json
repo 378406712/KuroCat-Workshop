@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-25T04:22:17.404Z",
-  "count": 8,
+  "generatedAt": "2026-11-25T04:41:27.818Z",
+  "count": 10,
   "skins": [
     {
       "slug": "abyssinian-farmer",
@@ -47,6 +47,56 @@
       "paletteSummary": [
         "#6F695D",
         "#D9AD55"
+      ]
+    },
+    {
+      "slug": "dazed-cat",
+      "title": "怪猎呆猫（艾露猫）",
+      "author": "359134032",
+      "authorUrl": "https://github.com/359134032",
+      "description": "《怪物猎人》艾露猫同款靛蓝兜帽外衣、奶油白重点色小脸与腮红、暖杏色圆肚皮和背在身后的猎人大剑，源自社区 PR #16 贡献。",
+      "tags": [
+        "怪猎",
+        "艾露猫",
+        "带配饰",
+        "社区贡献"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/dazed-cat/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 3,
+      "sizeBytes": 11287,
+      "paletteSummary": [
+        "#555F9B",
+        "#E3C99F",
+        "#F5EED8"
+      ]
+    },
+    {
+      "slug": "mackerel-tabby",
+      "title": "棕虎斑（暖棕鲭鱼纹）",
+      "author": "anphuchoang5-sys",
+      "authorUrl": "https://github.com/anphuchoang5-sys",
+      "description": "暖燕麦棕渐变底毛配经典额头 M 字虎斑、身侧深褐分叉鲭鱼纹、羽状奶油白胸口、白手套与环纹长尾，搭配橄榄金瞳，源自社区 PR #14 贡献。",
+      "tags": [
+        "虎斑猫",
+        "狸花猫",
+        "橄榄金瞳",
+        "社区贡献"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/mackerel-tabby/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 35234,
+      "paletteSummary": [
+        "#B8A081",
+        "#EFE7D5",
+        "#BFB366"
       ]
     },
     {
