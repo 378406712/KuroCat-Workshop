@@ -1171,9 +1171,10 @@
     const tipDy = -Math.cos(foldAngle) * earLen;
 
     const earSp = skin.shape.earSpacing || 1;
-    let innerBase = projectHead3D(sign * bd.earInX * earSp, bd.earInY, 0, yawRad, pitchRad);
-    let outerBase = projectHead3D(sign * bd.earOutX * earSp, bd.earOutY, -2, yawRad, pitchRad);
-    let tip = projectHead3D(sign * bd.earTipX * earSp + tipDx, bd.earTipY + tipDy, -3, yawRad, pitchRad);
+    const earShiftX = (bd.earInX + bd.earOutX) * 0.5 * (earSp - 1.0);
+    let innerBase = projectHead3D(sign * (bd.earInX + earShiftX), bd.earInY, 0, yawRad, pitchRad);
+    let outerBase = projectHead3D(sign * (bd.earOutX + earShiftX), bd.earOutY, -2, yawRad, pitchRad);
+    let tip = projectHead3D(sign * (bd.earTipX + earShiftX) + tipDx, bd.earTipY + tipDy, -3, yawRad, pitchRad);
 
     const es = skin.shape.earSize;
     if (es !== 1) {
@@ -1389,6 +1390,20 @@
         ctx.fillRect(0, 0, 360, 320);
       }
 
+      if (skin.partGradients && skin.partGradients.body) {
+        ctx.save();
+        drawPolyline(ctx, jawSide(false, skin.shape.cheekFullness), true, headMap);
+        ctx.clip();
+        const bg = skin.partGradients.body;
+        const g = ctx.createLinearGradient(seatX, seatY - 78, seatX, seatY + 16);
+        g.addColorStop(0.0, rgbaToCss(bg.from));
+        g.addColorStop(clamp(bg.stop || 0.5, 0.1, 0.9), rgbaToCss(bg.to));
+        g.addColorStop(1.0, rgbaToCss(bg.to));
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 360, 320);
+        ctx.restore();
+      }
+
       if (hasHeadBody) {
         ctx.save();
         drawPolyline(ctx, jawSide(true, skin.shape.cheekFullness), true, headMap);
@@ -1398,39 +1413,21 @@
         ctx.restore();
       }
 
-      if (skin.partGradients && skin.partGradients.body) {
-        const bg = skin.partGradients.body;
-        const g = ctx.createLinearGradient(seatX, seatY - 78, seatX, seatY + 16);
-        g.addColorStop(0.0, rgbaToCss(bg.from));
-        g.addColorStop(clamp(bg.stop || 0.5, 0.1, 0.9), rgbaToCss(bg.to));
-        g.addColorStop(1.0, rgbaToCss(bg.to));
-        ctx.fillStyle = g;
-        ctx.fillRect(0, headCenter.y + 18, 360, 220);
-      }
-
       if (skin.partGradients && skin.partGradients.head) {
+        ctx.save();
+        drawPolyline(ctx, jawSide(true, skin.shape.cheekFullness), true, headMap);
+        ctx.clip();
         const hg = skin.partGradients.head;
         const g = ctx.createLinearGradient(headCenter.x, headCenter.y - 44, headCenter.x, headCenter.y + 40);
         g.addColorStop(0.0, rgbaToCss(hg.from));
         g.addColorStop(clamp(hg.stop || 0.5, 0.1, 0.9), rgbaToCss(hg.to));
         g.addColorStop(1.0, rgbaToCss(hg.to));
         ctx.fillStyle = g;
-        ctx.fillRect(0, 0, 360, headCenter.y + 36);
-      }
-
-      // Curve regions with exact jaw-line clipping
-      for (const r of skin.regions) {
-        if (r.space !== 'head' && r.space !== 'skull' && r.space !== 'body') continue;
-        ctx.save();
-        const side = jawSide(r.space !== 'body', skin.shape.cheekFullness);
-        drawPolyline(ctx, side, true, headMap);
-        ctx.clip();
-        const map = r.space === 'body' ? bodyMap : (r.space === 'skull' ? skullMap : headMap);
-        drawRegion(ctx, r, map);
+        ctx.fillRect(0, 0, 360, 320);
         ctx.restore();
       }
 
-      // 2.5D Colorpoint face mask
+      // 2.5D Colorpoint face mask (base coat shading underneath custom regions & marks)
       if (pal.points) {
         const mid = pal.pointsMid || pal.points;
         const yawRad = yaw * 0.50, pitchRad = pitch * 0.36;
@@ -1474,19 +1471,40 @@
         ctx.restore();
       }
 
-      // Marks (body marks clipped below jawline first, then skull/head marks on top)
-      const bodyJawSide = jawSide(false, skin.shape.cheekFullness);
-      for (const mk of skin.marks) {
-        if (mk.space !== 'body') continue;
+      // Curve regions: body regions below jawline first, then skull/head regions above jawline
+      const bodyRegSide = jawSide(false, skin.shape.cheekFullness);
+      for (const r of skin.regions) {
+        if (r.space !== 'body') continue;
         ctx.save();
-        drawPolyline(ctx, bodyJawSide, true, headMap);
+        drawPolyline(ctx, bodyRegSide, true, headMap);
         ctx.clip();
-        drawMark(ctx, mk, 'round', bodyMap);
+        drawRegion(ctx, r, bodyMap);
         ctx.restore();
       }
+      const headRegSide = jawSide(true, skin.shape.cheekFullness);
+      for (const r of skin.regions) {
+        if (r.space !== 'head' && r.space !== 'skull') continue;
+        ctx.save();
+        drawPolyline(ctx, headRegSide, true, headMap);
+        ctx.clip();
+        drawRegion(ctx, r, r.space === 'skull' ? skullMap : headMap);
+        ctx.restore();
+      }
+
+      // Marks (preserve mark order with body marks clipped below jawline)
+      const bodyJawSide = jawSide(false, skin.shape.cheekFullness);
       for (const mk of skin.marks) {
-        if (mk.space === 'skull') drawMark(ctx, mk, 'round', skullMap);
-        else if (mk.space === 'head') drawMark(ctx, mk, 'round', headMap);
+        if (mk.space === 'body') {
+          ctx.save();
+          drawPolyline(ctx, bodyJawSide, true, headMap);
+          ctx.clip();
+          drawMark(ctx, mk, 'round', bodyMap);
+          ctx.restore();
+        } else if (mk.space === 'skull') {
+          drawMark(ctx, mk, 'round', skullMap);
+        } else if (mk.space === 'head') {
+          drawMark(ctx, mk, 'round', headMap);
+        }
       }
 
       ctx.restore();
@@ -4757,6 +4775,11 @@
         grad.addColorStop(0.20, rgbaToCss(pal.body));
         grad.addColorStop(0.54, rgbaToCss(mid));
         grad.addColorStop(0.88, rgbaToCss(pal.paws));
+      } else if (limb.armSpace && skin.partGradients && skin.partGradients[limb.armSpace]) {
+        const lg = skin.partGradients[limb.armSpace];
+        grad.addColorStop(0.0, rgbaToCss(lg.from));
+        grad.addColorStop(clamp(lg.stop || 0.5, 0.1, 0.9), rgbaToCss(lg.to));
+        grad.addColorStop(1.0, rgbaToCss(lg.to));
       } else {
         const shoulderCol = pal.body;
         if (!limb.isBehindBody && !sameColor(pal.legs, shoulderCol)) {
@@ -4889,7 +4912,18 @@
       ctx.lineWidth = tailW + 2.0;
       traceTailCurve(); ctx.stroke();
     }
-    ctx.strokeStyle = isDazed ? '#283157' : rgbaToCss(pal.tail);
+    if (isDazed) {
+      ctx.strokeStyle = '#283157';
+    } else if (skin.partGradients && skin.partGradients.tail) {
+      const tg = skin.partGradients.tail;
+      const g = ctx.createLinearGradient(tailPivot.x, tailPivot.y, tailTip.x, tailTip.y);
+      g.addColorStop(0.0, rgbaToCss(tg.from));
+      g.addColorStop(clamp(tg.stop || 0.5, 0.1, 0.9), rgbaToCss(tg.to));
+      g.addColorStop(1.0, rgbaToCss(tg.to));
+      ctx.strokeStyle = g;
+    } else {
+      ctx.strokeStyle = rgbaToCss(pal.tail);
+    }
     ctx.lineWidth = tailW;
     traceTailCurve(); ctx.stroke();
     if (pal.stripes && !isBlackRim && !skin.colorpoint && !isDazed) {
@@ -5004,6 +5038,20 @@
         ctx.fillRect(0, 0, 360, 320);
       }
 
+      if (skin.partGradients && skin.partGradients.body) {
+        ctx.save();
+        drawPolyline(ctx, jawSide(false, skin.shape.cheekFullness), true, headMap);
+        ctx.clip();
+        const bg = skin.partGradients.body;
+        const g = ctx.createLinearGradient(headCenter.x, headCenter.y + 20, rumpCenterX, torsoBottomY + bottomDip);
+        g.addColorStop(0.0, rgbaToCss(bg.from));
+        g.addColorStop(clamp(bg.stop || 0.5, 0.1, 0.9), rgbaToCss(bg.to));
+        g.addColorStop(1.0, rgbaToCss(bg.to));
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 360, 320);
+        ctx.restore();
+      }
+
       if (pal.headBody && !sameColor(pal.headBody, pal.body)) {
         ctx.save();
         drawPolyline(ctx, jawSide(true, skin.shape.cheekFullness), true, headMap);
@@ -5013,35 +5061,17 @@
         ctx.restore();
       }
 
-      if (skin.partGradients && skin.partGradients.body) {
-        const bg = skin.partGradients.body;
-        const g = ctx.createLinearGradient(headCenter.x, headCenter.y + 20, rumpCenterX, torsoBottomY + bottomDip);
-        g.addColorStop(0.0, rgbaToCss(bg.from));
-        g.addColorStop(clamp(bg.stop || 0.5, 0.1, 0.9), rgbaToCss(bg.to));
-        g.addColorStop(1.0, rgbaToCss(bg.to));
-        ctx.fillStyle = g;
-        ctx.fillRect(0, headCenter.y + 18, 360, 300);
-      }
-
       if (skin.partGradients && skin.partGradients.head) {
+        ctx.save();
+        drawPolyline(ctx, jawSide(true, skin.shape.cheekFullness), true, headMap);
+        ctx.clip();
         const hg = skin.partGradients.head;
         const g = ctx.createLinearGradient(headCenter.x, headCenter.y - 48, headCenter.x, headCenter.y + 40);
         g.addColorStop(0.0, rgbaToCss(hg.from));
         g.addColorStop(clamp(hg.stop || 0.5, 0.1, 0.9), rgbaToCss(hg.to));
         g.addColorStop(1.0, rgbaToCss(hg.to));
         ctx.fillStyle = g;
-        ctx.fillRect(0, 0, 360, headCenter.y + 36);
-      }
-
-      // Curve regions with EXACT seated jaw-line clipping — 100% faithful to every custom skin!
-      for (const r of skin.regions) {
-        if (r.space !== 'head' && r.space !== 'skull' && r.space !== 'body') continue;
-        ctx.save();
-        const side = jawSide(r.space !== 'body', skin.shape.cheekFullness);
-        drawPolyline(ctx, side, true, headMap);
-        ctx.clip();
-        const map = r.space === 'body' ? dragBodyMap : (r.space === 'skull' ? skullMap : headMap);
-        drawRegion(ctx, r, map);
+        ctx.fillRect(0, 0, 360, 320);
         ctx.restore();
       }
 
@@ -5063,19 +5093,40 @@
         ctx.restore();
       }
 
-      // Marks (body marks clipped below jawline first, then skull/head marks on top, matching seated draw order!)
-      const dragBodyJawSide = jawSide(false, skin.shape.cheekFullness);
-      for (const m of skin.marks) {
-        if (m.space !== 'body') continue;
+      // Curve regions: body regions below jawline first, then skull/head regions above jawline
+      const dragBodyRegSide = jawSide(false, skin.shape.cheekFullness);
+      for (const r of skin.regions) {
+        if (r.space !== 'body') continue;
         ctx.save();
-        drawPolyline(ctx, dragBodyJawSide, true, headMap);
+        drawPolyline(ctx, dragBodyRegSide, true, headMap);
         ctx.clip();
-        drawMark(ctx, m, 'round', dragBodyMap);
+        drawRegion(ctx, r, dragBodyMap);
         ctx.restore();
       }
+      const dragHeadRegSide = jawSide(true, skin.shape.cheekFullness);
+      for (const r of skin.regions) {
+        if (r.space !== 'head' && r.space !== 'skull') continue;
+        ctx.save();
+        drawPolyline(ctx, dragHeadRegSide, true, headMap);
+        ctx.clip();
+        drawRegion(ctx, r, r.space === 'skull' ? skullMap : headMap);
+        ctx.restore();
+      }
+
+      // Marks (preserve mark order with body marks clipped below jawline, matching seated draw order)
+      const dragBodyJawSide = jawSide(false, skin.shape.cheekFullness);
       for (const m of skin.marks) {
-        if (m.space === 'skull') drawMark(ctx, m, 'round', skullMap);
-        else if (m.space === 'head') drawMark(ctx, m, 'round', headMap);
+        if (m.space === 'body') {
+          ctx.save();
+          drawPolyline(ctx, dragBodyJawSide, true, headMap);
+          ctx.clip();
+          drawMark(ctx, m, 'round', dragBodyMap);
+          ctx.restore();
+        } else if (m.space === 'skull') {
+          drawMark(ctx, m, 'round', skullMap);
+        } else if (m.space === 'head') {
+          drawMark(ctx, m, 'round', headMap);
+        }
       }
       ctx.restore();
 
@@ -6644,9 +6695,10 @@
     const bw = skin.shape.bodyWidth || 1;
     const hs = skin.shape.headScale || 1;
     const earSp = skin.shape.earSpacing || 1;
+    const earShiftX = (bd.earInX + bd.earOutX) * 0.5 * (earSp - 1.0);
     const earSz = skin.shape.earSize || 1;
     const tailC = tailCurve(sx, sy, st, skin);
-    const earTipX = hc.x + (bd.earTipX * earSp + Math.sin(bd.earFold) * bd.earLen * earSz) * hs;
+    const earTipX = hc.x + ((bd.earTipX + earShiftX) + Math.sin(bd.earFold) * bd.earLen * earSz) * hs;
     const earTipY = hc.y + (bd.earTipY - Math.cos(bd.earFold) * bd.earLen * earSz) * hs;
     const handles = [
       { id: 'armRootY', label: '手臂根部高低', x: (lArm.top.x + rArm.top.x) * 0.5, y: lArm.top.y, axis: 'y', part: 'arms' },
