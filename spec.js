@@ -709,7 +709,7 @@
       tag: '银虎斑加白',
       fallback: {
         formatVersion: 1, name: '美短（银虎斑加白）', author: 'KuroCat',
-        palette: { body: '#C2C5C1', legs: '#C2C5C1', earOuter: '#C2C5C1', tail: '#C2C5C1', belly: '#F2EEE4', paws: '#F2EEE4', stripes: '#55595A', whiskers: '#8D8170AD', crease: '#8B817199' },
+        palette: { body: '#C2C5C1', legs: '#F2EEE4', earOuter: '#C2C5C1', tail: '#C2C5C1', belly: '#F2EEE4', paws: '#F2EEE4', stripes: '#55595A', whiskers: '#8D8170AD', crease: '#8B817199' },
         shape: { build: 'standard', pawStagger: 0 }, headSurface: 'plane', idleLegs: 'chest',
         regions: [makePresetRegion('whiteBelly', '#F2EEE4'), makePresetRegion('blazeFace', '#F2EEE4')],
         marks: [...makeTabbyForeheadMarks('#363536', 0.8), ...makeTailRingMarks('#55595A', 0.55)]
@@ -721,7 +721,7 @@
       tag: '暖橘加白',
       fallback: {
         formatVersion: 1, name: '橘白猫', author: 'KuroCat',
-        palette: { body: '#D8AA73', legs: '#D8AA73', earOuter: '#D8AA73', tail: '#D8AA73', belly: '#F2EEE4', paws: '#F2EEE4', stripes: '#A57543', whiskers: '#8D8170AD', crease: '#8B817199' },
+        palette: { body: '#D8AA73', legs: '#F2EEE4', earOuter: '#D8AA73', tail: '#D8AA73', belly: '#F2EEE4', paws: '#F2EEE4', stripes: '#A57543', whiskers: '#8D8170AD', crease: '#8B817199' },
         shape: { build: 'standard', pawStagger: 0 }, headSurface: 'dome', idleLegs: 'chest',
         regions: [makePresetRegion('whiteBelly', '#F2EEE4'), makePresetRegion('blazeFace', '#F2EEE4')],
         marks: [...makeTabbyForeheadMarks('#A57543', 0.52), ...makeTailRingMarks('#A57543', 0.52)]

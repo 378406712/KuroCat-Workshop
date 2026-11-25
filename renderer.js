@@ -1563,13 +1563,16 @@
     const idleBotY = seatY + 12.0 - lieS * 4.0;
     const shX = bd.shoulderX * bw;
 
+    const approved = !skin.colorpoint && skin.palette.belly && sameColor(skin.palette.belly, skin.palette.legs) && !skin.idleLegsTinted && skin.marks && skin.marks.length > 0;
+    const shoulderDepth = approved ? 43 : 58;
+    const faceClearance = approved ? 52 : 42;
     const sy = state.bodySquash * (1.0 - lieS * 0.42);
     const sx = (1 + (1 - state.bodySquash) * 0.55) * (1.0 + lieS * 0.03);
     const c = Math.cos(state.bodyTilt), s = Math.sin(state.bodyTilt);
-    const faceBottom = 126 + bd.headLift + state.headOffsetY + state.headPitch * 4.8 + breath * 1.1 + 42;
+    const faceBottom = 126 + bd.headLift + state.headOffsetY + state.headPitch * 4.8 + breath * 1.1 + faceClearance;
     const shoulder = (x) => ({
-      x: seatX + x * sx * c + 58 * sy * s,
-      y: Math.max(seatY + x * sx * s - 58 * sy * c, faceBottom)
+      x: seatX + x * sx * c + shoulderDepth * sy * s,
+      y: Math.max(seatY + x * sx * s - shoulderDepth * sy * c, faceBottom)
     });
 
     const lPos = state.leftPaw, rPos = state.rightPaw;
@@ -3962,11 +3965,10 @@
 
     const colorDist3 = (a, b) => (!a || !b) ? 1 : (Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b));
     const isBicolorWhiteFront = !skin.colorpoint
-      && colorDist3(pal.body, pal.legs) > 0.14
-      && colorDist3(pal.legs, pal.earOuter) < 0.16
-      && colorDist3(pal.legs, pal.tail) < 0.16
-      && (!pal.belly || colorDist3(pal.body, pal.belly) < 0.10);
-    const dorsalColor = isBicolorWhiteFront ? pal.legs : pal.body;
+      && colorDist3(pal.body, pal.earOuter) > 0.14
+      && colorDist3(pal.earOuter, pal.tail) < 0.05
+      && (!pal.belly || colorDist3(pal.body, pal.belly) < 0.04);
+    const dorsalColor = isBicolorWhiteFront ? pal.earOuter : pal.body;
     const ventralBelly = isBicolorWhiteFront
       ? pal.body
       : (pal.belly && !sameColor(pal.belly, pal.body) ? pal.belly : null);
@@ -4956,8 +4958,9 @@
     };
 
     // Pass 1: Universal sticker-style outer white outline for ALL skins
+    // Outline connected parts before fills so the foreground sleeping tail root has no white seam (synced with KuroCat PR #22)
     if (stateWhiteOutline) {
-      if (!tailInFront) drawTail(ctx, seatX, seatY, state, skin, true);
+      drawTail(ctx, seatX, seatY, state, skin, true);
       drawEarsLayer(true);
       drawUnifiedSilhouette(ctx, seatX, seatY, headCenter, breath, state, skin, true);
     }
@@ -4999,7 +5002,6 @@
     }
 
     if (tailInFront) {
-      if (stateWhiteOutline) drawTail(ctx, seatX, seatY, state, skin, true);
       drawTail(ctx, seatX, seatY, state, skin, false);
       if (hasDecos) {
         drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['tailTip'] });
