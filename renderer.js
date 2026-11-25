@@ -3818,11 +3818,11 @@
     const cheekY = bd.cheekY * hs;
     const chinY = 33.0 * hs;
 
-    // Longer, sleeker dangling cat body; scruff pinch sits well behind & below the right ear so BOTH ears stay 100% clear!
-    const neckNape = { x: headCenter.x + cheekHalfW * 0.42, y: headCenter.y - 6 * hs };
-    const scruffPeak = { x: 196 + baseShiftX, y: lerpNum(106, 132, startle) + liftY };
-    const rumpRight = { x: 274 + baseShiftX + (bw - 1) * 10, y: lerpNum(154, 186, startle) + liftY };
-    const bellyRight = { x: 244 + baseShiftX, y: lerpNum(188, 212, startle) + liftY };
+    // Smooth, plush dangling cat body: continuous gentle convex arch from upper nape to rump (no concave neck dent, and BOTH ears stay 100% clear!)
+    const neckNape = { x: headCenter.x + cheekHalfW * 0.36, y: headCenter.y - 18 * hs };
+    const scruffPeak = { x: 184 + baseShiftX, y: lerpNum(108, 134, startle) + liftY };
+    const rumpRight = { x: 270 + baseShiftX + (bw - 1) * 10, y: lerpNum(154, 186, startle) + liftY };
+    const bellyRight = { x: 242 + baseShiftX, y: lerpNum(188, 212, startle) + liftY };
     const bellyLeft = { x: 124 + baseShiftX, y: lerpNum(186, 206, startle) + liftY };
     const chestLeft = { x: 100 + baseShiftX, y: lerpNum(166, 188, startle) + liftY };
     const neckFront = { x: headCenter.x - cheekHalfW * 0.56, y: headCenter.y + 10 * hs };
@@ -3831,13 +3831,13 @@
       ctx.beginPath();
       ctx.moveTo(neckNape.x, neckNape.y);
       ctx.bezierCurveTo(
-        headCenter.x + cheekHalfW + 10, lerpNum(130, 152, startle) + liftY,
-        scruffPeak.x - 24, scruffPeak.y + 10,
+        headCenter.x + cheekHalfW * 0.86, lerpNum(116, 140, startle) + liftY,
+        scruffPeak.x - 22, scruffPeak.y - 1,
         scruffPeak.x, scruffPeak.y
       );
       ctx.bezierCurveTo(
-        scruffPeak.x + 38, scruffPeak.y - 2,
-        rumpRight.x + 4, lerpNum(116, 152, startle) + liftY,
+        scruffPeak.x + 42, scruffPeak.y + 2,
+        rumpRight.x + 2, lerpNum(118, 152, startle) + liftY,
         rumpRight.x, rumpRight.y
       );
       ctx.bezierCurveTo(
@@ -3846,8 +3846,8 @@
         bellyRight.x, bellyRight.y
       );
       ctx.bezierCurveTo(
-        208 + baseShiftX, lerpNum(182, 206, startle) + liftY,
-        162 + baseShiftX, lerpNum(182, 206, startle) + liftY,
+        208 + baseShiftX, lerpNum(184, 208, startle) + liftY,
+        162 + baseShiftX, lerpNum(184, 208, startle) + liftY,
         bellyLeft.x, bellyLeft.y
       );
       ctx.bezierCurveTo(
