@@ -1827,55 +1827,62 @@
       ctx.restore();
     }
 
-    // Cute pink open yawn mouth (with tongue & tiny white fangs!) right before falling asleep
+    // Cute pink open yawn mouth (rounded inverted triangle with protruding tongue & tiny white fangs)
     if ((state.yawnAmount || 0) > 0.03) {
       const y = clamp(state.yawnAmount, 0, 1);
-      const mc = projectHead3D(0, 16.2 + y * 2.2, 30.2, yawRad, pitchRad);
-      const rx = 3.2 + y * 5.8, ry = 1.6 + y * 7.4;
+      const mc = projectHead3D(0, 16.0 + y * 2.4, 30.2, yawRad, pitchRad);
+      const rx = 3.4 + y * 6.4, ry = 1.8 + y * 8.2;
       ctx.save();
       ctx.translate(mc.x, mc.y);
       const traceMouth = () => {
         ctx.beginPath();
-        ctx.moveTo(0, -ry * 0.92);
-        ctx.bezierCurveTo(rx * 0.68, -ry * 0.92, rx * 1.05, -ry * 0.42, rx, ry * 0.08);
-        ctx.bezierCurveTo(rx * 0.95, ry * 0.72, rx * 0.50, ry, 0, ry);
-        ctx.bezierCurveTo(-rx * 0.50, ry, -rx * 0.95, ry * 0.72, -rx, ry * 0.08);
-        ctx.bezierCurveTo(-rx * 1.05, -ry * 0.42, -rx * 0.68, -ry * 0.92, 0, -ry * 0.92);
+        ctx.moveTo(0, -ry * 0.86);
+        ctx.bezierCurveTo(rx * 0.62, -ry * 0.88, rx * 1.06, -ry * 0.64, rx * 0.96, -ry * 0.18);
+        ctx.bezierCurveTo(rx * 0.84, ry * 0.34, rx * 0.42, ry * 0.96, 0, ry * 1.02);
+        ctx.bezierCurveTo(-rx * 0.42, ry * 0.96, -rx * 0.84, ry * 0.34, -rx * 0.96, -ry * 0.18);
+        ctx.bezierCurveTo(-rx * 1.06, -ry * 0.64, -rx * 0.62, -ry * 0.88, 0, -ry * 0.86);
         ctx.closePath();
       };
       traceMouth();
-      ctx.fillStyle = 'rgba(199,48,64,0.98)';
+      ctx.fillStyle = 'rgba(182,42,58,0.98)';
       ctx.fill();
       ctx.save();
       traceMouth();
       ctx.clip();
-      ctx.fillStyle = 'rgba(140,26,41,0.55)';
-      ctx.beginPath(); ctx.ellipse(0, -ry * 0.26, rx * 0.65, ry * 0.46, 0, 0, Math.PI * 2); ctx.fill();
-      if (y > 0.22) {
-        const ta = Math.min(1, (y - 0.22) / 0.35) * 0.92;
-        ctx.fillStyle = `rgba(242,122,140,${ta.toFixed(3)})`;
-        ctx.beginPath();
-        ctx.moveTo(-rx * 0.62, ry * 0.55);
-        ctx.quadraticCurveTo(-rx * 0.32, ry * 0.16, 0, ry * 0.36);
-        ctx.quadraticCurveTo(rx * 0.32, ry * 0.16, rx * 0.62, ry * 0.55);
-        ctx.quadraticCurveTo(0, ry * 1.25, -rx * 0.62, ry * 0.55);
-        ctx.closePath();
-        ctx.fill();
-      }
+      ctx.fillStyle = 'rgba(122,22,36,0.62)';
+      ctx.beginPath(); ctx.ellipse(0, -ry * 0.24, rx * 0.68, ry * 0.44, 0, 0, Math.PI * 2); ctx.fill();
       if (y > 0.28) {
         const fs = Math.min(1, (y - 0.28) / 0.32);
         ctx.fillStyle = 'rgba(255,252,245,0.98)';
-        const ubY = -ry * 0.80, uLen = (2.6 + y * 2.2) * fs;
+        const ubY = -ry * 0.78, uLen = (2.6 + y * 2.2) * fs;
         for (const s of [-1, 1]) {
           ctx.beginPath();
-          ctx.moveTo(s * rx * 0.38, ubY);
-          ctx.lineTo(s * rx * 0.52, ubY + uLen);
-          ctx.lineTo(s * rx * 0.64, ubY);
+          ctx.moveTo(s * rx * 0.44, ubY);
+          ctx.lineTo(s * rx * 0.56, ubY + uLen);
+          ctx.lineTo(s * rx * 0.68, ubY);
           ctx.closePath();
           ctx.fill();
         }
       }
       ctx.restore();
+      if (y > 0.20) {
+        const ta = Math.min(1, (y - 0.20) / 0.35) * 0.96;
+        const tw = rx * 0.42;
+        ctx.fillStyle = `rgba(244,132,150,${ta.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.moveTo(-tw, ry * 0.32);
+        ctx.quadraticCurveTo(0, ry * 0.14, tw, ry * 0.32);
+        ctx.bezierCurveTo(tw * 0.92, ry * 0.96, tw * 0.46, ry * 1.28, 0, ry * 1.30);
+        ctx.bezierCurveTo(-tw * 0.46, ry * 1.28, -tw * 0.92, ry * 0.96, -tw, ry * 0.32);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = `rgba(204,88,108,${(ta * 0.55).toFixed(3)})`;
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(0, ry * 0.40);
+        ctx.lineTo(0, ry * 1.05);
+        ctx.stroke();
+      }
       ctx.restore();
     }
 
@@ -2126,9 +2133,9 @@
   function drawIdleFrontLeg(ctx, top, bottom, isLeft, skin) {
     if (isDazedSkin(skin)) {
       const sign = isLeft ? -1 : 1;
-      const shoulder = { x: top.x + sign * 4.0, y: top.y - 10.0 };
-      const elbow = { x: top.x + sign * 11.0, y: top.y + 1.0 };
-      const paw = { x: top.x + sign * 10.0, y: top.y + 15.0 };
+      const shoulder = { x: top.x + sign * 2.0, y: top.y + 9.0 };
+      const elbow = { x: top.x + sign * 9.0, y: top.y + 20.0 };
+      const paw = { x: top.x + sign * 8.0, y: top.y + 34.0 };
       drawLimb(ctx, shoulder, elbow, paw, 19.0, 14.0, !isLeft, 0.78, skin, true);
       return;
     }
@@ -2237,29 +2244,34 @@
   function drawFrontPaws(ctx, seatX, seatY, breath, state, skin) {
     const bd = getBuild(skin);
     const bw = skin.shape.bodyWidth;
+    const hs = skin.shape.headScale || 1;
     const armSp = skin.shape.armSpacing || 1;
     const armRY = skin.shape.armRootY || 0;
     const armLen = skin.shape.armLength || 1;
     const lie = clamp(state.lieIntensity || 0, 0, 1);
     const lieS = lie * lie * (3.0 - 2.0 * lie);
-    const idleTopY = (seatY - bd.idleTopDY + armRY) + lieS * 24.0;
-    const idleTopX = bd.idleTopX * bw * armSp - lieS * 5.0;
-    const idleBotX = bd.idleBotX * bw * armSp - lieS * 4.5;
-    const baseSpan = (seatY + 12.0) - (seatY - bd.idleTopDY);
-    const idleBotY = idleTopY + baseSpan * armLen - lieS * 4.0;
     const shX = bd.shoulderX * bw * armSp;
 
     const approved = !skin.colorpoint && skin.palette.belly && sameColor(skin.palette.belly, skin.palette.legs) && !skin.idleLegsTinted && skin.marks && skin.marks.length > 0;
-    const shoulderDepth = Math.max(16, (approved ? 43 : 58) - armRY);
-    const faceClearance = approved ? 52 : 42;
+    const shoulderDepth = Math.max(16, (approved ? 43 : 49) - armRY);
+    const tiltChinDrop = Math.abs(Math.sin(state.headTilt || 0)) * 20.0 * (skin.shape.cheekFullness || 1) * hs + Math.max(0, hs - 1.0) * 32.0;
+    const faceClearance = (approved ? 52 : 51) + tiltChinDrop;
     const sy = state.bodySquash * (1.0 - lieS * 0.42);
     const sx = (1 + (1 - state.bodySquash) * 0.55) * (1.0 + lieS * 0.03);
     const c = Math.cos(state.bodyTilt), s = Math.sin(state.bodyTilt);
-    const faceBottom = 126 + bd.headLift + state.headOffsetY + state.headPitch * 4.8 + breath * 1.1 + faceClearance;
+    const headBottom = 126 + bd.headLift + lieS * 60.0 + (state.headOffsetY || 0) + (state.headPitch || 0) * 4.8 + breath * 1.1;
+    const faceBottom = headBottom + faceClearance;
     const shoulder = (x) => ({
       x: seatX + x * sx * c + shoulderDepth * sy * s,
       y: Math.max(seatY + x * sx * s - shoulderDepth * sy * c, faceBottom - Math.max(0, -armRY) * 0.6)
     });
+    const ls = shoulder(-shX);
+    const rs = shoulder(shX);
+    // Align idle sitting forearm root with typing shoulder(±shX) when awake; preserve sleep tuck as lieS -> 1.
+    const lIdleTop = { x: ls.x + lieS * 5.0, y: ls.y + lieS * 16.0 };
+    const rIdleTop = { x: rs.x - lieS * 5.0, y: rs.y + lieS * 16.0 };
+    const idleBotX = bd.idleBotX * bw * armSp - lieS * 4.5;
+    const idleBotY = Math.max(Math.max(lIdleTop.y, rIdleTop.y) + 14.0, (seatY + 12.0 + (armLen - 1.0) * 16.0) + lieS * 12.0);
 
     const lPos = state.leftPaw, rPos = state.rightPaw;
     const lDist = Math.hypot(lPos.x - LEFT_PAW_REST.x, lPos.y - LEFT_PAW_REST.y);
@@ -2267,17 +2279,15 @@
 
     const elbowFlare = (armLen - 1.0) * 18.0;
     if (lDist < 6.0 && !state.leftPawActive) {
-      if (lieS < 0.78) drawIdleFrontLeg(ctx, { x: seatX - idleTopX, y: idleTopY }, { x: seatX - idleBotX, y: idleBotY }, true, skin);
+      if (lieS < 0.78) drawIdleFrontLeg(ctx, lIdleTop, { x: seatX - idleBotX, y: idleBotY }, true, skin);
     } else {
-      const ls = shoulder(-shX);
       const mid = { x: (ls.x + lPos.x) * 0.5 - 6 - elbowFlare, y: (ls.y + lPos.y) * 0.5 - 6 + elbowFlare * 0.4 };
       drawLimb(ctx, ls, mid, lPos, bd.limbStartW, bd.limbEndW, false, 0.78, skin, true);
     }
 
     if (rDist < 6.0 && !state.rightPawActive) {
-      if (lieS < 0.78) drawIdleFrontLeg(ctx, { x: seatX + idleTopX, y: idleTopY }, { x: seatX + idleBotX, y: idleBotY }, false, skin);
+      if (lieS < 0.78) drawIdleFrontLeg(ctx, rIdleTop, { x: seatX + idleBotX, y: idleBotY }, false, skin);
     } else {
-      const rs = shoulder(shX);
       const mid = { x: (rs.x + rPos.x) * 0.5 + 4 + elbowFlare, y: (rs.y + rPos.y) * 0.5 - 6 + elbowFlare * 0.4 };
       drawLimb(ctx, rs, mid, rPos, bd.limbStartW, bd.limbEndW, true, 0.78, skin, true);
     }
@@ -6774,20 +6784,34 @@
   function idleArmGeom(isLeft, skin, seatX, seatY, state) {
     const bd = getBuild(skin);
     const bw = skin.shape.bodyWidth;
+    const hs = skin.shape.headScale || 1;
     const armSp = skin.shape.armSpacing || 1;
     const armRY = skin.shape.armRootY || 0;
     const armLen = skin.shape.armLength || 1;
-    const lie = clamp((state && state.lieIntensity) || 0, 0, 1);
+    const st = state || {};
+    const lie = clamp(st.lieIntensity || 0, 0, 1);
     const lieS = lie * lie * (3.0 - 2.0 * lie);
     const sign = isLeft ? -1 : 1;
-    const idleTopY = (seatY - bd.idleTopDY + armRY) + lieS * 24.0;
-    const idleTopX = bd.idleTopX * bw * armSp - lieS * 5.0;
+    const shX = bd.shoulderX * bw * armSp;
+    const approved = !skin.colorpoint && skin.palette.belly && sameColor(skin.palette.belly, skin.palette.legs) && !skin.idleLegsTinted && skin.marks && skin.marks.length > 0;
+    const shoulderDepth = Math.max(16, (approved ? 43 : 49) - armRY);
+    const tiltChinDrop = Math.abs(Math.sin(st.headTilt || 0)) * 20.0 * (skin.shape.cheekFullness || 1) * hs + Math.max(0, hs - 1.0) * 32.0;
+    const faceClearance = (approved ? 52 : 51) + tiltChinDrop;
+    const bSquash = st.bodySquash != null ? st.bodySquash : 1;
+    const sy = bSquash * (1.0 - lieS * 0.42);
+    const sx = (1 + (1 - bSquash) * 0.55) * (1.0 + lieS * 0.03);
+    const tilt = st.bodyTilt || 0;
+    const c = Math.cos(tilt), s = Math.sin(tilt);
+    const headBottom = 126 + bd.headLift + lieS * 60.0 + (st.headOffsetY || 0) + (st.headPitch || 0) * 4.8;
+    const faceBottom = headBottom + faceClearance;
+    const shXPt = seatX + (sign * shX) * sx * c + shoulderDepth * sy * s;
+    const shYPt = Math.max(seatY + (sign * shX) * sx * s - shoulderDepth * sy * c, faceBottom - Math.max(0, -armRY) * 0.6);
+    const top = { x: shXPt - sign * lieS * 5.0, y: shYPt + lieS * 16.0 };
     const idleBotX = bd.idleBotX * bw * armSp - lieS * 4.5;
-    const baseSpan = (seatY + 12.0) - (seatY - bd.idleTopDY);
-    const idleBotY = idleTopY + baseSpan * armLen - lieS * 4.0;
+    const idleBotY = Math.max(top.y + 14.0, (seatY + 12.0 + (armLen - 1.0) * 16.0) + lieS * 12.0);
     return {
       sign,
-      top: { x: seatX + sign * idleTopX, y: idleTopY },
+      top,
       bottom: { x: seatX + sign * idleBotX, y: idleBotY }
     };
   }

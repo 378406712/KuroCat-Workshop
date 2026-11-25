@@ -26,19 +26,84 @@
   }
 
   // Shadow-tolerant perceptual distance for coat clustering:
-  // Keeps black/white/orange/grey sharply separated, while softening same-hue sunlight shadows!
+  // Keeps black/white/orange/grey sharply separated, while softening true same-hue shading.
   function coatLabDist(a, b) {
     const dL = a[0] - b[0];
     const da = a[1] - b[1];
     const db = a[2] - b[2];
     const chromaA = Math.hypot(a[1], a[2]), chromaB = Math.hypot(b[1], b[2]);
-    // If both pixels are chromatic and share nearly the same hue direction, downweight pure shadow lightness delta
     let lWeight = 1.0;
     if (chromaA > 14 && chromaB > 14) {
       const cosHue = (a[1] * b[1] + a[2] * b[2]) / (chromaA * chromaB);
-      if (cosHue > 0.86 && Math.min(a[0], b[0]) > 22) lWeight = 0.45;
+      const dC = chromaA - chromaB;
+      const ratioA = chromaA / Math.max(a[0], 18);
+      const ratioB = chromaB / Math.max(b[0], 18);
+      // Only compress lightness/chroma scaling for true same-pigment shading (L and chroma move together at similar C/L ratio);
+      // never merge white/cream with pigmented fur where L rises while chroma drops.
+      if (cosHue > 0.92 && Math.min(a[0], b[0]) > 22 && dL * dC >= 0 && Math.abs(ratioA - ratioB) < 0.12) {
+        lWeight = 0.62;
+        const cDiff = dC * 0.62;
+        const perp2 = Math.max(0, (da * da + db * db) - dC * dC);
+        return Math.hypot(dL * lWeight, cDiff, Math.sqrt(perp2) * 1.35);
+      }
+      if (cosHue > 0.90 && Math.min(a[0], b[0]) > 22 && dL * dC >= 0 && Math.abs(ratioA - ratioB) < 0.22) {
+        lWeight = 0.65;
+      }
+    } else if (Math.min(a[0], b[0]) > 68 && Math.max(chromaA, chromaB) < 14) {
+      // Soften lit-white vs shaded-white delta without merging white into mid-grey
+      lWeight = 0.58;
+    } else if (Math.max(a[0], b[0]) < 34 && Math.max(chromaA, chromaB) < 12) {
+      // Keep deep black fur with indoor sheen from splitting into fake grey patches
+      lWeight = 0.65;
     }
     return Math.hypot(dL * lWeight, da * 1.15, db * 1.15);
+  }
+
+  function labToRgb(lab) {
+    const fy = (lab[0] + 16) / 116, fx = fy + lab[1] / 500, fz = fy - lab[2] / 200;
+    const f = (t) => (t ** 3 > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787);
+    const X = 0.95047 * f(fx), Y = f(fy), Z = 1.08883 * f(fz);
+    const lin = [
+      3.2406 * X - 1.5372 * Y - 0.4986 * Z,
+      -0.9689 * X + 1.8758 * Y + 0.0415 * Z,
+      0.0557 * X - 0.2040 * Y + 1.0570 * Z
+    ];
+    return lin.map((c) => Math.round(clamp(c <= 0.0031308 ? 12.92 * c : 1.055 * (c ** (1 / 2.4)) - 0.055, 0, 1) * 255));
+  }
+
+  // Bounded ambient color-cast estimation from bright low-to-moderate chroma pixels.
+  // Safe for monochrome orange/ginger cats (only fires when near-neutral bright regions share a cast).
+  function estimateAmbientCast(pixels, w, h) {
+    const cands = [];
+    for (let y = 0; y < h; y += 2) {
+      for (let x = 0; x < w; x += 2) {
+        const i = (y * w + x) * 4;
+        if (pixels[i + 3] < 128) continue;
+        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+        if (Math.max(r, g, b) > 252) continue;
+        const lab = rgbToLab(r, g, b);
+        const chroma = Math.hypot(lab[1], lab[2]);
+        if (lab[0] > 64 && lab[0] < 96 && chroma < 26 && Math.abs(lab[1]) < 11) {
+          cands.push({ a: lab[1], b: lab[2], c: chroma });
+        }
+      }
+    }
+    if (cands.length < 40) return [0, 0];
+    cands.sort((x, y) => x.c - y.c);
+    const take = Math.max(20, Math.floor(cands.length * 0.40));
+    const sub = cands.slice(0, take);
+    const as = sub.map((p) => p.a).sort((x, y) => x - y);
+    const bs = sub.map((p) => p.b).sort((x, y) => x - y);
+    const medA = as[Math.floor(as.length * 0.5)];
+    const medB = bs[Math.floor(bs.length * 0.5)];
+    if (Math.hypot(medA, medB) < 6) return [0, 0];
+    return [clamp(medA * 0.50, -4.5, 4.5), clamp(medB * 0.50, -9.5, 9.5)];
+  }
+
+  function shiftLabCast(lab, cast) {
+    if (!cast || (cast[0] === 0 && cast[1] === 0)) return lab;
+    const scale = clamp((lab[0] - 12) / 48, 0, 1);
+    return [lab[0], lab[1] - cast[0] * scale, lab[2] - cast[1] * scale];
   }
 
   function rgbToHsl(r, g, b) {
@@ -138,11 +203,13 @@
     return dst;
   }
 
-  // Deterministic K-Means++ in CIE Lab space with shadow-tolerant coat merging
-  function kMeansLab(samples, k, mergeDeltaE, useCoatDist) {
+  // Deterministic K-Means++ in CIE Lab space with optional over-clustering & agglomerative merging
+  function kMeansLab(samples, k, mergeDeltaE, useCoatDist, opts) {
     if (samples.length === 0) return [];
     const distFn = useCoatDist ? coatLabDist : labDist;
-    const kk = Math.min(k, samples.length);
+    const targetCount = opts && opts.targetCount ? opts.targetCount : null;
+    const overK = targetCount ? Math.max(k, opts.overClusterK || k + 4) : k;
+    const kk = Math.min(overK, samples.length);
     const centroids = [samples[Math.floor(samples.length * 0.5)].lab.slice()];
 
     while (centroids.length < kk) {
@@ -181,42 +248,82 @@
       }
     }
 
-    const clusters = Array.from({ length: kk }, () => ({ r: 0, g: 0, b: 0, w: 0 }));
+    const clusters = Array.from({ length: kk }, () => ({ r: 0, g: 0, b: 0, L: 0, A: 0, B: 0, w: 0 }));
     let totalW = 0;
     for (let i = 0; i < samples.length; i++) {
       const s = samples[i], cl = clusters[assign[i]];
-      cl.r += s.r * s.w; cl.g += s.g * s.w; cl.b += s.b * s.w; cl.w += s.w;
+      cl.r += s.r * s.w; cl.g += s.g * s.w; cl.b += s.b * s.w;
+      cl.L += s.lab[0] * s.w; cl.A += s.lab[1] * s.w; cl.B += s.lab[2] * s.w;
+      cl.w += s.w;
       totalW += s.w;
     }
 
-    const valid = clusters
+    const merged = clusters
       .filter((c) => c.w > 0)
       .map((c) => {
         const rgb = [c.r / c.w, c.g / c.w, c.b / c.w];
-        const lab = rgbToLab(rgb[0], rgb[1], rgb[2]);
+        const lab = [c.L / c.w, c.A / c.w, c.B / c.w];
         const hsl = rgbToHsl(rgb[0], rgb[1], rgb[2]);
         return { rgb, lab, hsl, chroma: Math.hypot(lab[1], lab[2]), ratio: c.w / Math.max(1e-6, totalW), w: c.w };
       })
       .sort((a, b) => b.ratio - a.ratio);
 
-    const merged = [];
+    const mergePair = (i, j) => {
+      const a = merged[i], b = merged[j], tw = a.w + b.w;
+      const rgb = [
+        (a.rgb[0] * a.w + b.rgb[0] * b.w) / tw,
+        (a.rgb[1] * a.w + b.rgb[1] * b.w) / tw,
+        (a.rgb[2] * a.w + b.rgb[2] * b.w) / tw
+      ];
+      const lab = [
+        (a.lab[0] * a.w + b.lab[0] * b.w) / tw,
+        (a.lab[1] * a.w + b.lab[1] * b.w) / tw,
+        (a.lab[2] * a.w + b.lab[2] * b.w) / tw
+      ];
+      merged[i] = {
+        rgb, lab, hsl: rgbToHsl(rgb[0], rgb[1], rgb[2]),
+        chroma: Math.hypot(lab[1], lab[2]), ratio: a.ratio + b.ratio, w: tw
+      };
+      merged.splice(j, 1);
+    };
+
+    // Absorb tiny 1-pixel outlier seeds before perceptual merging
+    if (targetCount) {
+      while (merged.length > 1) {
+        let minIdx = -1;
+        for (let i = 0; i < merged.length; i++) {
+          if (merged[i].ratio < 0.008 && (minIdx < 0 || merged[i].ratio < merged[minIdx].ratio)) minIdx = i;
+        }
+        if (minIdx < 0) break;
+        let bestTarget = minIdx === 0 ? 1 : 0, bestD = Infinity;
+        for (let j = 0; j < merged.length; j++) {
+          if (j === minIdx) continue;
+          const d = distFn(merged[minIdx].lab, merged[j].lab);
+          if (d < bestD) { bestD = d; bestTarget = j; }
+        }
+        const lo = Math.min(minIdx, bestTarget), hi = Math.max(minIdx, bestTarget);
+        mergePair(lo, hi);
+      }
+    }
+
+    // Agglomerative nearest-pair merge (order-independent)
     const thresh = mergeDeltaE === undefined ? 15 : mergeDeltaE;
-    for (const c of valid) {
-      const hit = merged.find((m) => distFn(m.lab, c.lab) < thresh);
-      if (hit) {
-        const tw = hit.w + c.w;
-        hit.rgb = [
-          (hit.rgb[0] * hit.w + c.rgb[0] * c.w) / tw,
-          (hit.rgb[1] * hit.w + c.rgb[1] * c.w) / tw,
-          (hit.rgb[2] * hit.w + c.rgb[2] * c.w) / tw
-        ];
-        hit.lab = rgbToLab(hit.rgb[0], hit.rgb[1], hit.rgb[2]);
-        hit.hsl = rgbToHsl(hit.rgb[0], hit.rgb[1], hit.rgb[2]);
-        hit.chroma = Math.hypot(hit.lab[1], hit.lab[2]);
-        hit.w = tw;
-        hit.ratio += c.ratio;
+    while (merged.length > 1) {
+      let bi = -1, bj = -1, bestCost = Infinity, bestDist = Infinity;
+      for (let i = 0; i < merged.length; i++) {
+        for (let j = i + 1; j < merged.length; j++) {
+          const d = distFn(merged[i].lab, merged[j].lab);
+          if (d < bestDist) bestDist = d;
+          const cost = d < thresh
+            ? d
+            : d * (1 + Math.min(merged[i].ratio, merged[j].ratio) * 2.2);
+          if (cost < bestCost) { bestCost = cost; bi = i; bj = j; }
+        }
+      }
+      if (bestDist < thresh || (targetCount && merged.length > targetCount)) {
+        mergePair(bi, bj);
       } else {
-        merged.push({ ...c });
+        break;
       }
     }
     return merged.sort((a, b) => b.ratio - a.ratio);
@@ -247,9 +354,26 @@
   }
 
   function cleanBinaryMask(mask, w, h) {
-    // Close small holes, then open thin spikes
+    // Closing (3x3 dilate then erode) bridges 1px gaps without erasing thin 2px blazes or stripes
     const closed = morphPass(morphPass(mask, w, h, true), w, h, false);
-    return morphPass(morphPass(closed, w, h, false), w, h, true);
+    // Light majority pass removes isolated 1px speckles while preserving narrow strips
+    const out = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = y * w + x;
+        let nb = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          const yy = y + dy;
+          if (yy < 0 || yy >= h) continue;
+          for (let dx = -1; dx <= 1; dx++) {
+            const xx = x + dx;
+            if ((dx !== 0 || dy !== 0) && xx >= 0 && xx < w && closed[yy * w + xx]) nb++;
+          }
+        }
+        out[idx] = closed[idx] ? (nb >= 2 ? 1 : 0) : (nb >= 7 ? 1 : 0);
+      }
+    }
+    return out;
   }
 
   function findConnectedComponents(mask, w, h, minPixels) {
@@ -451,7 +575,7 @@
 
   // --- Feature Detection Helpers ---
 
-  function detectEyeIris(pixels, w, h, furLabs) {
+  function detectEyeIris(pixels, w, h, furLabs, cast) {
     const bands = [
       [0.24, 0.24, 0.44, 0.43],
       [0.56, 0.24, 0.76, 0.43]
@@ -464,8 +588,10 @@
         for (let x = ix0; x < ix1; x++) {
           const idx = (y * w + x) * 4;
           const r = pixels[idx], g = pixels[idx + 1], b = pixels[idx + 2];
-          const [hue, sat, lig] = rgbToHsl(r, g, b);
-          const lab = rgbToLab(r, g, b);
+          const rawLab = rgbToLab(r, g, b);
+          const lab = shiftLabCast(rawLab, cast);
+          const rgb = cast && (cast[0] !== 0 || cast[1] !== 0) ? labToRgb(lab) : [r, g, b];
+          const [hue, sat, lig] = rgbToHsl(rgb[0], rgb[1], rgb[2]);
           if (hue < 24 || hue > 238) continue;
           if (lig < 0.22 || lig > 0.88 || sat < 0.16) continue;
           let minFur = 999;
@@ -476,7 +602,7 @@
           const isBlueOrGreen = hue >= 70 && hue <= 230;
           if (minFur < 14 && !isBlueOrGreen) continue;
           const score = (sat * 1.4 + (isBlueOrGreen ? 0.55 : 0.15)) * (1 - Math.abs(lig - 0.54));
-          candidates.push({ r, g, b, hue, score });
+          candidates.push({ r: rgb[0], g: rgb[1], b: rgb[2], hue, score });
         }
       }
     }
@@ -506,32 +632,36 @@
 
   // Lab -> hex (D65), only for diagnostics
   function labToHexApprox(lab) {
-    const fy = (lab[0] + 16) / 116, fx = fy + lab[1] / 500, fz = fy - lab[2] / 200;
-    const f = (t) => (t ** 3 > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787);
-    const X = 0.95047 * f(fx), Y = f(fy), Z = 1.08883 * f(fz);
-    const lin = [3.2406 * X - 1.5372 * Y - 0.4986 * Z, -0.9689 * X + 1.8758 * Y + 0.0415 * Z, 0.0557 * X - 0.2040 * Y + 1.0570 * Z];
-    const g = lin.map((c) => Math.round(clamp(c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055, 0, 1) * 255));
+    const g = labToRgb(lab);
     return '#' + g.map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase();
   }
 
-  function avgBoxRgb(pixels, w, h, x0, y0, x1, y1, bgLabs) {
+  function avgBoxRgb(pixels, w, h, x0, y0, x1, y1, bgLabs, fgMask, fgW, fgH, cast) {
     const ix0 = clamp(Math.floor(x0 * w), 0, w - 1);
     const ix1 = clamp(Math.ceil(x1 * w), 1, w);
     const iy0 = clamp(Math.floor(y0 * h), 0, h - 1);
     const iy1 = clamp(Math.ceil(y1 * h), 1, h);
     let sr = 0, sg = 0, sb = 0, sw = 0, edgeSum = 0, edgeCnt = 0;
     for (let y = iy0; y < iy1; y++) {
+      const fy = fgMask ? clamp(Math.floor((y + 0.5) / h * fgH), 0, fgH - 1) : 0;
       for (let x = ix0; x < ix1; x++) {
         const i = (y * w + x) * 4;
         if (pixels[i + 3] < 128) continue;
-        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
-        const lab = rgbToLab(r, g, b);
-        let minBg = 999;
-        for (const bg of bgLabs) {
-          const d = labDist(lab, bg);
-          if (d < minBg) minBg = d;
+        if (fgMask) {
+          const fx = clamp(Math.floor((x + 0.5) / w * fgW), 0, fgW - 1);
+          if (!fgMask[fy * fgW + fx]) continue;
         }
-        const wt = minBg < 10 ? 0.1 : minBg < 17 ? 0.5 : 1.0;
+        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+        const lab = shiftLabCast(rgbToLab(r, g, b), cast);
+        let wt = 1.0;
+        if (!fgMask && bgLabs && bgLabs.length) {
+          let minBg = 999;
+          for (const bg of bgLabs) {
+            const d = labDist(lab, bg);
+            if (d < minBg) minBg = d;
+          }
+          wt = minBg < 10 ? 0.1 : minBg < 17 ? 0.5 : 1.0;
+        }
         sr += r * wt; sg += g * wt; sb += b * wt; sw += wt;
         if (x + 2 < ix1) {
           const i2 = (y * w + x + 2) * 4;
@@ -542,10 +672,155 @@
         }
       }
     }
-    const rgb = sw > 0 ? [sr / sw, sg / sw, sb / sw] : [128, 128, 128];
+    const rawRgb = sw > 0 ? [sr / sw, sg / sw, sb / sw] : [128, 128, 128];
+    const lab = shiftLabCast(rgbToLab(rawRgb[0], rawRgb[1], rawRgb[2]), cast);
+    const rgb = cast && (cast[0] !== 0 || cast[1] !== 0) ? labToRgb(lab) : rawRgb;
     const boxCount = Math.max(1, (ix1 - ix0) * (iy1 - iy0));
-    return { rgb, lab: rgbToLab(rgb[0], rgb[1], rgb[2]), edgeEnergy: edgeCnt > 0 ? edgeSum / edgeCnt : 0,
+    return { rgb, rawRgb, lab, edgeEnergy: edgeCnt > 0 ? edgeSum / edgeCnt : 0,
              catShare: sw / boxCount };
+  }
+
+  // Ear sampler: filters out background and separates pink inner-ear skin from outer ear fur
+  function sampleEarZone(pixels, w, h, x0, y0, x1, y1, bgLabs, cast) {
+    const ix0 = clamp(Math.floor(x0 * w), 0, w - 1);
+    const ix1 = clamp(Math.ceil(x1 * w), 1, w);
+    const iy0 = clamp(Math.floor(y0 * h), 0, h - 1);
+    const iy1 = clamp(Math.ceil(y1 * h), 1, h);
+    const boxCount = Math.max(1, (ix1 - ix0) * (iy1 - iy0));
+    const furSamples = [];
+    const allFgSamples = [];
+    for (let y = iy0; y < iy1; y++) {
+      for (let x = ix0; x < ix1; x++) {
+        const i = (y * w + x) * 4;
+        if (pixels[i + 3] < 128) continue;
+        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+        const lab = shiftLabCast(rgbToLab(r, g, b), cast);
+        let minBg = 999;
+        for (const bg of bgLabs) {
+          const d = labDist(lab, bg);
+          if (d < minBg) minBg = d;
+        }
+        if (minBg < 12) continue;
+        const wt = minBg < 17 ? 0.45 : 1.0;
+        const corrRgb = cast && (cast[0] !== 0 || cast[1] !== 0) ? labToRgb(lab) : [r, g, b];
+        const sample = { r: corrRgb[0], g: corrRgb[1], b: corrRgb[2], rawR: r, rawG: g, rawB: b, lab, w: wt };
+        allFgSamples.push(sample);
+        const [eh, es, el] = rgbToHsl(corrRgb[0], corrRgb[1], corrRgb[2]);
+        const isPinkSkin = (eh <= 26 || eh >= 330) && es > 0.16 && el > 0.46;
+        if (!isPinkSkin) furSamples.push(sample);
+      }
+    }
+    const chosen = furSamples.length >= 16 ? furSamples : allFgSamples;
+    const catShare = allFgSamples.reduce((a, s) => a + s.w, 0) / boxCount;
+    if (!chosen.length) {
+      return { rgb: [128, 128, 128], rawRgb: [128, 128, 128], lab: [54, 0, 0], catShare: 0 };
+    }
+    const cls = kMeansLab(chosen, 2, 13, false);
+    const dom = cls[0];
+    const rgb = dom.rgb;
+    const rawRgb = cast && (cast[0] !== 0 || cast[1] !== 0)
+      ? labToRgb([dom.lab[0], dom.lab[1] + cast[0] * clamp((dom.lab[0] - 12) / 48, 0, 1), dom.lab[2] + cast[1] * clamp((dom.lab[0] - 12) / 48, 0, 1)])
+      : rgb;
+    return { rgb, rawRgb, lab: dom.lab, catShare };
+  }
+
+  // Band-pass forehead stripe detector: distinguishes periodic tabby M-stripes from JPG grain or a single bicolor split
+  function detectForeheadTabby(pixels, w, h, bgLabs, fgMask, fgW, fgH, cast) {
+    const ix0 = clamp(Math.floor(0.33 * w), 0, w - 1);
+    const ix1 = clamp(Math.ceil(0.67 * w), 1, w);
+    const iy0 = clamp(Math.floor(0.13 * h), 0, h - 1);
+    const iy1 = clamp(Math.ceil(0.30 * h), 1, h);
+    const bw = ix1 - ix0, bh = iy1 - iy0;
+    if (bw < 12 || bh < 8) return { isTabby: false, stripeRgb: null, meanLum: 50, oscRatio: 0 };
+
+    const L = new Float32Array(bw * bh);
+    const valid = new Uint8Array(bw * bh);
+    let lSum = 0, lCnt = 0;
+    for (let dy = 0; dy < bh; dy++) {
+      const y = iy0 + dy;
+      const fy = fgMask ? clamp(Math.floor((y + 0.5) / h * fgH), 0, fgH - 1) : 0;
+      for (let dx = 0; dx < bw; dx++) {
+        const x = ix0 + dx;
+        const i = (y * w + x) * 4;
+        if (pixels[i + 3] < 128) continue;
+        const fx = fgMask ? clamp(Math.floor((x + 0.5) / w * fgW), 0, fgW - 1) : 0;
+        const inFg = fgMask ? !!fgMask[fy * fgW + fx] : true;
+        const lab = shiftLabCast(rgbToLab(pixels[i], pixels[i + 1], pixels[i + 2]), cast);
+        let ok = inFg;
+        if (!fgMask && bgLabs && bgLabs.length) {
+          let minBg = 999;
+          for (const bg of bgLabs) { const d = labDist(lab, bg); if (d < minBg) minBg = d; }
+          ok = minBg >= 12;
+        }
+        if (ok) {
+          valid[dy * bw + dx] = 1;
+          L[dy * bw + dx] = lab[0];
+          lSum += lab[0];
+          lCnt++;
+        }
+      }
+    }
+    const meanLum = lCnt > 0 ? lSum / lCnt : 50;
+    if (lCnt < bw * bh * 0.40 || meanLum < 18 || meanLum > 84) {
+      return { isTabby: false, stripeRgb: null, meanLum, oscRatio: 0 };
+    }
+
+    // 3x3 smoothed luminance then horizontal 3px vs 9px band-pass
+    const sm = new Float32Array(bw * bh);
+    for (let dy = 0; dy < bh; dy++) {
+      for (let dx = 0; dx < bw; dx++) {
+        if (!valid[dy * bw + dx]) continue;
+        let s = 0, c = 0;
+        for (let oy = -1; oy <= 1; oy++) {
+          const yy = dy + oy;
+          if (yy < 0 || yy >= bh) continue;
+          for (let ox = -1; ox <= 1; ox++) {
+            const xx = dx + ox;
+            if (xx >= 0 && xx < bw && valid[yy * bw + xx]) { s += L[yy * bw + xx]; c++; }
+          }
+        }
+        sm[dy * bw + dx] = c > 0 ? s / c : meanLum;
+      }
+    }
+
+    let oscRows = 0, testedRows = 0;
+    let sr = 0, sg = 0, sb = 0, sc = 0;
+    for (let dy = 2; dy < bh - 2; dy++) {
+      let prevSign = 0, flips = 0, minDiff = 999, maxDiff = -999, rowValid = 0;
+      for (let dx = 4; dx < bw - 4; dx++) {
+        if (!valid[dy * bw + dx]) continue;
+        let s3 = 0, c3 = 0, s9 = 0, c9 = 0;
+        for (let ox = -4; ox <= 4; ox++) {
+          const idx = dy * bw + dx + ox;
+          if (!valid[idx]) continue;
+          const v = sm[idx];
+          s9 += v; c9++;
+          if (Math.abs(ox) <= 1) { s3 += v; c3++; }
+        }
+        if (c3 < 2 || c9 < 5) continue;
+        rowValid++;
+        const diff = s3 / c3 - s9 / c9;
+        if (diff < minDiff) minDiff = diff;
+        if (diff > maxDiff) maxDiff = diff;
+        const sign = diff > 1.8 ? 1 : (diff < -1.8 ? -1 : 0);
+        if (sign !== 0) {
+          if (prevSign !== 0 && sign !== prevSign) flips++;
+          prevSign = sign;
+        }
+        if (diff < -2.2) {
+          const pxIdx = ((iy0 + dy) * w + (ix0 + dx)) * 4;
+          sr += pixels[pxIdx]; sg += pixels[pxIdx + 1]; sb += pixels[pxIdx + 2]; sc++;
+        }
+      }
+      if (rowValid >= 10) {
+        testedRows++;
+        if (flips >= 3 && (maxDiff - minDiff) >= 4.5) oscRows++;
+      }
+    }
+    const oscRatio = testedRows > 0 ? oscRows / testedRows : 0;
+    const isTabby = testedRows >= 4 && oscRows >= 4 && oscRatio >= 0.28;
+    const stripeRgb = sc >= 8 ? [sr / sc, sg / sc, sb / sc] : null;
+    return { isTabby, stripeRgb, meanLum, oscRatio };
   }
 
   /**
@@ -640,6 +915,7 @@
 
     rawCtx.drawImage(imgSource, sx, sy, sw, sh, 0, 0, rawW, rawH);
     const rawPixels = rawCtx.getImageData(0, 0, rawW, rawH).data;
+    const ambientCast = isDrawing ? [0, 0] : estimateAmbientCast(rawPixels, rawW, rawH);
 
     // Also sample outer margin of the FULL image to know background colors reliably
     const fullThumb = document.createElement('canvas');
@@ -653,21 +929,22 @@
         if (x < 5 || x > 58 || y < 5) {
           const i = (y * 64 + x) * 4;
           if (ftPix[i + 3] < 128) continue;
-          bgSamples.push({ r: ftPix[i], g: ftPix[i + 1], b: ftPix[i + 2], lab: rgbToLab(ftPix[i], ftPix[i + 1], ftPix[i + 2]), w: 1 });
+          const lab = shiftLabCast(rgbToLab(ftPix[i], ftPix[i + 1], ftPix[i + 2]), ambientCast);
+          bgSamples.push({ r: ftPix[i], g: ftPix[i + 1], b: ftPix[i + 2], lab, w: 1 });
         }
       }
     }
     const bgClusters = bgSamples.length ? kMeansLab(bgSamples, 3, 14) : [];
     const bgLabs = bgClusters.map((c) => c.lab);
 
-    // 2. Downsample & bilateral-smooth for clean spatial coat block extraction (skip heavy blur on hand-drawn art)
+    // 2. Downsample & light edge-preserving bilateral smooth (skip blur on hand-drawn art; radius=1 preserves thin stripes/blazes)
     const gw = 72, gh = 84;
     const gCanvas = document.createElement('canvas');
     gCanvas.width = gw; gCanvas.height = gh;
     const gCtx = gCanvas.getContext('2d', { willReadFrequently: true });
     gCtx.drawImage(rawCanvas, 0, 0, gw, gh);
     const gRaw = gCtx.getImageData(0, 0, gw, gh).data;
-    const smoothPix = isDrawing ? gRaw : bilateralSmooth(gRaw, gw, gh, 2, 34);
+    const smoothPix = isDrawing ? gRaw : bilateralSmooth(gRaw, gw, gh, 1, 22);
 
     // Track transparent pixels (e.g. transparent PNG hand-drawn cats)
     const N = gw * gh;
@@ -682,11 +959,6 @@
     const hasAlpha = transTotal > N * 0.03;
 
     // 3. Foreground cat mask on the 72x84 grid — a GrabCut-style colour-model segmentation (no OpenCV).
-    //    Priors: the crop frames the cat (head top-centre, body below), so the crop border is background
-    //    and the torso / face core is cat. Fit colour models for both, classify every cell inside the cat
-    //    ovals, smooth, keep only what is connected to the core, fill interior holes (eyes, glare), refit
-    //    once and classify again. Without this, background next to the cat (grass, sofa, wall) leaked
-    //    into the coat colours and became head / ear patches.
     const insideHead = (nx, ny) => ((nx - 0.50) / 0.34) ** 2 + ((ny - 0.33) / 0.23) ** 2 <= 1.0;
     const insideBody = (nx, ny) => ((nx - 0.50) / 0.38) ** 2 + ((ny - 0.74) / 0.25) ** 2 <= 1.0;
     const insideEyeHole = (nx, ny) => {
@@ -695,46 +967,53 @@
       return l || r;
     };
     const pixelLab = new Array(N);
-    const inPrior = new Uint8Array(N), inCoreCell = new Uint8Array(N), inFaceCore = new Uint8Array(N), inEye = new Uint8Array(N), onBorder = new Uint8Array(N);
+    const inPrior = new Uint8Array(N), inCoreCell = new Uint8Array(N), inFaceCore = new Uint8Array(N), inForeheadCore = new Uint8Array(N), inEye = new Uint8Array(N), onBorder = new Uint8Array(N);
     for (let y = 0; y < gh; y++) {
       const ny = (y + 0.5) / gh;
       for (let x = 0; x < gw; x++) {
         const nx = (x + 0.5) / gw;
         const idx = y * gw + x, i = idx * 4;
-        pixelLab[idx] = rgbToLab(smoothPix[i], smoothPix[i + 1], smoothPix[i + 2]);
+        const rawLab = rgbToLab(smoothPix[i], smoothPix[i + 1], smoothPix[i + 2]);
+        pixelLab[idx] = isDrawing ? rawLab : shiftLabCast(rawLab, ambientCast);
         inPrior[idx] = !isTrans[idx] && (insideHead(nx, ny) || insideBody(nx, ny)) ? 1 : 0;
         inFaceCore[idx] = !isTrans[idx] && (((nx - 0.50) / 0.17) ** 2 + ((ny - 0.37) / 0.09) ** 2 <= 1.0) ? 1 : 0;
-        inCoreCell[idx] = !isTrans[idx] && (inFaceCore[idx] || ((nx - 0.50) / 0.20) ** 2 + ((ny - 0.60) / 0.22) ** 2 <= 1.0) ? 1 : 0;
+        inForeheadCore[idx] = !isTrans[idx] && (((nx - 0.50) / 0.16) ** 2 + ((ny - 0.21) / 0.07) ** 2 <= 1.0) ? 1 : 0;
+        inCoreCell[idx] = !isTrans[idx] && (inFaceCore[idx] || ((nx - 0.50) / 0.18) ** 2 + ((ny - 0.58) / 0.18) ** 2 <= 1.0) ? 1 : 0;
         inEye[idx] = insideEyeHole(nx, ny) ? 1 : 0;
         onBorder[idx] = (x < 3 || x >= gw - 3 || y < 2 || y >= gh - 2) ? 1 : 0;
       }
     }
-    const cellSample = (idx, w) => {
+    const useCastRgb = !isDrawing && opts.tone !== 'faithful' && (ambientCast[0] !== 0 || ambientCast[1] !== 0);
+    const corrRgb = (idx) => {
+      if (useCastRgb) return labToRgb(pixelLab[idx]);
       const i = idx * 4;
-      return { r: smoothPix[i], g: smoothPix[i + 1], b: smoothPix[i + 2], lab: pixelLab[idx], w };
+      return [smoothPix[i], smoothPix[i + 1], smoothPix[i + 2]];
+    };
+    const cellSample = (idx, w) => {
+      const rgb = corrRgb(idx);
+      return { r: rgb[0], g: rgb[1], b: rgb[2], lab: pixelLab[idx], w };
     };
     const minDistTo = (lab, models) => {
       let m = Infinity;
       for (const c of models) { const d = labDist(lab, c); if (d < m) m = d; }
       return m;
     };
-    // Face model: the face core is trusted (the user lines the head up with the guide). A minor face
-    // colour that matches the crop border is an occluder (grass blades, a hand) and is dropped.
+    // Face model includes face core + forehead crown so bicolor/cap-and-saddle cats protect both face & cap colors.
     const faceS = [], borderS = [];
     for (let idx = 0; idx < N; idx++) {
       if (isTrans[idx]) continue;
-      if (inFaceCore[idx] && !inEye[idx]) faceS.push(cellSample(idx, 1));
-      else if (onBorder[idx]) borderS.push(cellSample(idx, 1));
+      if (inFaceCore[idx] && !inEye[idx]) faceS.push(cellSample(idx, 1.0));
+      else if (inForeheadCore[idx] && !inEye[idx]) faceS.push(cellSample(idx, 0.7));
+      else if (onBorder[idx]) borderS.push(cellSample(idx, 1.0));
     }
     const rawBorderModel = borderS.length ? kMeansLab(borderS, 6, 7).map((c) => c.lab) : [];
-    let faceClusters = faceS.length ? kMeansLab(faceS, 4, 7) : [];
-    const cleanedFace = faceClusters.filter((c) => !(c.ratio < 0.15 && minDistTo(c.lab, rawBorderModel) < 12));
+    let faceClusters = faceS.length ? kMeansLab(faceS, 5, 7) : [];
+    const cleanedFace = faceClusters.filter((c) => !(c.ratio < 0.14 && minDistTo(c.lab, rawBorderModel) < 12));
     if (cleanedFace.length) faceClusters = cleanedFace;
     const faceModel = faceClusters.map((c) => c.lab);
     const faceLike = (idx) => !isTrans[idx] && minDistTo(pixelLab[idx], faceModel) <= 12;
 
-    // Background = transparent pixels OR everything reachable from the top/side edges by walking
-    // across small colour steps.
+    // Background = transparent pixels OR everything reachable from top/side crop edges without crossing strong edges into faceModel.
     const flooded = new Uint8Array(N);
     const fq = new Int32Array(N);
     let fh = 0, ft = 0;
@@ -743,8 +1022,9 @@
         const idx = y * gw + x;
         if (isTrans[idx]) { flooded[idx] = 1; continue; }
         if (hasAlpha) continue;
-        const seed = y < 2 || ((x < 3 || x >= gw - 3) && y < (isDrawing ? gh * 0.92 : gh * 0.55));
-        if (seed && !inCoreCell[idx] && !faceLike(idx)) { flooded[idx] = 1; fq[ft++] = idx; }
+        const outerTop = y < 2;
+        const sideSeed = !inPrior[idx] && (x < 3 || x >= gw - 3) && y < (isDrawing ? gh * 0.92 : gh * 0.60);
+        if ((outerTop || sideSeed) && !inCoreCell[idx]) { flooded[idx] = 1; fq[ft++] = idx; }
       }
     }
     const floodStepTol = isDrawing ? 14 : 10;
@@ -753,7 +1033,8 @@
       const nbs = [cx > 0 ? c - 1 : -1, cx + 1 < gw ? c + 1 : -1, cy > 0 ? c - gw : -1, cy + 1 < gh ? c + gw : -1];
       for (const nb of nbs) {
         if (nb < 0 || flooded[nb] || inCoreCell[nb]) continue;
-        if (labDist(pixelLab[nb], pixelLab[c]) < floodStepTol && !faceLike(nb)) { flooded[nb] = 1; fq[ft++] = nb; }
+        const protectFace = inPrior[nb] && faceLike(nb);
+        if (labDist(pixelLab[nb], pixelLab[c]) < floodStepTol && !protectFace) { flooded[nb] = 1; fq[ft++] = nb; }
       }
     }
 
@@ -810,38 +1091,60 @@
     const bgModelLabs = models.bg;
     const bgLabsAll = bgLabs.concat(bgModelLabs);
 
-    // Collect foreground fur samples (excluding eyes)
+    // Collect foreground fur samples (excluding eyes); downweight 1px outer silhouette rim to avoid AA background halos
     const furSamples = [];
-    for (let idx = 0; idx < N; idx++) {
-      if (!pixelFg[idx] || inEye[idx]) continue;
-      furSamples.push({ ...cellSample(idx, inCoreCell[idx] ? 1.3 : 0.75) });
+    for (let y = 0; y < gh; y++) {
+      for (let x = 0; x < gw; x++) {
+        const idx = y * gw + x;
+        if (!pixelFg[idx] || inEye[idx]) continue;
+        const isRim = !hasAlpha && !(
+          x > 0 && x + 1 < gw && y > 0 && y + 1 < gh &&
+          pixelFg[idx - 1] && pixelFg[idx + 1] && pixelFg[idx - gw] && pixelFg[idx + gw]
+        );
+        const w = isRim ? 0.12 : ((inCoreCell[idx] || inForeheadCore[idx]) ? 1.3 : 0.85);
+        furSamples.push(cellSample(idx, w));
+      }
     }
 
-    // 4. Quantize foreground fur into K distinct perceptual coat colors
+    // 4. Quantize foreground fur into K distinct perceptual coat colors using over-clustering + agglomerative merge
     const targetK = clamp(Math.round(opts.colorCount || 3), 2, 5);
     const mergeTol = isDrawing
-      ? (targetK <= 2 ? 16 : 11)
-      : (targetK <= 2 ? 24 : targetK === 3 ? 20 : 15);
+      ? (targetK <= 2 ? 15 : 10)
+      : (targetK <= 2 ? 18 : targetK === 3 ? 14 : 11);
     const distFn = isDrawing ? labDist : coatLabDist;
-    const rawClusters = kMeansLab(furSamples, targetK, mergeTol, !isDrawing);
-    let coatClusters = rawClusters.filter((c) => c.ratio >= (isDrawing ? 0.035 : 0.045));
+    const rawClusters = kMeansLab(furSamples, targetK, mergeTol, !isDrawing, {
+      targetCount: targetK,
+      overClusterK: Math.min(9, targetK + 4)
+    });
+    let coatClusters = rawClusters.filter((c) => c.ratio >= (isDrawing ? 0.025 : 0.022));
     if (coatClusters.length > 1 && !hasAlpha) {
-      // A cluster that matches the background model and is (almost) absent from the cat's core is
-      // background that slipped past the mask — drop it so it can't become a head / ear patch.
-      const coreHits = new Float64Array(coatClusters.length), allHits = new Float64Array(coatClusters.length);
-      for (let idx = 0; idx < N; idx++) {
-        if (!pixelFg[idx] || inEye[idx]) continue;
-        let best = 0, bestD = Infinity;
-        for (let c = 0; c < coatClusters.length; c++) {
-          const d = distFn(pixelLab[idx], coatClusters[c].lab);
-          if (d < bestD) { bestD = d; best = c; }
+      // Drop peripheral background leak or 1px AA silhouette-rim clusters absent from core & forehead
+      const coreHits = new Float64Array(coatClusters.length), faceHits = new Float64Array(coatClusters.length), rimHits = new Float64Array(coatClusters.length), allHits = new Float64Array(coatClusters.length);
+      for (let y = 0; y < gh; y++) {
+        for (let x = 0; x < gw; x++) {
+          const idx = y * gw + x;
+          if (!pixelFg[idx] || inEye[idx]) continue;
+          let best = 0, bestD = Infinity;
+          for (let c = 0; c < coatClusters.length; c++) {
+            const d = distFn(pixelLab[idx], coatClusters[c].lab);
+            if (d < bestD) { bestD = d; best = c; }
+          }
+          allHits[best]++;
+          if (inCoreCell[idx] || inForeheadCore[idx]) coreHits[best]++;
+          if (inFaceCore[idx]) faceHits[best]++;
+          const isRim = !(x > 0 && x + 1 < gw && y > 0 && y + 1 < gh &&
+            pixelFg[idx - 1] && pixelFg[idx + 1] && pixelFg[idx - gw] && pixelFg[idx + gw]);
+          if (isRim) rimHits[best]++;
         }
-        allHits[best]++;
-        if (inCoreCell[idx]) coreHits[best]++;
       }
       const kept = coatClusters.filter((c, ci) => {
         const coreShare = coreHits[ci] / Math.max(1, allHits[ci]);
-        return !(minDistTo(c.lab, bgModelLabs) < 10 && coreShare < 0.12 && c.ratio < 0.5);
+        const faceShare = faceHits[ci] / Math.max(1, allHits[ci]);
+        const rimShare = rimHits[ci] / Math.max(1, allHits[ci]);
+        const bgD = minDistTo(c.lab, bgModelLabs);
+        const bgLeak = bgD < 14 && c.ratio < 0.45 && (coreShare < 0.12 || (c.ratio < 0.08 && faceShare < 0.06 && rimShare > 0.40));
+        const rimOnly = c.ratio < 0.08 && rimShare > 0.68 && coreShare < 0.06;
+        return !bgLeak && !rimOnly;
       });
       if (kept.length) coatClusters = kept;
     }
@@ -866,8 +1169,8 @@
       }
     }
 
-    // Representative colour of a coat cluster = its sunlit half for real photos
-    // (skip dark achromatic coats so black fur stays deep, and skip hand-drawn art so flat colors stay untouched)
+    // Representative colour of a coat cluster = upper-middle [45%..88%] luminance band for real photos
+    // (removes shadow darkening without picking blown-out specular highlights; skip dark achromatic coats & drawings)
     if (!isDrawing) {
       for (let c = 0; c < coatClusters.length; c++) {
         if (coatClusters[c].chroma <= 14 && coatClusters[c].lab[0] < 48) continue;
@@ -875,30 +1178,32 @@
         for (let idx = 0; idx < N; idx++) if (labelGrid[idx] === c) ls.push(pixelLab[idx][0]);
         if (ls.length < 12) continue;
         ls.sort((a, b) => a - b);
-        const medL = ls[Math.floor(ls.length / 2)];
+        const loL = ls[Math.floor(ls.length * 0.45)];
+        const hiL = ls[Math.min(ls.length - 1, Math.floor(ls.length * 0.88))];
         let r = 0, g = 0, b = 0, n = 0;
         for (let idx = 0; idx < N; idx++) {
-          if (labelGrid[idx] !== c || pixelLab[idx][0] < medL) continue;
-          const i = idx * 4;
-          r += smoothPix[i]; g += smoothPix[i + 1]; b += smoothPix[i + 2]; n++;
+          if (labelGrid[idx] !== c) continue;
+          const lVal = pixelLab[idx][0];
+          if (lVal < loL || lVal > hiL) continue;
+          const pxRgb = corrRgb(idx);
+          r += pxRgb[0]; g += pxRgb[1]; b += pxRgb[2]; n++;
         }
         if (n) {
           const rgb = [r / n, g / n, b / n];
-          const lab = rgbToLab(rgb[0], rgb[1], rgb[2]);
+          const rawLab = rgbToLab(rgb[0], rgb[1], rgb[2]);
+          const lab = useCastRgb ? rawLab : shiftLabCast(rawLab, ambientCast);
           coatClusters[c] = { ...coatClusters[c], rgb, lab, hsl: rgbToHsl(rgb[0], rgb[1], rgb[2]), chroma: Math.hypot(lab[1], lab[2]) };
         }
       }
     }
 
-    // Fill eye holes + small interior background holes using nearest labeled neighbor (simple 3-pass dilation)
+    // Fill eye holes + small interior holes ONLY inside foreground mask (never dilating into outside background)
     for (let pass = 0; pass < 5; pass++) {
       const copy = labelGrid.slice();
       for (let y = 1; y < gh - 1; y++) {
-        const ny = (y + 0.5) / gh;
         for (let x = 1; x < gw - 1; x++) {
-          const nx = (x + 0.5) / gw;
           const idx = y * gw + x;
-          if (copy[idx] >= 0 || (!insideHead(nx, ny) && !insideBody(nx, ny))) continue;
+          if (copy[idx] >= 0 || (!pixelFg[idx] && !inEye[idx])) continue;
           const counts = new Int32Array(coatClusters.length);
           let best = -1, bestC = 0;
           for (let dy = -1; dy <= 1; dy++) {
@@ -927,19 +1232,22 @@
     let baseIdx = 0;
     for (let c = 1; c < countsAll.length; c++) if (countsAll[c] > countsAll[baseIdx]) baseIdx = c;
 
-    // 6. Inspect Anatomical Zones (ears, muzzle, chest, paws, tabby texture, eyes, nose)
-    const leftEarInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.17, 0.03, 0.39, 0.20, bgLabsAll);
-    const rightEarInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.61, 0.03, 0.83, 0.20, bgLabsAll);
-    const muzzleInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.37, 0.37, 0.63, 0.55, bgLabsAll);
-    const chestInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.32, 0.62, 0.68, 0.88, bgLabsAll);
-    const pawsInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.30, 0.82, 0.70, 0.96, bgLabsAll);
-    const foreheadInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.34, 0.14, 0.66, 0.30, bgLabsAll);
-    const noseInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.45, 0.41, 0.55, 0.51, []);
+    // 6. Inspect Anatomical Zones (ears, muzzle, chest, arms, paws, tabby texture, eyes, nose)
+    const activeCast = isDrawing ? [0, 0] : ambientCast;
+    const leftEarInfo = sampleEarZone(rawPixels, rawW, rawH, 0.19, 0.05, 0.39, 0.21, bgLabsAll, activeCast);
+    const rightEarInfo = sampleEarZone(rawPixels, rawW, rawH, 0.61, 0.05, 0.81, 0.21, bgLabsAll, activeCast);
+    const muzzleInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.39, 0.36, 0.61, 0.49, bgLabsAll, pixelFg, gw, gh, activeCast);
+    const chestInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.32, 0.62, 0.68, 0.88, bgLabsAll, pixelFg, gw, gh, activeCast);
+    const pawsInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.30, 0.80, 0.70, 0.95, bgLabsAll, pixelFg, gw, gh, activeCast);
+    const leftArmInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.26, 0.72, 0.44, 0.88, bgLabsAll, pixelFg, gw, gh, activeCast);
+    const rightArmInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.56, 0.72, 0.74, 0.88, bgLabsAll, pixelFg, gw, gh, activeCast);
+    const foreheadInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.34, 0.14, 0.66, 0.30, bgLabsAll, pixelFg, gw, gh, activeCast);
+    const noseInfo = avgBoxRgb(rawPixels, rawW, rawH, 0.45, 0.41, 0.55, 0.51, [], null, 0, 0, activeCast);
     // Body flanks: light on a Siamese even when its dark mask fills most of a close-up crop,
     // dark on tuxedo / black cats with a white locket (which must never become colour-point).
-    const flankL = avgBoxRgb(rawPixels, rawW, rawH, 0.08, 0.62, 0.26, 0.90, bgLabsAll);
-    const flankR = avgBoxRgb(rawPixels, rawW, rawH, 0.74, 0.62, 0.92, 0.90, bgLabsAll);
-    const flankLight = Math.max(flankL.catShare > 0.4 ? flankL.lab[0] : 0, flankR.catShare > 0.4 ? flankR.lab[0] : 0);
+    const flankL = avgBoxRgb(rawPixels, rawW, rawH, 0.12, 0.62, 0.28, 0.88, bgLabsAll, pixelFg, gw, gh, activeCast);
+    const flankR = avgBoxRgb(rawPixels, rawW, rawH, 0.72, 0.62, 0.88, 0.88, bgLabsAll, pixelFg, gw, gh, activeCast);
+    const flankLight = Math.max(flankL.catShare > 0.35 ? flankL.lab[0] : 0, flankR.catShare > 0.35 ? flankR.lab[0] : 0);
 
     const nearestCluster = (lab) => {
       let best = 0, bestD = Infinity;
@@ -950,11 +1258,24 @@
       return adjustedClusters[best];
     };
 
-    const leftEarCl = nearestCluster(leftEarInfo.lab);
-    const rightEarCl = nearestCluster(rightEarInfo.lab);
-    const chestCl = nearestCluster(chestInfo.lab);
-    const pawsCl = nearestCluster(pawsInfo.lab);
+    const resolveEarColor = (info, fallbackCl) => {
+      const cl = nearestCluster(info.lab);
+      if (info.catShare > 0.28 && labDist(info.lab, cl.lab) > 18) {
+        const srcRgb = opts.tone === 'faithful' ? info.rawRgb : info.rgb;
+        const adj = adjustColor(srcRgb, opts.tone);
+        return { hex: rgbToHex(adj[0], adj[1], adj[2]), lab: info.lab, adjRgb: adj };
+      }
+      return info.catShare > 0.28 ? cl : fallbackCl;
+    };
+
     const baseCl = adjustedClusters[baseIdx];
+    const leftEarCl = resolveEarColor(leftEarInfo, baseCl);
+    const rightEarFallback = (rightEarInfo.catShare <= 0.28 && minDistTo(baseCl.lab, bgLabsAll) < 12) ? baseCl : leftEarCl;
+    const rightEarCl = resolveEarColor(rightEarInfo, rightEarFallback);
+    const chestCl = chestInfo.catShare > 0.30 ? nearestCluster(chestInfo.lab) : baseCl;
+    const pawsCl = pawsInfo.catShare > 0.22 ? nearestCluster(pawsInfo.lab) : chestCl;
+    const armBestInfo = leftArmInfo.catShare >= rightArmInfo.catShare ? leftArmInfo : rightArmInfo;
+    const armsCl = armBestInfo.catShare > 0.35 ? nearestCluster(armBestInfo.lab) : baseCl;
 
     // Check if this photo is a true colorpoint (Siamese): light creamy body & forehead + dark muzzle & ears
     // (Requires bright base & forehead so black tuxedo cats with a white chest NEVER trigger colorpoint!)
@@ -963,7 +1284,7 @@
       (foreheadInfo.lab[0] > 50 || flankLight > 55) &&
       (chestInfo.lab[0] - muzzleInfo.lab[0]) > 18 &&
       (chestInfo.lab[0] - Math.min(leftEarInfo.lab[0], rightEarInfo.lab[0])) > 14 &&
-      chestInfo.lab[0] > 62 && muzzleInfo.lab[0] < 54 &&
+      chestInfo.lab[0] > 60 && muzzleInfo.lab[0] < 55 &&
       labDist(leftEarInfo.lab, rightEarInfo.lab) < 18;
 
     const palette = {};
@@ -976,6 +1297,27 @@
     const bodyY0 = Math.floor(gh * 0.50), bodyY1 = Math.ceil(gh * 0.96);
     const headH = headY1 - headY0;
     const bodyH = bodyY1 - bodyY0;
+
+    // Self-calibrate foreground head/body half-widths so cheek & flank markings reach KuroCat's silhouette edges cleanly
+    const measureFgHalfWidth = (yFrac0, yFrac1, fallback, minW, maxW) => {
+      const hws = [];
+      const ry0 = Math.floor(gh * yFrac0), ry1 = Math.ceil(gh * yFrac1);
+      for (let y = ry0; y < ry1; y++) {
+        let minX = gw, maxX = -1;
+        for (let x = 0; x < gw; x++) {
+          if (pixelFg[y * gw + x]) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+          }
+        }
+        if (maxX > minX + 6) hws.push(((maxX - minX + 1) * 0.5) / gw);
+      }
+      if (hws.length < 3) return fallback;
+      hws.sort((a, b) => a - b);
+      return clamp(hws[Math.floor(hws.length * 0.5)], minW, maxW);
+    };
+    const headHalfWFrac = measureFgHalfWidth(0.24, 0.44, 0.265, 0.24, 0.33);
+    const bodyHalfWFrac = measureFgHalfWidth(0.58, 0.86, 0.34, 0.28, 0.38);
 
     // Extract regions directly from the quantized label grid for a given part space
     function extractSpaceRegions(space, yStart, yEnd, coordMapper, overshootFn, minAreaPx) {
@@ -1002,7 +1344,7 @@
         const cleaned = cleanBinaryMask(bin, gw, shLocal);
         const comps = findConnectedComponents(cleaned, gw, shLocal, minAreaPx);
 
-        for (let ci = 0; ci < Math.min(comps.length, 3); ci++) {
+        for (let ci = 0; ci < Math.min(comps.length, 4); ci++) {
           const loopPx = traceContourMarchingSquares(comps[ci].mask, gw, shLocal);
           if (loopPx.length < 8) continue;
 
@@ -1030,9 +1372,9 @@
 
     if (isColorpoint) {
       // Soft gradient Siamese/colorpoint option (preserves soft airbrush mask feel!)
-      const lightRgb = chestInfo.lab[0] > 66 ? chestInfo.rgb : [244, 236, 224];
-      const creamBase = adjustColor(lightRgb, opts.tone);
-      const pointCol = adjustColor(muzzleInfo.rgb, opts.tone);
+      const srcLightRgb = chestInfo.lab[0] > 64 ? (opts.tone === 'faithful' ? chestInfo.rawRgb : chestInfo.rgb) : [244, 236, 224];
+      const creamBase = adjustColor(srcLightRgb, opts.tone);
+      const pointCol = adjustColor(opts.tone === 'faithful' ? muzzleInfo.rawRgb : muzzleInfo.rgb, opts.tone);
       const midCol = mixRgb(pointCol, creamBase, 0.36);
 
       palette.body = rgbToHex(creamBase[0], creamBase[1], creamBase[2]);
@@ -1055,18 +1397,18 @@
       const baseLum = (0.2126 * baseCl.adjRgb[0] + 0.7152 * baseCl.adjRgb[1] + 0.0722 * baseCl.adjRgb[2]) / 255;
       palette.bodyShade = rgbToHex(...shadeRgb(baseCl.adjRgb, baseLum < 0.2 ? 0.82 : 0.94));
       palette.belly = chestCl.hex;
-      palette.legs = baseCl.hex;
+      palette.legs = armsCl.hex;
       palette.paws = pawsCl.hex;
-      const earsVisible = leftEarInfo.catShare > 0.5 && rightEarInfo.catShare > 0.5;
-      palette.earOuter = leftEarInfo.catShare > 0.45 ? leftEarCl.hex : baseCl.hex;
+      const earsVisible = leftEarInfo.catShare > 0.28 || rightEarInfo.catShare > 0.28;
+      palette.earOuter = leftEarCl.hex;
       palette.earInner = baseLum < 0.24
         ? rgbToHex(64, 54, 56)
         : rgbToHex(...mixRgb(leftEarCl.adjRgb, [242, 188, 186], 0.52));
 
       // Tail uses a prominent non-white coat color if white is the base (e.g. calico/tuxedo), else body color
-      const nonWhiteCl = adjustedClusters.find((c) => !(c.lab[0] > 74 && c.chroma < 16));
-      palette.tail = (baseLum > 0.78 && nonWhiteCl) ? nonWhiteCl.hex : baseCl.hex;
-      if (adjustedClusters.length >= 3 && baseLum > 0.72) {
+      const nonWhiteCl = adjustedClusters.find((c) => !(c.lab[0] > 72 && c.chroma < 18));
+      palette.tail = (baseLum > 0.76 && nonWhiteCl) ? nonWhiteCl.hex : baseCl.hex;
+      if (adjustedClusters.length >= 3 && baseLum > 0.70) {
         const secondAccent = adjustedClusters.find((c) => c !== baseCl && c !== nonWhiteCl);
         if (secondAccent) palette.tailTip = secondAccent.hex;
       }
@@ -1082,11 +1424,10 @@
       }
 
       // 7a. Trace real HEAD color blocks directly from photo pixels!
-      // Map head grid x in [0.16*gw .. 0.84*gw] -> [-46 .. 46], y in [0..headH] -> [-38 .. 32]
       const headRegions = extractSpaceRegions(
         'head', headY0, headY1,
         (px, py) => ({
-          x: ((px / gw) - 0.50) / 0.34 * 46,
+          x: ((px / gw) - 0.50) / headHalfWFrac * 45,
           y: -38 + (py / headH) * 72
         }),
         (p) => {
@@ -1098,15 +1439,14 @@
           }
           return p;
         },
-        Math.max(26, Math.round(gw * headH * 0.022))
+        Math.max(18, Math.round(gw * headH * 0.015))
       );
 
       // 7b. Trace real BODY color blocks directly from photo pixels!
-      // Map body grid x in [0.12*gw .. 0.88*gw] -> [-52 .. 52], y in [0..bodyH] -> [-104 .. 18]
       const bodyRegions = extractSpaceRegions(
         'body', bodyY0, bodyY1,
         (px, py) => ({
-          x: ((px / gw) - 0.50) / 0.38 * 52,
+          x: ((px / gw) - 0.50) / bodyHalfWFrac * 51,
           y: -104 + (py / bodyH) * 124
         }),
         (p) => {
@@ -1116,7 +1456,7 @@
           if (y > 6) y += 10;
           return { x, y };
         },
-        Math.max(32, Math.round(gw * bodyH * 0.026))
+        Math.max(24, Math.round(gw * bodyH * 0.018))
       );
 
       regions.push(...bodyRegions, ...headRegions);
@@ -1128,24 +1468,42 @@
       shape.cheekFullness = 1.06;
     }
 
-    // 8. Optional Tabby Stripes (when fine forehead stripe energy is high)
-    const tabbyEnergy = foreheadInfo.edgeEnergy;
+    // 8. Optional Tabby Stripes (band-pass forehead oscillation check; works on tabby-and-white too)
+    const tabbyCheck = (isDrawing || isColorpoint)
+      ? { isTabby: false, stripeRgb: null, meanLum: 50, oscRatio: 0 }
+      : detectForeheadTabby(rawPixels, rawW, rawH, bgLabsAll, pixelFg, gw, gh, activeCast);
     const baseColObj = global.KuroSpec.parseHexColor(palette.body);
     const baseLuminance = baseColObj ? global.KuroSpec.luminance(baseColObj) : 0.5;
-    const autoTabby = !isDrawing && !isColorpoint && tabbyEnergy > 9.0 && baseLuminance > 0.18 && baseLuminance < 0.78 && regions.length <= 4;
+    const autoTabby = !isDrawing && !isColorpoint && tabbyCheck.isTabby;
     const shouldAddTabby = opts.addTabby === 'on' || (opts.addTabby === 'auto' && autoTabby);
 
     if (shouldAddTabby) {
-      const refRgb = baseCl.adjRgb;
-      const stripeHex = rgbToHex(...shadeRgb(refRgb, baseLuminance > 0.45 ? 0.60 : 0.48));
+      let stripeHex;
+      if (tabbyCheck.stripeRgb) {
+        const rawStripeLab = rgbToLab(...tabbyCheck.stripeRgb);
+        const corrStripeLab = shiftLabCast(rawStripeLab, activeCast);
+        if (corrStripeLab[0] < tabbyCheck.meanLum - 2) {
+          const srcStripeRgb = useCastRgb ? labToRgb(corrStripeLab) : tabbyCheck.stripeRgb;
+          const adjStripe = adjustColor(srcStripeRgb, opts.tone);
+          stripeHex = rgbToHex(...shadeRgb(adjStripe, 0.86));
+        }
+      }
+      if (!stripeHex) {
+        const foreheadCl = nearestCluster(foreheadInfo.lab);
+        const nonWhiteRef = (foreheadCl.lab[0] <= 74 || foreheadCl.chroma >= 16)
+          ? foreheadCl
+          : (adjustedClusters.find((c) => !(c.lab[0] > 72 && c.chroma < 18)) || baseCl);
+        const refLum = (0.2126 * nonWhiteRef.adjRgb[0] + 0.7152 * nonWhiteRef.adjRgb[1] + 0.0722 * nonWhiteRef.adjRgb[2]) / 255;
+        stripeHex = rgbToHex(...shadeRgb(nonWhiteRef.adjRgb, refLum > 0.45 ? 0.60 : 0.48));
+      }
       palette.stripes = stripeHex;
       marks.push(...makeTabbyForeheadMarks(stripeHex, 0.58));
       marks.push(...makeTailRingMarks(stripeHex, 0.62));
     }
 
     // 9. Eye Iris, Nose, Mouth, Paw Pads & Contrast-safe Whiskers/Crease
-    const furLabs = adjustedClusters.slice(0, 3).map((c) => c.lab);
-    const detectedIris = detectEyeIris(rawPixels, rawW, rawH, furLabs);
+    const furLabs = adjustedClusters.map((c) => c.lab);
+    const detectedIris = detectEyeIris(rawPixels, rawW, rawH, furLabs, activeCast);
 
     if (opts.includeIris) {
       if (detectedIris) {
