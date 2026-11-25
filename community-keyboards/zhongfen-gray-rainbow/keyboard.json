@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "灰白彩虹 65%",
+  "author": "蛋黄酱",
+  "colors": {
+    "mouseBody": "#F2F3F5",
+    "mouseBorder": "#C4C8CE",
+    "wheel": "#9AE6FF",
+    "base": "#4A4E56",
+    "deck": "#7C828B",
+    "key": "#FFFFFF",
+    "keyBorder": "#D6DAE0",
+    "accent": "#FF6FB5",
+    "darkText": true
+  }
+}
