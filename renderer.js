@@ -1040,13 +1040,38 @@
       return;
     }
 
+    const bodyLuma = 0.299 * skin.palette.body.r + 0.587 * skin.palette.body.g + 0.114 * skin.palette.body.b;
+    const pointsLuma = skin.palette.points
+      ? (0.299 * skin.palette.points.r + 0.587 * skin.palette.points.g + 0.114 * skin.palette.points.b)
+      : 1.0;
+    const outlineLuma = skin.palette.outline
+      ? (0.299 * skin.palette.outline.r + 0.587 * skin.palette.outline.g + 0.114 * skin.palette.outline.b)
+      : 1.0;
+    const isDarkEyeArea = bodyLuma < 0.28 || (skin.colorpoint && pointsLuma < 0.38);
+    const closedLidCss = isDarkEyeArea
+      ? eyeColorCss
+      : (skin.palette.outline && outlineLuma < 0.42 ? rgbaToCss(skin.palette.outline, 0.90) : 'rgba(60, 50, 44, 0.88)');
+
     if (state.petHead > 0.45) {
-      ctx.strokeStyle = eyeColorCss;
+      ctx.strokeStyle = closedLidCss;
       ctx.lineWidth = 2.6;
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(-11.5, 1.0);
-      ctx.quadraticCurveTo(sign * 1.5, 3.4, 11.5, 1.0);
+      ctx.moveTo(-11.0, 1.2);
+      ctx.quadraticCurveTo(sign * 1.5, 4.0, 11.0, 1.2);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+
+    if (state.sleepiness > 0.62 && sStartle < 0.15) {
+      // Peaceful closed curved sleeping eyelids (always clearly visible on both dark & light fur!)
+      ctx.strokeStyle = closedLidCss;
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-10.5, 0.4);
+      ctx.quadraticCurveTo(0, 5.2, 10.5, 0.4);
       ctx.stroke();
       ctx.restore();
       return;
@@ -1060,6 +1085,15 @@
       ctx.quadraticCurveTo(0, 4.8, -11.5, -0.5);
       ctx.closePath();
       ctx.fill();
+      if (!isDarkEyeArea) {
+        ctx.strokeStyle = closedLidCss;
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-11.2, -0.5);
+        ctx.quadraticCurveTo(0, 0.6, 11.2, -0.5);
+        ctx.stroke();
+      }
       ctx.restore();
       return;
     }
@@ -3773,35 +3807,61 @@
 
     const baseShiftX = state.bodyShiftX + swingH * 11.0;
     const liftY = -liftS * 12.0 + Math.sin(state.time * 3.8) * 2.0 * (1 - startle) + swingY * 5.0;
-    const headCenter = { x: 146.0 + baseShiftX, y: lerpNum(136.0, 158.0, startle) + liftY };
-    const backCenter = { x: 202.0 + baseShiftX, y: lerpNum(146.0, 172.0, startle) + liftY };
+    const headCenter = { x: 112.0 + baseShiftX, y: lerpNum(140.0, 160.0, startle) + liftY };
+    const backCenter = { x: 200.0 + baseShiftX, y: lerpNum(152.0, 176.0, startle) + liftY };
 
     const cheekHalfW = bd.cheekHalfW * skin.shape.cheekFullness * hs;
     const crownY = bd.crownBaseY * hs;
     const cheekY = bd.cheekY * hs;
     const chinY = 33.0 * hs;
 
-    const scruffPeak = { x: 188 + baseShiftX, y: lerpNum(88, 126, startle) + liftY };
-    const rumpRight = { x: 246 + baseShiftX + (bw - 1) * 12, y: lerpNum(150, 188, startle) + liftY };
-    const bellyRight = { x: 212 + baseShiftX, y: lerpNum(188, 214, startle) + liftY };
-    const bellyLeft = { x: 136 + baseShiftX, y: lerpNum(182, 206, startle) + liftY };
-    const chestLeft = { x: 116 + baseShiftX, y: lerpNum(164, 188, startle) + liftY };
-    const neckFront = { x: headCenter.x - cheekHalfW * 0.64, y: headCenter.y + 8 * hs };
+    // Longer, sleeker dangling cat body; scruff pinch sits well behind & below the right ear so BOTH ears stay 100% clear!
+    const neckNape = { x: headCenter.x + cheekHalfW * 0.42, y: headCenter.y - 6 * hs };
+    const scruffPeak = { x: 196 + baseShiftX, y: lerpNum(106, 132, startle) + liftY };
+    const rumpRight = { x: 274 + baseShiftX + (bw - 1) * 10, y: lerpNum(154, 186, startle) + liftY };
+    const bellyRight = { x: 244 + baseShiftX, y: lerpNum(188, 212, startle) + liftY };
+    const bellyLeft = { x: 124 + baseShiftX, y: lerpNum(186, 206, startle) + liftY };
+    const chestLeft = { x: 100 + baseShiftX, y: lerpNum(166, 188, startle) + liftY };
+    const neckFront = { x: headCenter.x - cheekHalfW * 0.56, y: headCenter.y + 10 * hs };
 
     const traceBack = () => {
       ctx.beginPath();
-      ctx.moveTo(headCenter.x - 10, headCenter.y - 16 * hs);
-      ctx.bezierCurveTo(headCenter.x + 16, headCenter.y - 34 * hs, scruffPeak.x - 16, scruffPeak.y - 4, scruffPeak.x, scruffPeak.y);
-      ctx.bezierCurveTo(scruffPeak.x + 34, scruffPeak.y + 4, rumpRight.x + 4, lerpNum(108, 148, startle) + liftY, rumpRight.x, rumpRight.y);
-      ctx.bezierCurveTo(rumpRight.x - 2, lerpNum(178, 210, startle) + liftY, bellyRight.x + 22, bellyRight.y, bellyRight.x, bellyRight.y);
-      ctx.bezierCurveTo(182 + baseShiftX, lerpNum(190, 214, startle) + liftY, 154 + baseShiftX, lerpNum(188, 212, startle) + liftY, bellyLeft.x, bellyLeft.y);
-      ctx.bezierCurveTo(122 + baseShiftX, lerpNum(180, 204, startle) + liftY, 114 + baseShiftX, lerpNum(174, 198, startle) + liftY, chestLeft.x, chestLeft.y);
-      ctx.bezierCurveTo(116 + baseShiftX, lerpNum(156, 178, startle) + liftY, neckFront.x - 2, neckFront.y + 10, neckFront.x, neckFront.y);
+      ctx.moveTo(neckNape.x, neckNape.y);
+      ctx.bezierCurveTo(
+        headCenter.x + cheekHalfW + 10, lerpNum(130, 152, startle) + liftY,
+        scruffPeak.x - 24, scruffPeak.y + 10,
+        scruffPeak.x, scruffPeak.y
+      );
+      ctx.bezierCurveTo(
+        scruffPeak.x + 38, scruffPeak.y - 2,
+        rumpRight.x + 4, lerpNum(116, 152, startle) + liftY,
+        rumpRight.x, rumpRight.y
+      );
+      ctx.bezierCurveTo(
+        rumpRight.x - 2, lerpNum(178, 208, startle) + liftY,
+        bellyRight.x + 22, bellyRight.y,
+        bellyRight.x, bellyRight.y
+      );
+      ctx.bezierCurveTo(
+        208 + baseShiftX, lerpNum(182, 206, startle) + liftY,
+        162 + baseShiftX, lerpNum(182, 206, startle) + liftY,
+        bellyLeft.x, bellyLeft.y
+      );
+      ctx.bezierCurveTo(
+        108 + baseShiftX, lerpNum(182, 204, startle) + liftY,
+        98 + baseShiftX, lerpNum(176, 198, startle) + liftY,
+        chestLeft.x, chestLeft.y
+      );
+      ctx.bezierCurveTo(
+        100 + baseShiftX, lerpNum(156, 178, startle) + liftY,
+        neckFront.x - 2, neckFront.y + 10,
+        neckFront.x, neckFront.y
+      );
       ctx.closePath();
     };
 
-    const tailPivot = { x: rumpRight.x - 10, y: lerpNum(148, 180, startle) + liftY };
-    const tailLen = 86.0 * skin.shape.tailLength * (1.0 + swingY * 0.15);
+    const tailPivot = { x: rumpRight.x - 10, y: lerpNum(152, 182, startle) + liftY };
+    const tailLen = 84.0 * skin.shape.tailLength * (1.0 + swingY * 0.15);
     const tailW = Math.max(8.5, bd.tailWidth * skin.shape.tailThickness * 1.12);
     const rawTailAng = (tailSwing * (1.0 - startle * 0.25) + idleSway * 1.4) * 0.88;
     const tailAng = clamp(rawTailAng, -1.12, 0.56);
@@ -3827,10 +3887,10 @@
       const dynBendX = bendX + limbSwing * 14.0 * swingScale;
       return { root, tip, startW, endW, bendX: dynBendX, isBehindBody: !!isBehindBody };
     };
-    const backLeftLimb = makeLimb({ x: 196 + baseShiftX, y: 170 + liftY }, { x: 192 + baseShiftX, y: 208 + liftY }, { x: 174 + baseShiftX, y: 194 + liftY }, { x: 164 + baseShiftX, y: 222 + liftY }, 15.5, 12.5, -2, 0.66, -0.25, true);
-    const backRightLimb = makeLimb({ x: 220 + baseShiftX, y: 162 + liftY }, { x: 218 + baseShiftX, y: 212 + liftY }, { x: 226 + baseShiftX, y: 186 + liftY }, { x: 238 + baseShiftX, y: 224 + liftY }, 20.5, 15.5, 4, 0.78, 1.0, false);
-    const frontLeftLimb = makeLimb({ x: 132 + baseShiftX, y: 162 + liftY }, { x: 126 + baseShiftX, y: 214 + liftY }, { x: 129 + baseShiftX, y: 184 + liftY }, { x: 112 + baseShiftX, y: 222 + liftY }, 20.0, 15.5, -3.5, 0.72, -1.0, false);
-    const frontRightLimb = makeLimb({ x: 165 + baseShiftX, y: 165 + liftY }, { x: 165 + baseShiftX, y: 220 + liftY }, { x: 174 + baseShiftX, y: 188 + liftY }, { x: 188 + baseShiftX, y: 224 + liftY }, 20.5, 16.0, 3, 0.76, 0.35, false);
+    const backLeftLimb = makeLimb({ x: 220 + baseShiftX, y: 174 + liftY }, { x: 216 + baseShiftX, y: 218 + liftY }, { x: 204 + baseShiftX, y: 194 + liftY }, { x: 196 + baseShiftX, y: 222 + liftY }, 15.5, 12.5, -2, 0.66, -0.25, true);
+    const backRightLimb = makeLimb({ x: 248 + baseShiftX, y: 166 + liftY }, { x: 247 + baseShiftX, y: 224 + liftY }, { x: 252 + baseShiftX, y: 188 + liftY }, { x: 262 + baseShiftX, y: 226 + liftY }, 20.5, 15.5, 4, 0.78, 1.0, false);
+    const frontLeftLimb = makeLimb({ x: 112 + baseShiftX, y: 168 + liftY }, { x: 105 + baseShiftX, y: 226 + liftY }, { x: 112 + baseShiftX, y: 188 + liftY }, { x: 98 + baseShiftX, y: 224 + liftY }, 19.5, 15.0, -3.5, 0.72, -1.0, false);
+    const frontRightLimb = makeLimb({ x: 144 + baseShiftX, y: 170 + liftY }, { x: 142 + baseShiftX, y: 228 + liftY }, { x: 150 + baseShiftX, y: 190 + liftY }, { x: 162 + baseShiftX, y: 226 + liftY }, 20.0, 15.5, 3, 0.76, 0.35, false);
 
     const limbGeo = (limb) => {
       const dx = limb.tip.x - limb.root.x, dy = limb.tip.y - limb.root.y;
@@ -4087,7 +4147,7 @@
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 360, 320);
     }
-    const dragBodyMap = (pt) => ({ x: backCenter.x + pt.x * bw * 0.95, y: backCenter.y + (pt.y + 44) * 0.72 });
+    const dragBodyMap = (pt) => ({ x: backCenter.x + pt.x * bw * 1.15, y: backCenter.y + (pt.y + 44) * 0.68 });
     const isFrontBellyBib = (color, pts) => {
       if (!ventralBelly || !pts || !pts.length) return false;
       if (colorDist3(color, ventralBelly) >= 0.18) return false;
@@ -4108,28 +4168,28 @@
       drawMark(ctx, m, 'round', dragBodyMap);
     }
     if (isBicolorWhiteFront && pal.stripes) {
-      // Soft dorsal tabby saddle stripes curving down from the arched back spine
+      // Soft dorsal tabby saddle stripes curving down from the longer arched spine
       ctx.strokeStyle = rgbaToCss(pal.stripes, 0.34);
       ctx.lineWidth = 4.6;
       ctx.lineCap = 'round';
       for (let i = 0; i < 3; i++) {
-        const sx = scruffPeak.x + 16 + i * 24;
-        const sy = scruffPeak.y + 6 + i * 8;
+        const sx = scruffPeak.x + 8 + i * 24;
+        const sy = scruffPeak.y + 6 + i * 7;
         ctx.beginPath();
         ctx.moveTo(sx, sy - 6);
-        ctx.quadraticCurveTo(sx + 6, sy + 14, sx - 2, sy + 32);
+        ctx.quadraticCurveTo(sx + 6, sy + 14, sx - 2, sy + 30);
         ctx.stroke();
       }
     }
     if (ventralBelly) {
-      const bellyLift = isBicolorWhiteFront ? -6 : 0;
+      const bellyLift = isBicolorWhiteFront ? -5 : 0;
       ctx.fillStyle = rgbaToCss(ventralBelly, 0.96);
       ctx.beginPath();
-      ctx.moveTo(chestLeft.x + 2, lerpNum(168, 192, startle) + liftY + bellyLift);
+      ctx.moveTo(chestLeft.x + 2, lerpNum(170, 192, startle) + liftY + bellyLift);
       ctx.bezierCurveTo(
-        152 + baseShiftX, lerpNum(172, 196, startle) + liftY + bellyLift - (isBicolorWhiteFront ? 4 : 0),
-        192 + baseShiftX, lerpNum(174, 198, startle) + liftY + bellyLift - (isBicolorWhiteFront ? 2 : 0),
-        bellyRight.x + 12, lerpNum(176, 200, startle) + liftY + bellyLift + 4
+        150 + baseShiftX, lerpNum(166, 190, startle) + liftY + bellyLift,
+        208 + baseShiftX, lerpNum(166, 190, startle) + liftY + bellyLift,
+        bellyRight.x + 12, lerpNum(176, 198, startle) + liftY + bellyLift + 2
       );
       ctx.lineTo(rumpRight.x + 4, bellyRight.y + 18);
       ctx.lineTo(chestLeft.x - 10, bellyLeft.y + 18);
