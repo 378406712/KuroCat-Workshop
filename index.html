@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KuroCat 皮肤工坊 · 皮肤、饰品与键盘社区广场</title>
-  <link rel="stylesheet" href="styles.css?v=20261125" />
+  <link rel="stylesheet" href="styles.css?v=20261125b" />
 </head>
 <body>
   <div class="studio-shell">
@@ -194,7 +194,7 @@
             <div class="stage-header">
               <div class="stage-title-group">
                 <span class="stage-badge" id="stage-coat-badge">实时 2.5D 预览</span>
-                <span class="stage-hint" id="stage-hint">敲键盘打字 · 轻抚撸猫 · 按住拎起拖拽</span>
+                <span class="stage-hint" id="stage-hint">敲键盘打字 · 狂甩鼠标晕倒 · 轻抚撸猫 · 按住拎起拖拽</span>
               </div>
               <div class="backdrop-pills" role="group" aria-label="预览背景">
                 <button type="button" class="chip active" data-bg="cream">暖米纸</button>
@@ -226,6 +226,17 @@
             </div>
 
             <div class="stage-controls">
+              <div class="stage-pose-bar" id="stage-pose-bar" role="group" aria-label="桌宠动作状态预览">
+                <button type="button" class="pose-pill active" data-pose="idle" title="真实实时互动模式：打字、撸猫、拎起、狂甩鼠标晕倒">自由互动</button>
+                <button type="button" class="pose-pill" data-pose="typing" title="自动连击敲键盘">打字</button>
+                <button type="button" class="pose-pill" data-pose="anger" title="高速狂敲触发皱眉暴怒 💢">生气</button>
+                <button type="button" class="pose-pill" data-pose="dizzy" title="螺旋晕眼 + 倒地转金星（自由模式狂甩鼠标也可触发）">晕倒</button>
+                <button type="button" class="pose-pill" data-pose="drag" title="拎起后颈 2D 惯性晃动（自由模式按住小猫直接拖）">拎起</button>
+                <button type="button" class="pose-pill" data-pose="petHead" title="轻抚猫头眯眼享受">撸猫</button>
+                <button type="button" class="pose-pill" data-pose="sleep" title="团成猫球睡觉 + 尾巴前卷">团球睡</button>
+                <button type="button" class="pose-pill" data-pose="hindFoot" title="3 键后脚踹 + 4 键尾巴敲键盘彩蛋">踩键</button>
+                <button type="button" class="pose-pill" data-pose="tablet" title="2.5D 数位板与压感触控笔">数位板</button>
+              </div>
               <div class="stage-subbar">
                 <div class="mini-group">
                   <span class="mini-label">键盘配色</span>
@@ -858,7 +869,18 @@
       <div class="play-modal-body">
         <div class="play-stage-wrap" id="play-stage-wrap">
           <canvas id="play-modal-canvas" width="540" height="480" tabindex="0" aria-label="皮肤试玩实时互动预览区"></canvas>
-          <p class="play-live-hint">直接敲键盘体验打字 · 轻抚猫头撸猫 · 按住小猫可拎起拖拽</p>
+          <p class="play-live-hint">敲键盘打字 · 狂甩鼠标晕倒 · 轻抚撸猫 · 按住拎起拖拽</p>
+          <div class="play-pose-bar" id="play-pose-bar" role="group" aria-label="试玩动作预览">
+            <button type="button" class="pose-pill active" data-play-pose="idle">自由互动</button>
+            <button type="button" class="pose-pill" data-play-pose="typing">打字</button>
+            <button type="button" class="pose-pill" data-play-pose="anger">生气</button>
+            <button type="button" class="pose-pill" data-play-pose="dizzy">晕倒</button>
+            <button type="button" class="pose-pill" data-play-pose="drag">拎起</button>
+            <button type="button" class="pose-pill" data-play-pose="petHead">撸猫</button>
+            <button type="button" class="pose-pill" data-play-pose="sleep">团球睡</button>
+            <button type="button" class="pose-pill" data-play-pose="hindFoot">踩键</button>
+            <button type="button" class="pose-pill" data-play-pose="tablet">数位板</button>
+          </div>
         </div>
         <div class="play-modal-info">
           <p class="play-modal-desc" id="play-modal-desc"></p>
@@ -1013,11 +1035,11 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="spec.js"></script>
-  <script src="renderer.js"></script>
-  <script src="decorations.js"></script>
-  <script src="photo-analyzer.js"></script>
-  <script src="app.js"></script>
-  <script src="plaza.js"></script>
+  <script src="spec.js?v=20261125b"></script>
+  <script src="renderer.js?v=20261125b"></script>
+  <script src="decorations.js?v=20261125b"></script>
+  <script src="photo-analyzer.js?v=20261125b"></script>
+  <script src="app.js?v=20261125b"></script>
+  <script src="plaza.js?v=20261125b"></script>
 </body>
 </html>

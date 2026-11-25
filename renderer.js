@@ -154,28 +154,66 @@
     };
   }
 
+  const WHITE_OUTLINE_W = 1.8;
+  const WHITE_OUTLINE_CSS = 'rgba(255,255,255,0.96)';
+  let stateWhiteOutline = true;
+
   function tailCurve(seatX, seatY, state, skin) {
-    const p = state.tailPhase;
-    const hunt = clamp(state.huntIntensity, 0, 1);
-    const wag1 = Math.sin(p) * (8.0 + hunt * 5.5);
-    const wag2 = Math.cos(p * 1.3) * (6.0 + hunt * 4.5);
+    const p = state.tailPhase || 0;
+    const hunt = clamp(state.huntIntensity || 0, 0, 1);
+    const agility = clamp(state.tailAgility || 0, 0, 1);
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const lieS = lie * lie * (3.0 - 2.0 * lie);
+    const wag1 = Math.sin(p) * (8.0 + hunt * 5.5 + agility * 4.0);
+    const wag2 = Math.cos(p * 1.3) * (6.0 + hunt * 4.5 + agility * 3.5);
     const huntDrop = hunt * 14.0;
     const bw = skin.shape.bodyWidth, tl = skin.shape.tailLength;
     const shift = bw === 1 ? 0 : 34 * bw - 34;
 
-    const root = { x: seatX + 34 + shift, y: seatY - 6 };
-    const c1 = {
-      x: around(seatX + 64 + shift, root.x, tl),
-      y: around(seatY + 2 + wag1 * 0.35 + huntDrop * 0.4, root.y, tl)
+    const baseRoot = { x: seatX + 34 + shift, y: seatY - 6 };
+    const reach = clamp(state.tailTyping || 0, 0, 1);
+    const target = state.tailTip || { x: 275, y: 196 };
+    const flickScale = (1.0 - reach) * (1.0 - lieS);
+    const fx = (state.tailFlickX || 0) * flickScale;
+    const fy = (state.tailFlickY || 0) * flickScale;
+    const curl = (state.tailCurl || 0) * flickScale;
+
+    let baseC1 = {
+      x: seatX + 64 + shift + 12 * reach + fx * 0.25,
+      y: seatY + 2 + wag1 * 0.35 + huntDrop * 0.4 - 18 * reach + fy * 0.22 + curl * 0.35
     };
-    const c2 = {
-      x: around(seatX + 66 + wag2 * 0.4 + shift, root.x, tl),
-      y: around(seatY - 26 + wag1 * 0.7 + huntDrop, root.y, tl)
+    let idleC2 = {
+      x: seatX + 66 + wag2 * 0.4 + shift + fx * 0.65 - curl * 0.45,
+      y: seatY - 26 + wag1 * 0.7 + huntDrop + fy * 0.60 - curl * 0.55
     };
-    const tip = {
-      x: around(seatX + 91 + wag2 * 0.5 + shift, root.x, tl),
-      y: around(seatY - 30 + wag1 * 0.85 + huntDrop, root.y, tl)
+    let idleTip = {
+      x: seatX + 91 + wag2 * 0.5 + shift + fx,
+      y: seatY - 30 + wag1 * 0.85 + huntDrop + fy
     };
+    if (tl !== 1) {
+      baseC1 = { x: around(baseC1.x, baseRoot.x, tl), y: around(baseC1.y, baseRoot.y, tl) };
+      idleC2 = { x: around(idleC2.x, baseRoot.x, tl), y: around(idleC2.y, baseRoot.y, tl) };
+      idleTip = { x: around(idleTip.x, baseRoot.x, tl), y: around(idleTip.y, baseRoot.y, tl) };
+    }
+    const baseC2 = {
+      x: idleC2.x + (target.x + 24 - idleC2.x) * reach,
+      y: idleC2.y + (target.y - 30 - idleC2.y) * reach
+    };
+    const baseTip = {
+      x: idleTip.x + (target.x - idleTip.x) * reach,
+      y: idleTip.y + (target.y - idleTip.y) * reach
+    };
+
+    const sleepWag = Math.sin(p * 0.6) * 2.0;
+    const wrapRoot = { x: seatX + 40 + shift, y: seatY - 2 };
+    const wrapC1 = { x: seatX + 54 + shift, y: seatY + 13 };
+    const wrapC2 = { x: seatX + 14, y: seatY + 17 };
+    const wrapTip = { x: seatX - 28, y: seatY + 8 + sleepWag };
+
+    const root = { x: baseRoot.x + (wrapRoot.x - baseRoot.x) * lieS, y: baseRoot.y + (wrapRoot.y - baseRoot.y) * lieS };
+    const c1 = { x: baseC1.x + (wrapC1.x - baseC1.x) * lieS, y: baseC1.y + (wrapC1.y - baseC1.y) * lieS };
+    const c2 = { x: baseC2.x + (wrapC2.x - baseC2.x) * lieS, y: baseC2.y + (wrapC2.y - baseC2.y) * lieS };
+    const tip = { x: baseTip.x + (wrapTip.x - baseTip.x) * lieS, y: baseTip.y + (wrapTip.y - baseTip.y) * lieS };
     return {
       root, c1, c2, tip, thickness: skin.shape.tailThickness,
       at(pt) {
@@ -190,6 +228,14 @@
         return { x: qx - (dy / len) * n, y: qy + (dx / len) * n };
       }
     };
+  }
+
+  function tabletQuadPoint(u, v) {
+    const tl = { x: 18, y: 235 }, tr = { x: 94, y: 240 };
+    const bl = { x: 13, y: 284 }, br = { x: 91, y: 289 };
+    const topX = tl.x + (tr.x - tl.x) * u, topY = tl.y + (tr.y - tl.y) * u;
+    const botX = bl.x + (br.x - bl.x) * u, botY = bl.y + (br.y - bl.y) * u;
+    return { x: topX + (botX - topX) * v, y: topY + (botY - topY) * v };
   }
 
   function roundedQuadPath(ctx, tl, tr, br, bl, radius) {
@@ -284,6 +330,162 @@
     ctx.restore();
   }
 
+  function hsvRgbCss(h, s, v, a) {
+    const hh = ((h % 1) + 1) % 1;
+    const i = Math.floor(hh * 6);
+    const f = hh * 6 - i;
+    const p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+    let r = v, g = t, b = p;
+    switch (i % 6) {
+      case 1: r = q; g = v; b = p; break;
+      case 2: r = p; g = v; b = t; break;
+      case 3: r = p; g = q; b = v; break;
+      case 4: r = t; g = p; b = v; break;
+      case 5: r = v; g = p; b = q; break;
+    }
+    return `rgba(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)},${a})`;
+  }
+
+  function drawTablet(ctx, state, kbThemeName, eyeThemeName) {
+    const eye = EYE_THEMES[eyeThemeName] || EYE_THEMES.neonChartreuse;
+    const eyeCss = (a) => `rgba(${eye.primary[0]},${eye.primary[1]},${eye.primary[2]},${a})`;
+    const isDark = kbThemeName === 'midnightHacker';
+    const isRetro = kbThemeName === 'retroCream';
+    const baseCol = isDark ? '#0D0D12' : (isRetro ? '#383530' : '#1A1A1F');
+    const bodyCol = isDark ? '#1C1F26' : (isRetro ? '#544F47' : '#2B2E36');
+    const padCol  = isDark ? '#292B36' : (isRetro ? '#6B6359' : '#3B3D47');
+    const keyCol  = isDark ? '#3D404D' : (isRetro ? '#8A8073' : '#4D525E');
+    const accentCol = isDark ? '#C7F240' : (isRetro ? '#E06B3D' : '#F5B029');
+    const tl = tabletQuadPoint(0, 0), tr = tabletQuadPoint(1, 0), bl = tabletQuadPoint(0, 1), br = tabletQuadPoint(1, 1);
+    const depth = 3.6;
+
+    ctx.save();
+    roundedQuadPath(ctx, { x: tl.x, y: tl.y + depth + 2 }, { x: tr.x, y: tr.y + depth + 2 }, { x: br.x, y: br.y + depth + 2.6 }, { x: bl.x, y: bl.y + depth + 2.6 }, 5.5);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fill();
+
+    roundedQuadPath(ctx, { x: tl.x, y: tl.y + depth }, { x: tr.x, y: tr.y + depth }, { x: br.x, y: br.y + depth }, { x: bl.x, y: bl.y + depth }, 5.0);
+    ctx.fillStyle = baseCol;
+    ctx.fill();
+
+    roundedQuadPath(ctx, tl, tr, br, bl, 4.5);
+    ctx.fillStyle = bodyCol;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+
+    const pTL = tabletQuadPoint(0.21, 0.11), pTR = tabletQuadPoint(0.94, 0.11), pBR = tabletQuadPoint(0.94, 0.89), pBL = tabletQuadPoint(0.21, 0.89);
+    roundedQuadPath(ctx, pTL, pTR, pBR, pBL, 2.6);
+    ctx.fillStyle = padCol;
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.34)';
+    ctx.lineWidth = 0.95;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (const [cu, cv, du, dv] of [[0.24,0.15,0.07,0.11],[0.91,0.15,-0.07,0.11],[0.24,0.85,0.07,-0.11],[0.91,0.85,-0.07,-0.11]]) {
+      const c = tabletQuadPoint(cu, cv), h = tabletQuadPoint(cu + du, cv), v = tabletQuadPoint(cu, cv + dv);
+      ctx.moveTo(h.x, h.y); ctx.lineTo(c.x, c.y); ctx.lineTo(v.x, v.y);
+    }
+    ctx.stroke();
+
+    const ledPt = tabletQuadPoint(0.105, 0.14);
+    const penPress = clamp(state.tabletPenPress || 0, 0, 1);
+    ctx.fillStyle = penPress > 0.15 ? eyeCss(1) : accentCol;
+    ctx.beginPath(); ctx.arc(ledPt.x, ledPt.y, 1.35, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = keyCol;
+    for (const kv of [0.28, 0.44, 0.60, 0.76]) {
+      roundedQuadPath(ctx, tabletQuadPoint(0.06, kv - 0.05), tabletQuadPoint(0.15, kv - 0.05), tabletQuadPoint(0.15, kv + 0.05), tabletQuadPoint(0.06, kv + 0.05), 1.2);
+      ctx.fill();
+    }
+
+    const trail = state.tabletTrail || [];
+    if (trail.length >= 2) {
+      ctx.save();
+      roundedQuadPath(ctx, pTL, pTR, pBR, pBL, 2.6);
+      ctx.clip();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      for (let i = 1; i < trail.length; i++) {
+        const a = trail[i - 1], b = trail[i];
+        if (Math.hypot(b.x - a.x, b.y - a.y) > 22) continue;
+        const life = Math.max(0, 1 - (b.age || 0) / 0.72);
+        if (life <= 0.01) continue;
+        ctx.strokeStyle = eyeCss((life * 0.88).toFixed(3));
+        ctx.lineWidth = 1.2 + life * 1.4;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawStylusBody(ctx, length, kbThemeName, eyeThemeName, pressed) {
+    const eye = EYE_THEMES[eyeThemeName] || EYE_THEMES.neonChartreuse;
+    const isDark = kbThemeName === 'midnightHacker';
+    const isRetro = kbThemeName === 'retroCream';
+    const barrelCol = isDark ? '#21242B' : (isRetro ? '#47423D' : '#2E303B');
+    const gripCol   = isDark ? '#383D4A' : (isRetro ? '#6B6359' : '#474D59');
+    const ringCol   = isDark ? '#C7F240' : (isRetro ? '#E06B3D' : '#F5B029');
+    const tracePen = () => {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(7.5, -2.4);
+      ctx.lineTo(length - 3, -2.6);
+      ctx.quadraticCurveTo(length, -2.4, length, 0);
+      ctx.quadraticCurveTo(length, 2.4, length - 3, 2.6);
+      ctx.lineTo(7.5, 2.4);
+      ctx.closePath();
+    };
+    ctx.save();
+    tracePen();
+    ctx.strokeStyle = 'rgba(245,245,245,0.80)';
+    ctx.lineWidth = 1.6;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    ctx.fillStyle = barrelCol;
+    ctx.fill();
+    ctx.save();
+    tracePen();
+    ctx.clip();
+    ctx.fillStyle = gripCol;
+    ctx.fillRect(7.5, -3, 11.5, 6);
+    ctx.fillStyle = ringCol;
+    ctx.fillRect(19, -3, 2.4, 6);
+    ctx.fillStyle = pressed > 0.15 ? `rgb(${eye.primary[0]},${eye.primary[1]},${eye.primary[2]})` : '#F0F0F0';
+    ctx.fillRect(-0.5, -1.5, 3.4, 3);
+    ctx.fillStyle = 'rgba(255,255,255,0.24)';
+    ctx.fillRect(8, -1.9, length - 12, 1.1);
+    ctx.restore();
+    ctx.fillStyle = 'rgba(200,200,200,0.9)';
+    roundedRectPath(ctx, 11, -3.1, 6, 1.4, 0.7);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawParkedStylus(ctx, kbThemeName, eyeThemeName) {
+    const nib = tabletQuadPoint(0.88, -0.02), tail = tabletQuadPoint(0.18, -0.02);
+    const ang = Math.atan2(tail.y - nib.y, tail.x - nib.x);
+    const len = Math.hypot(tail.x - nib.x, tail.y - nib.y);
+    ctx.save();
+    ctx.translate(nib.x, nib.y);
+    ctx.rotate(ang);
+    drawStylusBody(ctx, len, kbThemeName, eyeThemeName, 0);
+    ctx.restore();
+  }
+
+  function drawHeldStylus(ctx, state, kbThemeName, eyeThemeName) {
+    const lPos = state.leftPaw || LEFT_PAW_REST;
+    const press = clamp(state.tabletPenPress || 0, 0, 1);
+    ctx.save();
+    ctx.translate(lPos.x - 5.5, lPos.y + 7.0 + press * 1.4);
+    ctx.rotate(-2.18 + (state.tabletPenTilt || 0));
+    drawStylusBody(ctx, 35.0, kbThemeName, eyeThemeName, press);
+    ctx.restore();
+  }
+
   function drawKeyboard(ctx, state, kbThemeName, eyeThemeName) {
     const th = KB_THEMES[kbThemeName] || KB_THEMES.classicMilk;
     const eye = EYE_THEMES[eyeThemeName] || EYE_THEMES.neonChartreuse;
@@ -326,6 +528,17 @@
       roundedQuadPath(ctx, kTL, kTR, kBR, kBL, 1.5);
       ctx.fillStyle = cap.isAccent ? th.accent : th.key;
       ctx.fill();
+      if (state.marqueeEnabled !== false) {
+        const phase = ((state.marqueePhase || 0) % 1 + 1) % 1;
+        const ku = (su0 + su1) * 0.5;
+        let dist = Math.abs(ku - phase);
+        if (dist > 0.5) dist = 1.0 - dist;
+        if (dist < 0.24) {
+          const w = Math.cos((dist / 0.24) * Math.PI * 0.5);
+          ctx.fillStyle = hsvRgbCss(phase + ku * 0.18, 0.72, 1.0, (w * w * 0.24).toFixed(3));
+          ctx.fill();
+        }
+      }
       if (glow > 0.03) {
         ctx.fillStyle = `rgba(${eye.glow[0]},${eye.glow[1]},${eye.glow[2]},${(glow * 0.55).toFixed(3)})`;
         ctx.fill();
@@ -353,11 +566,25 @@
     ctx.restore();
   }
 
-  function drawTail(ctx, seatX, seatY, state, skin) {
+  function drawTail(ctx, seatX, seatY, state, skin, outlineOnly) {
     const curve = tailCurve(seatX, seatY, state, skin);
     const width = getBuild(skin).tailWidth * skin.shape.tailThickness;
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const lieS = lie * lie * (3.0 - 2.0 * lie);
 
     ctx.save();
+    if (outlineOnly) {
+      ctx.strokeStyle = WHITE_OUTLINE_CSS;
+      ctx.lineWidth = width + WHITE_OUTLINE_W * 2.0;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(curve.root.x, curve.root.y);
+      ctx.bezierCurveTo(curve.c1.x, curve.c1.y, curve.c2.x, curve.c2.y, curve.tip.x, curve.tip.y);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
     ctx.strokeStyle = rgbaToCss(skin.palette.tail);
     ctx.lineWidth = width;
     ctx.lineCap = 'round';
@@ -366,6 +593,19 @@
     ctx.moveTo(curve.root.x, curve.root.y);
     ctx.bezierCurveTo(curve.c1.x, curve.c1.y, curve.c2.x, curve.c2.y, curve.tip.x, curve.tip.y);
     ctx.stroke();
+
+    if (lieS > 0.35) {
+      const rAlpha = Math.min(1.0, (lieS - 0.35) / 0.45) * 0.72;
+      ctx.save();
+      ctx.strokeStyle = rgbaToCss(skin.palette.crease, rAlpha);
+      ctx.lineWidth = 1.45;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(curve.root.x - 4, curve.root.y - 3);
+      ctx.bezierCurveTo(curve.c1.x - 6, curve.c1.y - 5.5, curve.c2.x, curve.c2.y - 5.5, curve.tip.x + 2, curve.tip.y - 4.5);
+      ctx.stroke();
+      ctx.restore();
+    }
 
     if (skin.hasPartArt('tail') || skin.palette.tailTip) {
       // Build stroked clip capsule along tail curve
@@ -511,12 +751,14 @@
     ctx.restore();
   }
 
-  function drawUnifiedSilhouette(ctx, seatX, seatY, headCenter, breath, state, skin) {
+  function drawUnifiedSilhouette(ctx, seatX, seatY, headCenter, breath, state, skin, outlineOnly) {
     const bd = getBuild(skin);
     const pal = skin.palette;
     const yaw = state.headYaw, pitch = state.headPitch;
     const hTilt = state.headTilt, bTilt = state.bodyTilt;
     const hs = skin.shape.headScale, bw = skin.shape.bodyWidth;
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const lieS = lie * lie * (3.0 - 2.0 * lie);
 
     const cH = Math.cos(hTilt), sH = Math.sin(hTilt);
     const H = (lx, ly) => {
@@ -525,7 +767,8 @@
     };
 
     const cB = Math.cos(bTilt), sB = Math.sin(bTilt);
-    const sy = state.bodySquash, sx = 1 + (1 - sy) * 0.55;
+    const sy = state.bodySquash * (1.0 - lieS * 0.42);
+    const sx = (1 + (1 - state.bodySquash) * 0.55) * (1.0 + lieS * 0.03);
     const B = (lx, ly) => {
       const rx = lx * bw * sx, ry = ly * sy;
       return { x: seatX + rx * cB - ry * sB, y: seatY + rx * sB + ry * cB };
@@ -578,6 +821,18 @@
       ctx.bezierCurveTo(c6a.x, c6a.y, c6b.x, c6b.y, crown.x, crown.y);
       ctx.closePath();
     };
+
+    if (outlineOnly) {
+      ctx.save();
+      traceSilhouette();
+      ctx.strokeStyle = WHITE_OUTLINE_CSS;
+      ctx.lineWidth = WHITE_OUTLINE_W * 2.0;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
 
     const headMap = (p) => headPoint(p, false, skin, headCenter, state);
     const skullMap = (p) => headPoint(p, true, skin, headCenter, state);
@@ -759,6 +1014,32 @@
     ctx.translate(proj.x, proj.y);
     ctx.scale(fx, fy);
 
+    // Mode 0: Dizzy spinning spiral eyes (@ @) — appear AFTER initial golden stars warning (>0.28)
+    const dizzy = clamp(state.dizzyIntensity || 0, 0, 1);
+    if (dizzy > 0.28) {
+      ctx.fillStyle = 'rgba(250,250,245,0.95)';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 11.5, 11.0, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(36,36,46,0.95)';
+      ctx.lineWidth = 1.85;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      const spin = (state.dizzyPhase || 0) * (isLeft ? 1.0 : -1.0);
+      for (let step = 0; step <= 42; step++) {
+        const t = step / 42.0;
+        const theta = spin + t * Math.PI * 5.2;
+        const rad = 1.0 + t * 8.6;
+        const sx = Math.cos(theta) * rad;
+        const sy = Math.sin(theta) * rad;
+        if (step === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+
     if (state.petHead > 0.45) {
       ctx.strokeStyle = eyeColorCss;
       ctx.lineWidth = 2.6;
@@ -803,6 +1084,19 @@
     if (closure > 0) {
       ctx.beginPath();
       ctx.rect(-rx - 2, -ry + 2 * ry * closure, 2 * rx + 4, 2 * ry * (1 - closure));
+      ctx.clip();
+    }
+
+    // Angry furrowed V-brow slant clipped cleanly inside the eye opening (Siamese-safe!)
+    const anger = clamp(state.angerIntensity || 0, 0, 1);
+    if (anger > 0.15) {
+      const drop = 7.5 * anger;
+      ctx.beginPath();
+      ctx.moveTo(sign * (rx + 4), -ry + 1.5);
+      ctx.lineTo(-sign * (rx + 4), -ry + 2.5 + drop);
+      ctx.lineTo(-sign * (rx + 4), ry + 4);
+      ctx.lineTo(sign * (rx + 4), ry + 4);
+      ctx.closePath();
       ctx.clip();
     }
 
@@ -891,7 +1185,7 @@
         ctx.closePath();
         ctx.fill();
       }
-      if (skin.palette.mouth) {
+      if (skin.palette.mouth && (state.yawnAmount || 0) < 0.15) {
         const mL = projectHead3D(-4.2, 12.2, 28.4, yawRad, pitchRad);
         const mM = projectHead3D(0, 11.2, 28.8, yawRad, pitchRad);
         const mR = projectHead3D(4.2, 12.2, 28.4, yawRad, pitchRad);
@@ -904,6 +1198,58 @@
         ctx.quadraticCurveTo((mM.x + mR.x) * 0.5, mR.y + 1.6, mR.x, mR.y);
         ctx.stroke();
       }
+      ctx.restore();
+    }
+
+    // Cute pink open yawn mouth (with tongue & tiny white fangs!) right before falling asleep
+    if ((state.yawnAmount || 0) > 0.03) {
+      const y = clamp(state.yawnAmount, 0, 1);
+      const mc = projectHead3D(0, 16.2 + y * 2.2, 30.2, yawRad, pitchRad);
+      const rx = 3.2 + y * 5.8, ry = 1.6 + y * 7.4;
+      ctx.save();
+      ctx.translate(mc.x, mc.y);
+      const traceMouth = () => {
+        ctx.beginPath();
+        ctx.moveTo(0, -ry * 0.92);
+        ctx.bezierCurveTo(rx * 0.68, -ry * 0.92, rx * 1.05, -ry * 0.42, rx, ry * 0.08);
+        ctx.bezierCurveTo(rx * 0.95, ry * 0.72, rx * 0.50, ry, 0, ry);
+        ctx.bezierCurveTo(-rx * 0.50, ry, -rx * 0.95, ry * 0.72, -rx, ry * 0.08);
+        ctx.bezierCurveTo(-rx * 1.05, -ry * 0.42, -rx * 0.68, -ry * 0.92, 0, -ry * 0.92);
+        ctx.closePath();
+      };
+      traceMouth();
+      ctx.fillStyle = 'rgba(199,48,64,0.98)';
+      ctx.fill();
+      ctx.save();
+      traceMouth();
+      ctx.clip();
+      ctx.fillStyle = 'rgba(140,26,41,0.55)';
+      ctx.beginPath(); ctx.ellipse(0, -ry * 0.26, rx * 0.65, ry * 0.46, 0, 0, Math.PI * 2); ctx.fill();
+      if (y > 0.22) {
+        const ta = Math.min(1, (y - 0.22) / 0.35) * 0.92;
+        ctx.fillStyle = `rgba(242,122,140,${ta.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.moveTo(-rx * 0.62, ry * 0.55);
+        ctx.quadraticCurveTo(-rx * 0.32, ry * 0.16, 0, ry * 0.36);
+        ctx.quadraticCurveTo(rx * 0.32, ry * 0.16, rx * 0.62, ry * 0.55);
+        ctx.quadraticCurveTo(0, ry * 1.25, -rx * 0.62, ry * 0.55);
+        ctx.closePath();
+        ctx.fill();
+      }
+      if (y > 0.28) {
+        const fs = Math.min(1, (y - 0.28) / 0.32);
+        ctx.fillStyle = 'rgba(255,252,245,0.98)';
+        const ubY = -ry * 0.80, uLen = (2.6 + y * 2.2) * fs;
+        for (const s of [-1, 1]) {
+          ctx.beginPath();
+          ctx.moveTo(s * rx * 0.38, ubY);
+          ctx.lineTo(s * rx * 0.52, ubY + uLen);
+          ctx.lineTo(s * rx * 0.64, ubY);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+      ctx.restore();
       ctx.restore();
     }
 
@@ -927,6 +1273,28 @@
       }
     }
     ctx.stroke();
+
+    // Pulsing red 4-corner comic anger vein (💢) when typing super fast
+    const anger = clamp(state.angerIntensity || 0, 0, 1);
+    if (anger > 0.25) {
+      const aAlpha = Math.min(1.0, (anger - 0.25) / 0.35);
+      const pulse = 1.0 + Math.sin(state.time * 14.0) * 0.10;
+      const pt = projectHead3D(28.0, -22.0, 24.0, yawRad, pitchRad);
+      ctx.save();
+      ctx.translate(pt.x, pt.y);
+      ctx.scale(pulse, pulse);
+      ctx.strokeStyle = `rgba(245,56,71,${(0.95 * aAlpha).toFixed(3)})`;
+      ctx.lineWidth = 2.0;
+      ctx.lineCap = 'round';
+      const d = 2.4, r = 6.2;
+      ctx.beginPath();
+      for (const [sx, sy] of [[-1,-1],[1,-1],[-1,1],[1,1]]) {
+        ctx.moveTo(sx * r, sy * d);
+        ctx.quadraticCurveTo(sx * d, sy * d, sx * d, sy * r);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
     ctx.restore();
   }
 
@@ -980,6 +1348,24 @@
     const lineColor = pal.outline || pal.crease;
 
     ctx.save();
+    if (stateWhiteOutline) {
+      ctx.save();
+      ctx.strokeStyle = WHITE_OUTLINE_CSS;
+      ctx.lineWidth = WHITE_OUTLINE_W * 2.0;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      const rimStart = isClassicBlackRim(skin) ? 2 : 4;
+      ctx.beginPath();
+      ctx.moveTo(leftEdge[rimStart].x, leftEdge[rimStart].y);
+      for (let i = rimStart + 1; i < leftEdge.length; i++) ctx.lineTo(leftEdge[i].x, leftEdge[i].y);
+      ctx.moveTo(rightEdge[rimStart].x, rightEdge[rimStart].y);
+      for (let i = rimStart + 1; i < rightEdge.length; i++) ctx.lineTo(rightEdge[i].x, rightEdge[i].y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(end.x, end.y, pawR, pawR * 0.85, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
     if (pal.points) {
       const mid = pal.pointsMid || pal.points;
       ctx.save();
@@ -1105,12 +1491,22 @@
         ctx.restore();
       }
 
+      if (stateWhiteOutline) {
+        ctx.save();
+        ctx.strokeStyle = WHITE_OUTLINE_CSS;
+        ctx.lineWidth = WHITE_OUTLINE_W * 1.8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(bottom.x, bottom.y - 1.5, 7.2, 0.15, Math.PI - 0.15);
+        ctx.stroke();
+        ctx.restore();
+      }
       ctx.fillStyle = rgbaToCss(pal.paws);
       roundedRectPath(ctx, bottom.x - 7.5, bottom.y - 13, 15, 18, 6.5);
       ctx.fill();
     }
 
-    ctx.strokeStyle = rgbaToCss(pal.crease);
+    ctx.strokeStyle = isClassicBlackRim(skin) ? 'rgba(255,255,255,0.75)' : rgbaToCss(pal.crease);
     ctx.lineWidth = 1.45;
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -1125,12 +1521,16 @@
   function drawFrontPaws(ctx, seatX, seatY, breath, state, skin) {
     const bd = getBuild(skin);
     const bw = skin.shape.bodyWidth;
-    const idleTopY = seatY - bd.idleTopDY;
-    const idleTopX = bd.idleTopX * bw;
-    const idleBotX = bd.idleBotX * bw;
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const lieS = lie * lie * (3.0 - 2.0 * lie);
+    const idleTopY = (seatY - bd.idleTopDY) + lieS * 24.0;
+    const idleTopX = bd.idleTopX * bw - lieS * 5.0;
+    const idleBotX = bd.idleBotX * bw - lieS * 4.5;
+    const idleBotY = seatY + 12.0 - lieS * 4.0;
     const shX = bd.shoulderX * bw;
 
-    const sy = state.bodySquash, sx = 1 + (1 - sy) * 0.55;
+    const sy = state.bodySquash * (1.0 - lieS * 0.42);
+    const sx = (1 + (1 - state.bodySquash) * 0.55) * (1.0 + lieS * 0.03);
     const c = Math.cos(state.bodyTilt), s = Math.sin(state.bodyTilt);
     const faceBottom = 126 + bd.headLift + state.headOffsetY + state.headPitch * 4.8 + breath * 1.1 + 42;
     const shoulder = (x) => ({
@@ -1143,7 +1543,7 @@
     const rDist = Math.hypot(rPos.x - RIGHT_PAW_REST.x, rPos.y - RIGHT_PAW_REST.y);
 
     if (lDist < 6.0 && !state.leftPawActive) {
-      drawIdleFrontLeg(ctx, { x: seatX - idleTopX, y: idleTopY }, { x: seatX - idleBotX, y: seatY + 12 }, true, skin);
+      if (lieS < 0.78) drawIdleFrontLeg(ctx, { x: seatX - idleTopX, y: idleTopY }, { x: seatX - idleBotX, y: idleBotY }, true, skin);
     } else {
       const ls = shoulder(-shX);
       const mid = { x: (ls.x + lPos.x) * 0.5 - 6, y: (ls.y + lPos.y) * 0.5 - 6 };
@@ -1151,7 +1551,7 @@
     }
 
     if (rDist < 6.0 && !state.rightPawActive) {
-      drawIdleFrontLeg(ctx, { x: seatX + idleTopX, y: idleTopY }, { x: seatX + idleBotX, y: seatY + 12 }, false, skin);
+      if (lieS < 0.78) drawIdleFrontLeg(ctx, { x: seatX + idleTopX, y: idleTopY }, { x: seatX + idleBotX, y: idleBotY }, false, skin);
     } else {
       const rs = shoulder(shX);
       const mid = { x: (rs.x + rPos.x) * 0.5 + 4, y: (rs.y + rPos.y) * 0.5 - 6 };
@@ -3344,7 +3744,7 @@
     };
   }
 
-  // --- Universal Native-Face Scruff-Lifted Drag Pose (ALL Non-Douni Skins!) ---
+  // --- Universal Native-Face Scruff-Lifted Drag Pose (v1.4.1 2D inertia + rounded shoulders + ventral belly fix) ---
   function drawNativeScruffDragCat(ctx, state, skin, eyeThemeName, lift) {
     const liftS = smoothstep(0, 1, lift);
     let startle;
@@ -3355,65 +3755,84 @@
       const drop = state.scruffDropTimer || 0;
       startle = drop > 0.01 ? Math.min(1.0, drop / 0.12) : 1.0;
     }
-    const rawSwing = clamp((state.scruffSwing || 0) * 0.72, -0.26, 0.26);
-    const swing = rawSwing + Math.sin(state.time * 4.4) * 0.045 * (1 - startle);
+    const swingH = clamp(state.scruffSwing || 0, -1.0, 1.0);
+    const swingY = clamp(state.scruffSwingY || 0, -0.92, 0.92);
+    const tailSwing = clamp(state.scruffTailSwing || 0, -1.25, 1.25);
+    const idleSway = Math.sin(state.time * 4.4) * 0.045 * (1 - startle);
+    const limbSwing = clamp(swingH * 0.85, -0.82, 0.82) * (1 - startle * 0.45) + idleSway;
+    const upBillow = Math.max(0, -swingY);
 
     const pal = skin.palette;
     const bd = getBuild(skin);
     const hs = skin.shape.headScale;
     const bw = skin.shape.bodyWidth;
     const isBlackRim = isClassicBlackRim(skin);
-    const rimCss = pal.outline ? rgbaToCss(pal.outline) : (isBlackRim ? 'rgba(255,255,255,0.94)' : 'rgba(46,41,36,0.55)');
-    const drawRim = isBlackRim || !!pal.outline;
     const limbInkCss = isBlackRim
       ? 'rgba(235,235,235,0.24)'
       : (pal.outline ? rgbaToCss(pal.outline) : 'rgba(46,38,31,0.28)');
 
-    const baseShiftX = state.bodyShiftX + rawSwing * 16.0;
-    const liftY = -liftS * 12.0 + Math.sin(state.time * 3.8) * 2.0 * (1 - startle);
+    const baseShiftX = state.bodyShiftX + swingH * 11.0;
+    const liftY = -liftS * 12.0 + Math.sin(state.time * 3.8) * 2.0 * (1 - startle) + swingY * 5.0;
     const headCenter = { x: 146.0 + baseShiftX, y: lerpNum(136.0, 158.0, startle) + liftY };
     const backCenter = { x: 202.0 + baseShiftX, y: lerpNum(146.0, 172.0, startle) + liftY };
+
+    const cheekHalfW = bd.cheekHalfW * skin.shape.cheekFullness * hs;
+    const crownY = bd.crownBaseY * hs;
+    const cheekY = bd.cheekY * hs;
+    const chinY = 33.0 * hs;
 
     const scruffPeak = { x: 188 + baseShiftX, y: lerpNum(88, 126, startle) + liftY };
     const rumpRight = { x: 246 + baseShiftX + (bw - 1) * 12, y: lerpNum(150, 188, startle) + liftY };
     const bellyRight = { x: 212 + baseShiftX, y: lerpNum(188, 214, startle) + liftY };
-    const bellyLeft = { x: 126 + baseShiftX, y: lerpNum(180, 206, startle) + liftY };
+    const bellyLeft = { x: 136 + baseShiftX, y: lerpNum(182, 206, startle) + liftY };
+    const chestLeft = { x: 116 + baseShiftX, y: lerpNum(164, 188, startle) + liftY };
+    const neckFront = { x: headCenter.x - cheekHalfW * 0.64, y: headCenter.y + 8 * hs };
 
     const traceBack = () => {
       ctx.beginPath();
       ctx.moveTo(headCenter.x - 10, headCenter.y - 16 * hs);
       ctx.bezierCurveTo(headCenter.x + 16, headCenter.y - 34 * hs, scruffPeak.x - 16, scruffPeak.y - 4, scruffPeak.x, scruffPeak.y);
-      ctx.bezierCurveTo(scruffPeak.x + 34, scruffPeak.y + 4, rumpRight.x + 4, lerpNum(108, 150, startle) + liftY, rumpRight.x, rumpRight.y);
-      ctx.bezierCurveTo(rumpRight.x - 2, lerpNum(180, 212, startle) + liftY, bellyRight.x + 22, bellyRight.y, bellyRight.x, bellyRight.y);
-      ctx.bezierCurveTo(176 + baseShiftX, lerpNum(190, 214, startle) + liftY, 146 + baseShiftX, lerpNum(186, 210, startle) + liftY, bellyLeft.x, bellyLeft.y);
+      ctx.bezierCurveTo(scruffPeak.x + 34, scruffPeak.y + 4, rumpRight.x + 4, lerpNum(108, 148, startle) + liftY, rumpRight.x, rumpRight.y);
+      ctx.bezierCurveTo(rumpRight.x - 2, lerpNum(178, 210, startle) + liftY, bellyRight.x + 22, bellyRight.y, bellyRight.x, bellyRight.y);
+      ctx.bezierCurveTo(182 + baseShiftX, lerpNum(190, 214, startle) + liftY, 154 + baseShiftX, lerpNum(188, 212, startle) + liftY, bellyLeft.x, bellyLeft.y);
+      ctx.bezierCurveTo(122 + baseShiftX, lerpNum(180, 204, startle) + liftY, 114 + baseShiftX, lerpNum(174, 198, startle) + liftY, chestLeft.x, chestLeft.y);
+      ctx.bezierCurveTo(116 + baseShiftX, lerpNum(156, 178, startle) + liftY, neckFront.x - 2, neckFront.y + 10, neckFront.x, neckFront.y);
       ctx.closePath();
     };
 
-    const tailPivot = { x: rumpRight.x - 4, y: lerpNum(148, 182, startle) + liftY };
-    const tailLen = 84.0 * skin.shape.tailLength;
+    const tailPivot = { x: rumpRight.x - 10, y: lerpNum(148, 180, startle) + liftY };
+    const tailLen = 86.0 * skin.shape.tailLength * (1.0 + swingY * 0.15);
     const tailW = Math.max(8.5, bd.tailWidth * skin.shape.tailThickness * 1.12);
-    const tailAng = swing * 0.75 * (1 - startle * 0.5);
-    const tailC1 = v1RotatePoint({ x: tailPivot.x + 20, y: tailPivot.y + tailLen * 0.22 }, tailPivot, tailAng * 0.45);
-    const tailC2 = v1RotatePoint({ x: tailPivot.x + 22, y: tailPivot.y + tailLen * 0.68 }, tailPivot, tailAng * 0.85);
-    const tailTip = v1RotatePoint({ x: tailPivot.x + 15, y: tailPivot.y + tailLen }, tailPivot, tailAng * 1.15);
+    const rawTailAng = (tailSwing * (1.0 - startle * 0.25) + idleSway * 1.4) * 0.88;
+    const tailAng = clamp(rawTailAng, -1.12, 0.56);
+    const tailC1 = v1RotatePoint({ x: tailPivot.x + 20 + upBillow * 10, y: tailPivot.y + tailLen * 0.22 - upBillow * 12 }, tailPivot, tailAng * 0.45);
+    const tailC2 = v1RotatePoint({ x: tailPivot.x + 23 + upBillow * 22, y: tailPivot.y + tailLen * 0.66 - upBillow * 34 }, tailPivot, tailAng * 0.90);
+    const tailTip = v1RotatePoint({ x: tailPivot.x + 16 + upBillow * 26, y: tailPivot.y + tailLen - upBillow * 52 }, tailPivot, tailAng * 1.24);
     const traceTailCurve = () => {
       ctx.beginPath();
       ctx.moveTo(tailPivot.x, tailPivot.y);
       ctx.bezierCurveTo(tailC1.x, tailC1.y, tailC2.x, tailC2.y, tailTip.x, tailTip.y);
     };
 
-    const makeLimb = (rA, tA, rB, tB, startW, endW, bendX, swingScale) => {
+    const makeLimb = (rA, tA, rB, tB, startW, endW, bendX, swingScale, splayDir, isBehindBody) => {
       const root = lerpPt(rA, rB, startle);
-      const rawT = lerpPt(tA, tB, startle);
-      const tip = v1RotatePoint(rawT, root, swing * swingScale * (1 - startle));
-      return { root, tip, startW, endW, bendX };
+      const baseTip = lerpPt(tA, tB, startle);
+      const lenFactor = 1.0 + swingY * 0.17;
+      const stretched = {
+        x: root.x + (baseTip.x - root.x) * lenFactor,
+        y: root.y + (baseTip.y - root.y) * lenFactor - upBillow * 7.0
+      };
+      const ang = limbSwing * swingScale + upBillow * 0.24 * splayDir;
+      const tip = v1RotatePoint(stretched, root, ang);
+      const dynBendX = bendX + limbSwing * 14.0 * swingScale;
+      return { root, tip, startW, endW, bendX: dynBendX, isBehindBody: !!isBehindBody };
     };
-    const backLeftLimb = makeLimb({ x: 194 + baseShiftX, y: 176 + liftY }, { x: 192 + baseShiftX, y: 204 + liftY }, { x: 164 + baseShiftX, y: 200 + liftY }, { x: 158 + baseShiftX, y: 224 + liftY }, 15, 12.5, -2, 0.48);
-    const backRightLimb = makeLimb({ x: 224 + baseShiftX, y: 164 + liftY }, { x: 220 + baseShiftX, y: 210 + liftY }, { x: 236 + baseShiftX, y: 188 + liftY }, { x: 244 + baseShiftX, y: 226 + liftY }, 21, 16, 4, 0.55);
-    const frontLeftLimb = makeLimb({ x: 122 + baseShiftX, y: 168 + liftY }, { x: 124 + baseShiftX, y: 216 + liftY }, { x: 118 + baseShiftX, y: 186 + liftY }, { x: 102 + baseShiftX, y: 224 + liftY }, 21, 16, -4, 0.58);
-    const frontRightLimb = makeLimb({ x: 168 + baseShiftX, y: 170 + liftY }, { x: 168 + baseShiftX, y: 222 + liftY }, { x: 180 + baseShiftX, y: 190 + liftY }, { x: 194 + baseShiftX, y: 228 + liftY }, 21.5, 16.5, 3, 0.58);
+    const backLeftLimb = makeLimb({ x: 196 + baseShiftX, y: 170 + liftY }, { x: 192 + baseShiftX, y: 208 + liftY }, { x: 174 + baseShiftX, y: 194 + liftY }, { x: 164 + baseShiftX, y: 222 + liftY }, 15.5, 12.5, -2, 0.66, -0.25, true);
+    const backRightLimb = makeLimb({ x: 220 + baseShiftX, y: 162 + liftY }, { x: 218 + baseShiftX, y: 212 + liftY }, { x: 226 + baseShiftX, y: 186 + liftY }, { x: 238 + baseShiftX, y: 224 + liftY }, 20.5, 15.5, 4, 0.78, 1.0, false);
+    const frontLeftLimb = makeLimb({ x: 132 + baseShiftX, y: 162 + liftY }, { x: 126 + baseShiftX, y: 214 + liftY }, { x: 129 + baseShiftX, y: 184 + liftY }, { x: 112 + baseShiftX, y: 222 + liftY }, 20.0, 15.5, -3.5, 0.72, -1.0, false);
+    const frontRightLimb = makeLimb({ x: 165 + baseShiftX, y: 165 + liftY }, { x: 165 + baseShiftX, y: 220 + liftY }, { x: 174 + baseShiftX, y: 188 + liftY }, { x: 188 + baseShiftX, y: 224 + liftY }, 20.5, 16.0, 3, 0.76, 0.35, false);
 
-    const traceLimbOpen = (limb) => {
+    const limbGeo = (limb) => {
       const dx = limb.tip.x - limb.root.x, dy = limb.tip.y - limb.root.y;
       const len = Math.max(1, Math.hypot(dx, dy));
       const ux = dx / len, uy = dy / len, nx = -uy, ny = ux;
@@ -3424,21 +3843,53 @@
       const p1R = { x: limb.tip.x - nx * r1, y: limb.tip.y - ny * r1 };
       const midL = { x: (p0L.x + p1L.x) * 0.5 + limb.bendX * 0.5 + nx * 1.4, y: (p0L.y + p1L.y) * 0.5 + ny * 1.4 };
       const midR = { x: (p0R.x + p1R.x) * 0.5 + limb.bendX * 0.5 - nx * 1.4, y: (p0R.y + p1R.y) * 0.5 - ny * 1.4 };
+      const pawC1 = { x: p1L.x + ux * r1 * 1.25, y: p1L.y + uy * r1 * 1.25 };
+      const pawC2 = { x: p1R.x + ux * r1 * 1.25, y: p1R.y + uy * r1 * 1.25 };
+      return { ux, uy, nx, ny, r0, r1, p0L, p0R, p1L, p1R, midL, midR, pawC1, pawC2 };
+    };
+    const traceLimbRim = (limb) => {
+      const g = limbGeo(limb);
       ctx.beginPath();
-      ctx.moveTo(p0L.x, p0L.y);
-      ctx.quadraticCurveTo(midL.x, midL.y, p1L.x, p1L.y);
+      ctx.moveTo(g.p0L.x, g.p0L.y);
+      ctx.quadraticCurveTo(g.midL.x, g.midL.y, g.p1L.x, g.p1L.y);
+      ctx.bezierCurveTo(g.pawC1.x, g.pawC1.y, g.pawC2.x, g.pawC2.y, g.p1R.x, g.p1R.y);
+      ctx.quadraticCurveTo(g.midR.x, g.midR.y, g.p0R.x, g.p0R.y);
+    };
+    const traceLimbFill = (limb) => {
+      const g = limbGeo(limb);
+      ctx.beginPath();
+      ctx.moveTo(g.p0L.x, g.p0L.y);
+      ctx.quadraticCurveTo(g.midL.x, g.midL.y, g.p1L.x, g.p1L.y);
+      ctx.bezierCurveTo(g.pawC1.x, g.pawC1.y, g.pawC2.x, g.pawC2.y, g.p1R.x, g.p1R.y);
+      ctx.quadraticCurveTo(g.midR.x, g.midR.y, g.p0R.x, g.p0R.y);
+      // Rounded shoulder socket cap (zero flat cutoff!)
       ctx.bezierCurveTo(
-        p1L.x + ux * r1 * 1.25, p1L.y + uy * r1 * 1.25,
-        p1R.x + ux * r1 * 1.25, p1R.y + uy * r1 * 1.25,
-        p1R.x, p1R.y
+        g.p0R.x - g.ux * g.r0 * 0.85, g.p0R.y - g.uy * g.r0 * 0.85,
+        g.p0L.x - g.ux * g.r0 * 0.85, g.p0L.y - g.uy * g.r0 * 0.85,
+        g.p0L.x, g.p0L.y
       );
-      ctx.quadraticCurveTo(midR.x, midR.y, p0R.x, p0R.y);
+      ctx.closePath();
+    };
+    const traceLimbInk = (limb) => {
+      const g = limbGeo(limb);
+      const t0 = 0.26, omt = 1.0 - t0;
+      const s0L = {
+        x: omt * omt * g.p0L.x + 2 * omt * t0 * g.midL.x + t0 * t0 * g.p1L.x,
+        y: omt * omt * g.p0L.y + 2 * omt * t0 * g.midL.y + t0 * t0 * g.p1L.y
+      };
+      const scL = { x: omt * g.midL.x + t0 * g.p1L.x, y: omt * g.midL.y + t0 * g.p1L.y };
+      const s0R = {
+        x: omt * omt * g.p0R.x + 2 * omt * t0 * g.midR.x + t0 * t0 * g.p1R.x,
+        y: omt * omt * g.p0R.y + 2 * omt * t0 * g.midR.y + t0 * t0 * g.p1R.y
+      };
+      const scR = { x: omt * g.midR.x + t0 * g.p1R.x, y: omt * g.midR.y + t0 * g.p1R.y };
+      ctx.beginPath();
+      ctx.moveTo(s0L.x, s0L.y);
+      ctx.quadraticCurveTo(scL.x, scL.y, g.p1L.x, g.p1L.y);
+      ctx.bezierCurveTo(g.pawC1.x, g.pawC1.y, g.pawC2.x, g.pawC2.y, g.p1R.x, g.p1R.y);
+      ctx.quadraticCurveTo(scR.x, scR.y, s0R.x, s0R.y);
     };
 
-    const cheekHalfW = bd.cheekHalfW * skin.shape.cheekFullness * hs;
-    const crownY = bd.crownBaseY * hs;
-    const cheekY = bd.cheekY * hs;
-    const chinY = 33.0 * hs;
     const traceHead = () => {
       ctx.beginPath();
       ctx.moveTo(headCenter.x, headCenter.y + crownY);
@@ -3449,16 +3900,33 @@
       ctx.closePath();
     };
 
+    const colorDist3 = (a, b) => (!a || !b) ? 1 : (Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b));
+    const isBicolorWhiteFront = !skin.colorpoint
+      && colorDist3(pal.body, pal.legs) > 0.14
+      && colorDist3(pal.legs, pal.earOuter) < 0.16
+      && colorDist3(pal.legs, pal.tail) < 0.16
+      && (!pal.belly || colorDist3(pal.body, pal.belly) < 0.10);
+    const dorsalColor = isBicolorWhiteFront ? pal.legs : pal.body;
+    const ventralBelly = isBicolorWhiteFront
+      ? pal.body
+      : (pal.belly && !sameColor(pal.belly, pal.body) ? pal.belly : null);
+
     const drawDragLimb = (limb) => {
       ctx.save();
-      traceLimbOpen(limb);
-      ctx.closePath();
+      traceLimbFill(limb);
       ctx.clip();
       const g = ctx.createLinearGradient(limb.root.x, limb.root.y, limb.tip.x, limb.tip.y);
       if (skin.colorpoint) {
+        const mid = pal.pointsMid || pal.legs;
         g.addColorStop(0.0, rgbaToCss(pal.body));
-        g.addColorStop(0.45, rgbaToCss(pal.legs));
+        g.addColorStop(0.22, rgbaToCss(pal.body));
+        g.addColorStop(0.54, rgbaToCss(mid));
         g.addColorStop(0.88, rgbaToCss(pal.paws));
+      } else if (!limb.isBehindBody && !sameColor(pal.legs, dorsalColor)) {
+        g.addColorStop(0.0, rgbaToCss(dorsalColor));
+        g.addColorStop(0.12, rgbaToCss(dorsalColor));
+        g.addColorStop(0.38, rgbaToCss(pal.legs));
+        g.addColorStop(0.80, rgbaToCss(pal.paws));
       } else {
         g.addColorStop(0.22, rgbaToCss(pal.legs));
         g.addColorStop(0.72, rgbaToCss(pal.paws));
@@ -3469,10 +3937,10 @@
 
       ctx.save();
       ctx.strokeStyle = limbInkCss;
-      ctx.lineWidth = isBlackRim ? 1.1 : 1.25;
+      ctx.lineWidth = isBlackRim ? 1.15 : 1.2;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      traceLimbOpen(limb);
+      traceLimbInk(limb);
       ctx.stroke();
 
       const dx = limb.tip.x - limb.root.x, dy = limb.tip.y - limb.root.y;
@@ -3505,24 +3973,41 @@
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Pass 0: Unified outer silhouette rim for Classic Black / outlined skins
-    if (drawRim) {
-      ctx.save();
-      ctx.strokeStyle = rimCss;
-      ctx.lineWidth = tailW + (isBlackRim ? 3.2 : 2.6);
-      traceTailCurve();
-      ctx.stroke();
+    const bodyPendulum = clamp(swingH * 0.14, -0.14, 0.14);
+    if (Math.abs(bodyPendulum) > 0.001) {
+      ctx.translate(scruffPeak.x, scruffPeak.y);
+      ctx.rotate(bodyPendulum);
+      ctx.translate(-scruffPeak.x, -scruffPeak.y);
+    }
 
-      ctx.lineWidth = isBlackRim ? 3.2 : 2.6;
+    // Pass 0: Universal sticker-style outer white silhouette rim for ALL skins
+    if (stateWhiteOutline) {
+      const whiteRimW = WHITE_OUTLINE_W * 2.0 + (pal.outline ? 2.0 : 0.0);
+      ctx.save();
+      ctx.strokeStyle = WHITE_OUTLINE_CSS;
+      ctx.lineWidth = tailW + whiteRimW;
+      traceTailCurve(); ctx.stroke();
+      ctx.lineWidth = whiteRimW;
       for (const l of [backLeftLimb, backRightLimb, frontLeftLimb, frontRightLimb]) {
-        traceLimbOpen(l);
-        ctx.stroke();
+        traceLimbRim(l); ctx.stroke();
       }
-      traceBack();
-      ctx.stroke();
-      if (isBlackRim) drawEars(true);
-      traceHead();
-      ctx.stroke();
+      traceBack(); ctx.stroke();
+      drawEars(true);
+      traceHead(); ctx.stroke();
+      ctx.restore();
+    }
+
+    if (pal.outline) {
+      ctx.save();
+      ctx.strokeStyle = rgbaToCss(pal.outline);
+      ctx.lineWidth = tailW + 2.4;
+      traceTailCurve(); ctx.stroke();
+      ctx.lineWidth = 2.4;
+      for (const l of [backLeftLimb, backRightLimb, frontLeftLimb, frontRightLimb]) {
+        traceLimbRim(l); ctx.stroke();
+      }
+      traceBack(); ctx.stroke();
+      traceHead(); ctx.stroke();
       ctx.restore();
     }
 
@@ -3530,35 +4015,47 @@
     const decoAnchors = {
       neck: {
         origin: { x: headCenter.x, y: headCenter.y + 36.0 * hs },
-        rot: swing * 0.16,
-        kx: hs,
-        ky: hs,
-        offsetScaleX: bw,
-        offsetScaleY: hs
+        rot: limbSwing * 0.16,
+        kx: hs, ky: hs, offsetScaleX: bw, offsetScaleY: hs
       },
       tailTip: {
         origin: { x: tailTip.x, y: tailTip.y },
         rot: tailAng,
-        kx: 1,
-        ky: 1,
-        offsetScaleX: 1,
-        offsetScaleY: 1
+        kx: 1, ky: 1, offsetScaleX: 1, offsetScaleY: 1
       }
     };
 
-    // 1. Limp drooping tail
+    // 1. Limp drooping/whipping tail
     ctx.save();
     ctx.lineCap = 'round';
     if (!isBlackRim && !pal.outline) {
       ctx.strokeStyle = 'rgba(0,0,0,0.16)';
       ctx.lineWidth = tailW + 2.0;
-      traceTailCurve();
-      ctx.stroke();
+      traceTailCurve(); ctx.stroke();
     }
     ctx.strokeStyle = rgbaToCss(pal.tail);
     ctx.lineWidth = tailW;
-    traceTailCurve();
-    ctx.stroke();
+    traceTailCurve(); ctx.stroke();
+    if (pal.stripes && !isBlackRim && !skin.colorpoint) {
+      const evalTailPt = (t) => {
+        const u = 1 - t;
+        return {
+          x: u * u * u * tailPivot.x + 3 * u * u * t * tailC1.x + 3 * u * t * t * tailC2.x + t * t * t * tailTip.x,
+          y: u * u * u * tailPivot.y + 3 * u * u * t * tailC1.y + 3 * u * t * t * tailC2.y + t * t * t * tailTip.y
+        };
+      };
+      ctx.strokeStyle = rgbaToCss(pal.stripes, 0.42);
+      ctx.lineWidth = tailW * 0.88;
+      ctx.lineCap = 'butt';
+      for (const t0 of [0.24, 0.50, 0.74]) {
+        const pA = evalTailPt(t0), pB = evalTailPt(t0 + 0.09);
+        ctx.beginPath();
+        ctx.moveTo(pA.x, pA.y);
+        ctx.lineTo(pB.x, pB.y);
+        ctx.stroke();
+      }
+      ctx.lineCap = 'round';
+    }
     if (pal.tailTip) {
       const tipStart = lerpPt(tailC2, tailTip, 0.35);
       ctx.strokeStyle = rgbaToCss(pal.tailTip);
@@ -3570,7 +4067,6 @@
     }
     ctx.restore();
 
-    // 1b. Tail-tip decorations (behind torso & limbs, anchored to drooping tail tip)
     if (hasDecos) {
       drawDecorations(ctx, backCenter.x, backCenter.y + 30, headCenter, state, skin, { anchors: ['tailTip'], decoAnchors });
     }
@@ -3578,26 +4074,66 @@
     // 2. Back-left inner leg
     drawDragLimb(backLeftLimb);
 
-    // 3. Arched scruff-lifted neck & back body dome
+    // 3. Arched scruff-lifted neck & back body dome (with dorsal coat & ventral white belly facing DOWN!)
     ctx.save();
     traceBack();
-    ctx.fillStyle = rgbaToCss(pal.body);
+    ctx.fillStyle = rgbaToCss(dorsalColor);
     ctx.fill();
     ctx.clip();
-    if (pal.bodyShade) {
+    if (pal.bodyShade && !isBicolorWhiteFront) {
       const grad = ctx.createLinearGradient(backCenter.x, scruffPeak.y, backCenter.x, bellyRight.y);
-      grad.addColorStop(0.15, rgbaToCss(pal.body));
+      grad.addColorStop(0.15, rgbaToCss(dorsalColor));
       grad.addColorStop(1.0, rgbaToCss(pal.bodyShade));
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 360, 320);
     }
     const dragBodyMap = (pt) => ({ x: backCenter.x + pt.x * bw * 0.95, y: backCenter.y + (pt.y + 44) * 0.72 });
-    for (const r of skin.regions) if (r.space === 'body') drawRegion(ctx, r, dragBodyMap);
-    for (const m of skin.marks) if (m.space === 'body') drawMark(ctx, m, 'round', dragBodyMap);
-    if (pal.belly) {
-      ctx.fillStyle = rgbaToCss(pal.belly, 0.92);
+    const isFrontBellyBib = (color, pts) => {
+      if (!ventralBelly || !pts || !pts.length) return false;
+      if (colorDist3(color, ventralBelly) >= 0.18) return false;
+      let minX = Infinity, maxX = -Infinity;
+      for (const p of pts) { if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x; }
+      const span = maxX - minX;
+      return minX < -8 && maxX > 8 && Math.abs(minX + maxX) < span * 0.35;
+    };
+    const isRedundantDorsalPatch = (color) => isBicolorWhiteFront && colorDist3(color, dorsalColor) < 0.16;
+    for (const r of skin.regions) {
+      if (r.space !== 'body') continue;
+      if (isFrontBellyBib(r.fill, r.flat || r.anchors) || isRedundantDorsalPatch(r.fill)) continue;
+      drawRegion(ctx, r, dragBodyMap);
+    }
+    for (const m of skin.marks) {
+      if (m.space !== 'body') continue;
+      if (!m.stroke && (isFrontBellyBib(m.color, m.points) || isRedundantDorsalPatch(m.color))) continue;
+      drawMark(ctx, m, 'round', dragBodyMap);
+    }
+    if (isBicolorWhiteFront && pal.stripes) {
+      // Soft dorsal tabby saddle stripes curving down from the arched back spine
+      ctx.strokeStyle = rgbaToCss(pal.stripes, 0.34);
+      ctx.lineWidth = 4.6;
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 3; i++) {
+        const sx = scruffPeak.x + 16 + i * 24;
+        const sy = scruffPeak.y + 6 + i * 8;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - 6);
+        ctx.quadraticCurveTo(sx + 6, sy + 14, sx - 2, sy + 32);
+        ctx.stroke();
+      }
+    }
+    if (ventralBelly) {
+      const bellyLift = isBicolorWhiteFront ? -6 : 0;
+      ctx.fillStyle = rgbaToCss(ventralBelly, 0.96);
       ctx.beginPath();
-      ctx.ellipse(bellyLeft.x + 59, bellyLeft.y, 51, 16, 0, 0, Math.PI * 2);
+      ctx.moveTo(chestLeft.x + 2, lerpNum(168, 192, startle) + liftY + bellyLift);
+      ctx.bezierCurveTo(
+        152 + baseShiftX, lerpNum(172, 196, startle) + liftY + bellyLift - (isBicolorWhiteFront ? 4 : 0),
+        192 + baseShiftX, lerpNum(174, 198, startle) + liftY + bellyLift - (isBicolorWhiteFront ? 2 : 0),
+        bellyRight.x + 12, lerpNum(176, 200, startle) + liftY + bellyLift + 4
+      );
+      ctx.lineTo(rumpRight.x + 4, bellyRight.y + 18);
+      ctx.lineTo(chestLeft.x - 10, bellyLeft.y + 18);
+      ctx.closePath();
       ctx.fill();
     }
     ctx.restore();
@@ -3605,8 +4141,7 @@
       ctx.save();
       ctx.strokeStyle = pal.outline ? rgbaToCss(pal.outline) : 'rgba(46,38,31,0.22)';
       ctx.lineWidth = pal.outline ? 1.5 : 1.05;
-      traceBack();
-      ctx.stroke();
+      traceBack(); ctx.stroke();
       ctx.restore();
     }
 
@@ -3615,7 +4150,6 @@
     drawDragLimb(frontLeftLimb);
     drawDragLimb(frontRightLimb);
 
-    // 4b. Neck decorations (over chest & shoulder roots, tucked cleanly behind chin & head)
     if (hasDecos) {
       drawDecorations(ctx, backCenter.x, backCenter.y + 30, headCenter, state, skin, { anchors: ['neck'], decoAnchors });
     }
@@ -3664,7 +4198,6 @@
     }
     ctx.restore();
 
-    // Delicate lower chin depth stroke
     ctx.save();
     ctx.strokeStyle = isBlackRim
       ? 'rgba(255,255,255,0.22)'
@@ -3680,10 +4213,9 @@
     ctx.stroke();
     ctx.restore();
 
-    // 7. Native KuroCat face features (brief half-lidded startle -> wide pleading eyes with 2 catchlights)
+    // 7. Native KuroCat face features
     drawHeadFeatures(ctx, headCenter, state, eyeThemeName, skin, startle, 1 - startle);
 
-    // 8. Face & head-top decorations stay anchored on top of head & features
     if (hasDecos) {
       drawDecorations(ctx, backCenter.x, backCenter.y + 30, headCenter, state, skin, { anchors: ['face', 'headTop'], decoAnchors });
     }
@@ -3975,11 +4507,40 @@
     ctx.restore();
   }
 
+  function updateTailHover(state, skin, canvasPt) {
+    if (!state || !skin || !canvasPt || skin.renderStyle === 'douni') return;
+    if ((state.scruffDrag || 0) > 0.1 || (state.lieIntensity || 0) > 0.35 || (state.dizzyIntensity || 0) > 0.25) return;
+    const seatX = SEAT_ANCHOR.x + (state.bodyShiftX || 0);
+    const seatY = SEAT_ANCHOR.y;
+    const tc = tailCurve(seatX, seatY, state, skin);
+    const samples = [tc.c1, tc.c2, tc.tip, lerpPt(tc.c1, tc.c2, 0.5), lerpPt(tc.c2, tc.tip, 0.5)];
+    let bestD = Infinity;
+    let bestPt = tc.tip;
+    for (const p of samples) {
+      const d = Math.hypot(canvasPt.x - p.x, canvasPt.y - p.y);
+      if (d < bestD) { bestD = d; bestPt = p; }
+    }
+    if (bestD < 24) {
+      const now = state.time || 0;
+      if (now - (state._lastTailBrush || -10) > 0.12) {
+        state._lastTailBrush = now;
+        const dx = bestPt.x - canvasPt.x;
+        const dy = bestPt.y - canvasPt.y;
+        const n = Math.max(1, Math.hypot(dx, dy));
+        state.tailFlickXVel = (state.tailFlickXVel || 0) + (dx / n) * 145;
+        state.tailFlickYVel = (state.tailFlickYVel || 0) + (dy / n - 0.55) * 145;
+        state.tailCurlVel = (state.tailCurlVel || 0) + (Math.random() > 0.5 ? 1 : -1) * 5.2;
+        state.tailAgility = Math.min(1.0, (state.tailAgility || 0) + 0.55);
+      }
+    }
+  }
+
   function stepPhysicsExtras(state, skin, pose, dt) {
     const isDouni = skin && skin.renderStyle === 'douni';
     const isDouniTyping = skin && (skin.typingStyle === 'douni' || isDouni);
+    const nowT = state.time || 0;
 
-    // 1. Scruff-drag state (for ALL skins!)
+    // 1. Scruff-drag state (2D inertia + lagging tail whip for ALL skins!)
     const wantDrag = pose === 'drag';
     if (wantDrag) {
       if (!state.isScruffDragging) {
@@ -3999,13 +4560,26 @@
     const [sd, sdv] = stepSpring(state.scruffDrag || 0, state.scruffDragVel || 0, wantDrag ? 1.0 : 0.0, dt, 190, 17);
     state.scruffDrag = clamp(sd, 0, 1.05);
     state.scruffDragVel = sdv;
-    const targetSwing = wantDrag
-      ? clamp((state.dragSwingTarget || 0) + Math.sin(state.time * 2.6) * 0.08, -0.52, 0.52)
+    const targetSwingX = wantDrag
+      ? clamp((state.dragSwingTarget || 0) + Math.sin(nowT * 2.6) * 0.08, -0.92, 0.92)
       : 0;
-    const [sw, swv] = stepSpring(state.scruffSwing || 0, state.scruffSwingVel || 0, targetSwing, dt, 115, 9.5);
+    const [sw, swv] = stepSpring(state.scruffSwing || 0, state.scruffSwingVel || 0, targetSwingX, dt, 115, 9.5);
     state.scruffSwing = sw;
     state.scruffSwingVel = swv;
+    const targetSwingY = wantDrag
+      ? clamp((state.dragSwingYTarget || 0) + Math.cos(nowT * 2.1) * 0.04, -0.78, 0.78)
+      : 0;
+    const [swY, swYv] = stepSpring(state.scruffSwingY || 0, state.scruffSwingYVel || 0, targetSwingY, dt, 108, 8.4);
+    state.scruffSwingY = swY;
+    state.scruffSwingYVel = swYv;
+    const targetTailSwing = wantDrag
+      ? clamp((state.dragSwingTarget || 0) * 1.35 + Math.sin(nowT * 2.6 - 0.5) * 0.14, -1.2, 1.2)
+      : 0;
+    const [swT, swTv] = stepSpring(state.scruffTailSwing || 0, state.scruffTailSwingVel || 0, targetTailSwing, dt, 58, 5.2);
+    state.scruffTailSwing = swT;
+    state.scruffTailSwingVel = swTv;
     state.dragSwingTarget = lerpNum(state.dragSwingTarget || 0, 0, Math.min(1, dt * 7));
+    state.dragSwingYTarget = lerpNum(state.dragSwingYTarget || 0, 0, Math.min(1, dt * 7));
     state.mousePress = Math.max(0, (state.mousePress || 0) - dt * 6.5);
     state.mousePressLeft = Math.max(0, (state.mousePressLeft || 0) - dt * 6.5);
     state.mousePressRight = Math.max(0, (state.mousePressRight || 0) - dt * 6.5);
@@ -4045,14 +4619,15 @@
       if (s.age >= s.lifetime) state.sparkles.splice(i, 1);
     }
 
-    // 2. Expressive states: Anger (fast typing >= 240 KPM / pose='anger' / Douni hindFoot) & Dizzy (pose='dizzy') & Tablet
-    const nowT = state.time || 0;
+    // 2. Expressive states: Anger (fast typing >= 240 KPM / pose='anger'), Dizzy (rapid shake 3.6s / pose='dizzy'), Cat-Ball Sleep & Yawn, Tail Hover & 4-Key Tail Typing, Tablet & RGB Marquee
     if (state._recentKeyTimes && state._recentKeyTimes.length) {
       while (state._recentKeyTimes.length && nowT - state._recentKeyTimes[0] > 2.5) {
         state._recentKeyTimes.shift();
       }
     }
     const recentKpm = ((state._recentKeyTimes ? state._recentKeyTimes.length : 0) / 2.5) * 60.0;
+    state.marqueePhase = ((state.marqueePhase || 0) + dt * (0.26 + Math.min(0.65, recentKpm / 360))) % 1.0;
+
     const autoAnger = (!wantDrag && (state.dizzyIntensity || 0) < 0.25 && recentKpm >= 240)
       ? clamp((recentKpm - 240.0) / 140.0, 0, 1) : 0;
     const angerTarget = (pose === 'anger' || (isDouni && pose === 'hindFoot')) ? 1.0 : autoAnger;
@@ -4065,19 +4640,19 @@
       state._fastMouseDuration = 0;
     } else if ((state._dizzyTimer || 0) <= 0 && (state.huntIntensity || 0) > 0.42 && pose !== 'hunt') {
       state._fastMouseDuration = (state._fastMouseDuration || 0) + dt;
-      if (state._fastMouseDuration >= 10.0) {
-        state._dizzyTimer = 6.0;
+      if (state._fastMouseDuration >= 3.6) {
+        state._dizzyTimer = 5.5;
         state._fastMouseDuration = 0;
       }
     } else if ((state._dizzyTimer || 0) <= 0) {
-      state._fastMouseDuration = Math.max(0, (state._fastMouseDuration || 0) - dt * 1.5);
+      state._fastMouseDuration = Math.max(0, (state._fastMouseDuration || 0) - dt * 1.4);
     }
     let autoDizzy = 0;
     if ((state._dizzyTimer || 0) > 0) {
       state._dizzyTimer = Math.max(0, state._dizzyTimer - dt);
       autoDizzy = 1.0;
-    } else if ((state._fastMouseDuration || 0) > 6.8) {
-      autoDizzy = clamp((state._fastMouseDuration - 6.8) / 3.2, 0, 1) * 0.48;
+    } else if ((state._fastMouseDuration || 0) > 1.8) {
+      autoDizzy = clamp((state._fastMouseDuration - 1.8) / 1.8, 0, 1) * 0.48;
     }
     const dizzyTarget = pose === 'dizzy' ? 1.0 : autoDizzy;
     const [dzV, dzVel] = stepSpring(state.dizzyIntensity || 0, state.dizzyIntensityVel || 0, dizzyTarget, dt, 75, 14);
@@ -4087,14 +4662,73 @@
       state.dizzyPhase = (state.dizzyPhase || 0) + dt * 7.5;
     }
 
+    // Curled-up cat-ball sleep (lieIntensity) & pre-sleep yawn (yawnAmount)
+    const sleepVal = clamp(state.sleepiness || 0, 0, 1);
+    const lieTarget = (!wantDrag && state.dizzyIntensity < 0.15)
+      ? (pose === 'sleep' ? 1.0 : clamp((sleepVal - 0.55) / 0.35, 0, 1))
+      : 0;
+    const [liV, liVel] = stepSpring(state.lieIntensity || 0, state.lieIntensityVel || 0, lieTarget, dt, 55, 14);
+    state.lieIntensity = clamp(liV, 0, 1);
+    state.lieIntensityVel = liVel;
+
+    if (pose === 'yawn') {
+      state.yawnAmount = lerpNum(state.yawnAmount || 0, 0.92, Math.min(1, dt * 8));
+    } else {
+      if (!wantDrag && state.dizzyIntensity < 0.15 && sleepVal > 0.28 && sleepVal < 0.65 && !state._yawnedThisNap) {
+        state._yawnTimer = 2.0;
+        state._yawnedThisNap = true;
+      }
+      if (sleepVal < 0.12) state._yawnedThisNap = false;
+      if ((state._yawnTimer || 0) > 0) {
+        state._yawnTimer = Math.max(0, state._yawnTimer - dt);
+        const elapsed = 2.0 - state._yawnTimer;
+        let yv = 0;
+        if (elapsed < 0.65) yv = smoothstep(0, 0.65, elapsed);
+        else if (elapsed < 1.55) yv = 1.0;
+        else yv = 1.0 - smoothstep(1.55, 2.0, elapsed);
+        state.yawnAmount = yv;
+      } else {
+        state.yawnAmount = lerpNum(state.yawnAmount || 0, 0, Math.min(1, dt * 10));
+      }
+    }
+
+    // 4-key tail typing + playful tail hover flick springs
+    const tailTypeTarget = (!wantDrag && state.dizzyIntensity < 0.25 && state.lieIntensity < 0.35)
+      ? (state.tailTypingTarget || 0) : 0;
+    const [ttV, ttVel] = stepSpring(state.tailTyping || 0, state.tailTypingVel || 0, tailTypeTarget, dt, 180, 17);
+    state.tailTyping = clamp(ttV, 0, 1);
+    state.tailTypingVel = ttVel;
+    if (state.tailTipGoal) {
+      const curTip = state.tailTip || { x: 256, y: 248 };
+      const kTip = Math.min(1, dt * 22);
+      state.tailTip = {
+        x: lerpNum(curTip.x, state.tailTipGoal.x, kTip),
+        y: lerpNum(curTip.y, state.tailTipGoal.y, kTip)
+      };
+    }
+    const [tfx, tfxv] = stepSpring(state.tailFlickX || 0, state.tailFlickXVel || 0, 0, dt, 140, 11);
+    state.tailFlickX = clamp(tfx, -26, 26); state.tailFlickXVel = tfxv;
+    const [tfy, tfyv] = stepSpring(state.tailFlickY || 0, state.tailFlickYVel || 0, 0, dt, 140, 11);
+    state.tailFlickY = clamp(tfy, -26, 26); state.tailFlickYVel = tfyv;
+    const [tcV, tcVel] = stepSpring(state.tailCurl || 0, state.tailCurlVel || 0, 0, dt, 90, 9.5);
+    state.tailCurl = clamp(tcV, -1.2, 1.2); state.tailCurlVel = tcVel;
+    state.tailAgility = Math.max(0, (state.tailAgility || 0) - dt * 0.7);
+
+    // 2.5D Graphics Tablet & Stylus demo (both standard skins and Douni!)
     if (pose === 'tablet') {
       state.isTabletActive = true;
       state._poseTablet = true;
-      const tu = 0.50 + Math.sin(nowT * 2.4) * 0.34;
-      const tv = 0.50 + Math.sin(nowT * 4.8) * 0.28;
-      state.tabletNib = { x: 18 + tu * 74, y: 235 + tv * 52 };
+      const tu = 0.50 + Math.sin(nowT * 2.3) * 0.34;
+      const tv = 0.50 + Math.sin(nowT * 4.6) * 0.28;
+      state.tabletNib = isDouni
+        ? { x: 18 + tu * 74, y: 235 + tv * 52 }
+        : tabletQuadPoint(tu, tv);
       state.tabletPenPress = 0.72 + Math.sin(nowT * 3.1) * 0.22;
-      state.tabletPenTilt = Math.cos(nowT * 2.4) * 0.14;
+      state.tabletPenTilt = Math.cos(nowT * 2.3) * 0.14;
+      if (!isDouni) {
+        state.leftPaw = { x: state.tabletNib.x + 5.5, y: state.tabletNib.y - 7.0 };
+        state.leftPawActive = true;
+      }
       if (!state.tabletTrail) state.tabletTrail = [];
       state.tabletTrail.push({ x: state.tabletNib.x, y: state.tabletNib.y, age: 0, pressure: state.tabletPenPress });
       if (state.tabletTrail.length > 48) state.tabletTrail.splice(0, state.tabletTrail.length - 48);
@@ -4166,6 +4800,7 @@
     const opts = options || {};
     const kbTheme = opts.kbTheme || 'classicMilk';
     const eyeTheme = opts.eyeTheme || (skin.colorpoint ? 'siameseBlue' : 'neonChartreuse');
+    stateWhiteOutline = opts.whiteOutline !== false;
 
     ctx.save();
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -4191,7 +4826,12 @@
       if (kbFade > 0.01) {
         ctx.save();
         ctx.globalAlpha *= kbFade;
-        drawMouse(ctx, state, kbTheme);
+        if (state.isTabletActive) {
+          drawTablet(ctx, state, kbTheme, eyeTheme);
+          drawParkedStylus(ctx, kbTheme);
+        } else {
+          drawMouse(ctx, state, kbTheme);
+        }
         drawKeyboard(ctx, state, kbTheme, eyeTheme);
         ctx.restore();
       }
@@ -4207,34 +4847,74 @@
     }
 
     const breath = Math.sin(state.time * 2.1) * 1.6;
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const lieS = lie * lie * (3.0 - 2.0 * lie);
+    const dizzy = clamp(state.dizzyIntensity || 0, 0, 1);
+    const dizzyFallRaw = clamp((dizzy - 0.50) / 0.50, 0, 1);
+    const dizzyFall = dizzyFallRaw * dizzyFallRaw * (3.0 - 2.0 * dizzyFallRaw);
+    const preWobble = clamp((dizzy - 0.12) / 0.38, 0, 1) * (1.0 - dizzyFall);
+
     const seatX = SEAT_ANCHOR.x + state.bodyShiftX;
-    const seatY = SEAT_ANCHOR.y;
+    const seatY = SEAT_ANCHOR.y + lieS * 10.0;
     const bd = getBuild(skin);
     const headCenter = {
-      x: seatX + state.bodyTilt * 36 + state.headYaw * 7.5,
-      y: 126 + bd.headLift + state.headOffsetY + state.headPitch * 4.8 + breath * 1.1
+      x: seatX + state.bodyTilt * 36 + state.headYaw * 7.5 - lieS * 4.0,
+      y: 126 + bd.headLift + state.headOffsetY + state.headPitch * 4.8 + breath * 1.1 + lieS * 60.0
     };
     const hasDecos = skin.decorations && skin.decorations.length > 0;
+    const holdingStylus = !!(state.isTabletActive && state.leftPawActive && dizzy <= 0.35 && lie <= 0.45);
 
-    drawMouse(ctx, state, kbTheme);
+    if (state.isTabletActive) {
+      drawTablet(ctx, state, kbTheme, eyeTheme);
+      if (!holdingStylus) drawParkedStylus(ctx, kbTheme);
+    } else {
+      drawMouse(ctx, state, kbTheme);
+    }
     drawKeyboard(ctx, state, kbTheme, eyeTheme);
-    drawTail(ctx, seatX, seatY, state, skin);
-    if (hasDecos) {
-      drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['tailTip'] });
+
+    // 2-stage dizzy transform: wobble -> 90-deg sideways collapse onto the keyboard
+    const fallAngle = -dizzyFall * 1.46 + Math.sin(state.time * 9.5) * 0.16 * preWobble;
+    const fallShiftX = dizzyFall * 56.0;
+    const fallShiftY = dizzyFall * 20.0;
+    const tailInFront = (state.tailTyping || 0) >= 0.5 || lieS >= 0.45;
+
+    ctx.save();
+    if (Math.abs(fallAngle) > 0.001 || Math.abs(fallShiftX) > 0.1 || Math.abs(fallShiftY) > 0.1) {
+      ctx.translate(seatX + fallShiftX, seatY + fallShiftY);
+      ctx.rotate(fallAngle);
+      ctx.translate(-seatX, -seatY);
+    }
+
+    const drawEarsLayer = (outlineOnly) => {
+      ctx.save();
+      ctx.translate(headCenter.x, headCenter.y);
+      ctx.rotate(state.headTilt);
+      if (skin.shape.headScale !== 1) ctx.scale(skin.shape.headScale, skin.shape.headScale);
+      drawEar3D(ctx, true, state.headYaw * 0.50, state.headPitch * 0.36, state.earFold, state.earTwitch * 0.045, skin, outlineOnly);
+      drawEar3D(ctx, false, state.headYaw * 0.50, state.headPitch * 0.36, state.earFold, -state.earTwitch * 0.045, skin, outlineOnly);
+      ctx.restore();
+    };
+
+    // Pass 1: Universal sticker-style outer white outline for ALL skins
+    if (stateWhiteOutline) {
+      if (!tailInFront) drawTail(ctx, seatX, seatY, state, skin, true);
+      drawEarsLayer(true);
+      drawUnifiedSilhouette(ctx, seatX, seatY, headCenter, breath, state, skin, true);
+    }
+
+    if (!tailInFront) {
+      drawTail(ctx, seatX, seatY, state, skin, false);
+      if (hasDecos) {
+        drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['tailTip'] });
+      }
     }
 
     // 3D ears
-    ctx.save();
-    ctx.translate(headCenter.x, headCenter.y);
-    ctx.rotate(state.headTilt);
-    if (skin.shape.headScale !== 1) ctx.scale(skin.shape.headScale, skin.shape.headScale);
-    drawEar3D(ctx, true, state.headYaw * 0.50, state.headPitch * 0.36, state.earFold, state.earTwitch * 0.045, skin);
-    drawEar3D(ctx, false, state.headYaw * 0.50, state.headPitch * 0.36, state.earFold, -state.earTwitch * 0.045, skin);
-    ctx.restore();
+    drawEarsLayer(false);
 
-    drawUnifiedSilhouette(ctx, seatX, seatY, headCenter, breath, state, skin);
+    drawUnifiedSilhouette(ctx, seatX, seatY, headCenter, breath, state, skin, false);
 
-    if (state.hindFootActive > 0.03) {
+    if (state.hindFootActive > 0.03 && dizzy < 0.45 && lie < 0.45) {
       const hip = { x: seatX + 26 * skin.shape.bodyWidth, y: seatY + 2 };
       const target = state.hindFoot;
       const mid = { x: (hip.x + target.x) * 0.5 + 10, y: (hip.y + target.y) * 0.5 - 8 };
@@ -4243,6 +4923,9 @@
 
     // Front arms/paws emerge from shoulders underneath neck accessories (collar/scarf/bowtie)
     drawFrontPaws(ctx, seatX, seatY, breath, state, skin);
+    if (holdingStylus) {
+      drawHeldStylus(ctx, state, kbTheme);
+    }
 
     // Neck decorations over chest & arm roots, behind face features
     if (hasDecos) {
@@ -4254,16 +4937,72 @@
     if (hasDecos) {
       drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['face', 'headTop'] });
     }
+
+    if (tailInFront) {
+      if (stateWhiteOutline) drawTail(ctx, seatX, seatY, state, skin, true);
+      drawTail(ctx, seatX, seatY, state, skin, false);
+      if (hasDecos) {
+        drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['tailTip'] });
+      }
+    }
+
+    ctx.restore(); // end dizzy transform
+
+    // Upright orbiting golden stars above the rotated head when dizzy!
+    if (dizzy > 0.10) {
+      const dxH = headCenter.x - seatX;
+      const dyH = headCenter.y - seatY;
+      const cosA = Math.cos(fallAngle);
+      const sinA = Math.sin(fallAngle);
+      const worldHeadX = seatX + fallShiftX + dxH * cosA - dyH * sinA;
+      const worldHeadY = seatY + fallShiftY + dxH * sinA + dyH * cosA;
+      const starAlpha = clamp((dizzy - 0.10) / 0.25, 0, 1);
+      const orbitCenterX = worldHeadX;
+      const orbitCenterY = worldHeadY - 48.0 - dizzyFall * 4.0;
+      const orbitRx = 32.0;
+      const orbitRy = 10.0;
+      ctx.save();
+      for (let i = 0; i < 3; i++) {
+        const ang = (state.dizzyPhase || 0) * 0.72 + i * ((Math.PI * 2) / 3);
+        const sx = orbitCenterX + Math.cos(ang) * orbitRx;
+        const sy = orbitCenterY + Math.sin(ang) * orbitRy;
+        const depthScale = 0.76 + 0.28 * (Math.sin(ang) * 0.5 + 0.5);
+        const r = 6.2 * depthScale;
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate((state.dizzyPhase || 0) * 0.55 + i);
+        ctx.beginPath();
+        for (let k = 0; k < 8; k++) {
+          const rad = (k % 2 === 0) ? r : r * 0.42;
+          const a = (k / 8) * Math.PI * 2;
+          const px = Math.cos(a) * rad, py = Math.sin(a) * rad;
+          if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = `rgba(255,219,82,${(0.95 * starAlpha).toFixed(2)})`;
+        ctx.fill();
+        ctx.strokeStyle = `rgba(214,132,30,${(0.90 * starAlpha).toFixed(2)})`;
+        ctx.lineWidth = 1.0;
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
     drawSparkles(ctx, state);
     drawFloatingBadges(ctx, state);
 
     // Sleep Z or petting sparkles
-    if (state.sleepiness > 0.5) {
+    if ((state.sleepiness > 0.5 || lie > 0.5) && dizzy < 0.2) {
       const zPhase = (state.time * 0.7) % 1;
+      const zPhase2 = (state.time * 0.7 + 0.5) % 1;
       ctx.save();
       ctx.fillStyle = `rgba(226,139,66,${Math.sin(zPhase * Math.PI).toFixed(2)})`;
       ctx.font = `700 ${11 + zPhase * 4}px -apple-system, sans-serif`;
       ctx.fillText('z', headCenter.x + 34 + zPhase * 12, headCenter.y - 34 - zPhase * 22);
+      ctx.fillStyle = `rgba(226,139,66,${(Math.sin(zPhase2 * Math.PI) * 0.82).toFixed(2)})`;
+      ctx.font = `700 ${13 + zPhase2 * 5}px -apple-system, sans-serif`;
+      ctx.fillText('Z', headCenter.x + 44 + zPhase2 * 15, headCenter.y - 44 - zPhase2 * 26);
       ctx.restore();
     }
 
@@ -4745,6 +5484,27 @@
       scruffDropTimer: 0,
       scruffSwing: 0,
       scruffSwingVel: 0,
+      scruffSwingY: 0,
+      scruffSwingYVel: 0,
+      scruffTailSwing: 0,
+      scruffTailSwingVel: 0,
+      lieIntensity: 0,
+      lieIntensityVel: 0,
+      yawnAmount: 0,
+      tailTyping: 0,
+      tailTypingVel: 0,
+      tailTypingTarget: 0,
+      tailTip: { x: 256, y: 248 },
+      tailTipGoal: { x: 256, y: 248 },
+      tailFlickX: 0,
+      tailFlickXVel: 0,
+      tailFlickY: 0,
+      tailFlickYVel: 0,
+      tailCurl: 0,
+      tailCurlVel: 0,
+      tailAgility: 0,
+      marqueePhase: 0,
+      marqueeEnabled: true,
       douniLoafBlend: 0,
       douniLoafBlendVel: 0,
       douniLoafAnimated: false,
@@ -4782,6 +5542,7 @@
       douniLastRightKeyTime: -10,
       _recentKeyTimes: [],
       dragSwingTarget: 0,
+      dragSwingYTarget: 0,
       floatingBadges: [],
       sparkles: []
     };
@@ -4979,6 +5740,7 @@
     MOUSE_BASE,
     KEYCAPS,
     screenQuadPoint,
+    tabletQuadPoint,
     v2KbPoint,
     v2KeyCellInfo,
     createDefaultState,
@@ -4988,6 +5750,7 @@
     mapKeyboardEventToCap,
     findNearestKeycap,
     hitTestCat,
+    updateTailHover,
     stepPhysicsExtras,
     drawScene,
     mapPointToCanvas,

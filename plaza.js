@@ -875,9 +875,33 @@
     playCanvas.classList.toggle('cat-dragging', active);
   }
 
+  function setPlayPose(pose) {
+    playModalPose = pose || 'idle';
+    playLive.lastActivity = performance.now();
+    if (playModalPose === 'idle' && playModalState) {
+      playModalState._dizzyTimer = 0;
+      playModalState._fastMouseDuration = 0;
+    }
+    const bar = document.getElementById('play-pose-bar');
+    if (bar) {
+      bar.querySelectorAll('.pose-pill[data-play-pose]').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.playPose === playModalPose);
+      });
+    }
+  }
+
+  const playPoseBarEl = document.getElementById('play-pose-bar');
+  if (playPoseBarEl) {
+    playPoseBarEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.pose-pill[data-play-pose]');
+      if (!btn) return;
+      setPlayPose(btn.dataset.playPose);
+    });
+  }
+
   async function openPlayModal(item) {
     playModalItem = item;
-    playModalPose = 'idle';
+    setPlayPose('idle');
     playPressedCaps.clear();
     playLive.lastActivity = performance.now();
     playLive.lastKeyTime = 0;
@@ -945,9 +969,10 @@
       playLive.draggingCat.engaged = true;
       setPlayDragClasses(true);
     }
-    const isDraggingNow = !!(playLive.draggingCat && playLive.draggingCat.engaged);
+    const isPointerDragging = !!(playLive.draggingCat && playLive.draggingCat.engaged);
+    const isDraggingNow = isPointerDragging || playModalPose === 'drag';
 
-    if (isDraggingNow) {
+    if (isPointerDragging) {
       playCanvas.style.transform = `translate3d(${playLive.dragOffsetX.toFixed(1)}px, ${playLive.dragOffsetY.toFixed(1)}px, 0)`;
     } else if (Math.abs(playLive.dragOffsetX) > 0.4 || Math.abs(playLive.dragOffsetY) > 0.4) {
       const sk = Math.min(1, dt * 13);
@@ -994,12 +1019,60 @@
     let tHunt = 0, tPetH = 0, tPetB = 0, tSleep = 0, tEarFold = 0, tHind = 0, tSquash = 1, tHeadY = 0;
     const isDouniPlay = playModalResolved && (playModalResolved.renderStyle === 'douni' || playModalResolved.typingStyle === 'douni');
     let effectivePose = 'idle';
+    st.tailTypingTarget = 0;
 
     if (isDraggingNow) {
       effectivePose = 'drag';
       tYaw = 0; tPitch = 0;
       st.leftPawActive = false;
       st.rightPawActive = false;
+    } else if (playModalPose !== 'idle') {
+      effectivePose = playModalPose;
+      if (playModalPose === 'petHead') {
+        tPetH = 1; tEarFold = 0.78; tSquash = 0.95; tHeadY = 3;
+        st.leftPawActive = false; st.rightPawActive = false;
+      } else if (playModalPose === 'sleep') {
+        tSleep = 1; tPitch = 0.35; tHeadY = 6; tEarFold = 0.32;
+        st.leftPawActive = false; st.rightPawActive = false;
+      } else if (playModalPose === 'dizzy') {
+        tYaw = 0; tPitch = 0; tEarFold = 0.36;
+        st.leftPawActive = false; st.rightPawActive = false;
+      } else if (playModalPose === 'hindFoot') {
+        tHind = 1;
+        st.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
+        if (!isDouniPlay) {
+          st.leftPaw = Renderer.screenQuadPoint(0.68, 0.52);
+          st.rightPaw = Renderer.screenQuadPoint(0.46, 0.35);
+          st.leftPawActive = true;
+          st.rightPawActive = true;
+          st.tailTypingTarget = 1;
+          st.tailTipGoal = Renderer.screenQuadPoint(0.14, 0.62);
+          st.keyGlow['2_3'] = 0.9;
+          st.keyGlow['1_6'] = 0.9;
+          st.keyGlow['2_9'] = 0.9;
+          st.keyGlow['1_11'] = 0.9;
+        }
+      } else if (playModalPose === 'typing') {
+        playModalTypingTimer += dt;
+        if (playModalTypingTimer > (isDouniPlay ? 0.17 : 0.22)) {
+          playModalTypingTimer = 0;
+          Renderer.triggerKeyTap(st, playModalResolved);
+        }
+        tPitch = 0.28;
+      } else if (playModalPose === 'anger') {
+        playModalTypingTimer += dt;
+        if (playModalTypingTimer > 0.12) {
+          playModalTypingTimer = 0;
+          Renderer.triggerKeyTap(st, playModalResolved);
+        }
+        tPitch = 0.26;
+        tSquash = 0.95;
+        tEarFold = 0.26;
+      } else if (playModalPose === 'tablet') {
+        tYaw = -0.22;
+        tPitch = 0.22;
+        st.rightPawActive = false;
+      }
     } else {
       const recentKey = heldCaps.length > 0 || (nowMs - playLive.lastKeyTime < 220);
       const recentMouse = nowMs - playLive.lastMouseClickTime < 340;
@@ -1018,6 +1091,11 @@
         const c3 = heldCaps[2];
         st.hindFoot = Renderer.screenQuadPoint(1 - (c3.xUnits + c3.widthUnits * 0.5), 1 - (c3.row + 0.5) / 5);
         tHind = 1;
+      }
+      if (heldCaps.length >= 4 && !isDouniPlay) {
+        const c4 = heldCaps[3];
+        st.tailTipGoal = Renderer.screenQuadPoint(1 - (c4.xUnits + c4.widthUnits * 0.5), 1 - (c4.row + 0.5) / 5);
+        st.tailTypingTarget = 1;
       }
       if (playLive.petHead > 0.08) {
         tPetH = playLive.petHead;
@@ -1071,7 +1149,10 @@
       st.rightPaw.y = lerp(st.rightPaw.y, Renderer.RIGHT_PAW_REST.y);
     }
 
-    Renderer.drawScene(playCtx, playModalResolved, st, { kbTheme: 'classicMilk', eyeTheme: 'neonChartreuse' });
+    Renderer.drawScene(playCtx, playModalResolved, st, {
+      kbTheme: 'classicMilk',
+      eyeTheme: playModalResolved.colorpoint ? 'siameseBlue' : 'neonChartreuse'
+    });
     playModalRaf = requestAnimationFrame(tickPlayModal);
   }
 
@@ -1090,11 +1171,14 @@
       }
       if (playLive.draggingCat.engaged) {
         const dx = e.clientX - playLive.draggingCat.lastClientX;
+        const dy = e.clientY - playLive.draggingCat.lastClientY;
         const dtMs = Math.max(8, now - playLive.draggingCat.lastTime);
         const vx = (dx / dtMs) * 1000;
+        const vy = (dy / dtMs) * 1000;
         playLive.dragOffsetX = e.clientX - playLive.draggingCat.startClientX;
         playLive.dragOffsetY = e.clientY - playLive.draggingCat.startClientY;
-        playModalState.dragSwingTarget = Spec.clamp(-vx * 0.00042, -0.46, 0.46);
+        playModalState.dragSwingTarget = Spec.clamp(-vx * 0.00052, -0.92, 0.92);
+        playModalState.dragSwingYTarget = Spec.clamp(-vy * 0.00046, -0.78, 0.78);
       }
       playLive.draggingCat.lastClientX = e.clientX;
       playLive.draggingCat.lastClientY = e.clientY;
@@ -1126,6 +1210,7 @@
     if (moveDist > 0.8 && moveDist < 65) {
       if (zone === 'head') playLive.petHead = Math.min(1, playLive.petHead + moveDist * 0.015);
       else if (zone === 'body') playLive.petBody = Math.min(0.9, playLive.petBody + moveDist * 0.012);
+      else if (Renderer.updateTailHover) Renderer.updateTailHover(playModalState, playModalResolved, { x, y });
     }
   });
   playCanvas.addEventListener('pointerleave', () => {

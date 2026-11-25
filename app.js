@@ -640,11 +640,14 @@
       }
       if (live.draggingCat.engaged) {
         const dx = e.clientX - live.draggingCat.lastClientX;
+        const dy = e.clientY - live.draggingCat.lastClientY;
         const dtMs = Math.max(8, now - live.draggingCat.lastTime);
         const vx = (dx / dtMs) * 1000;
+        const vy = (dy / dtMs) * 1000;
         live.dragOffsetX = e.clientX - live.draggingCat.startClientX;
         live.dragOffsetY = e.clientY - live.draggingCat.startClientY;
-        animState.dragSwingTarget = Spec.clamp(-vx * 0.00042, -0.46, 0.46);
+        animState.dragSwingTarget = Spec.clamp(-vx * 0.00052, -0.92, 0.92);
+        animState.dragSwingYTarget = Spec.clamp(-vy * 0.00046, -0.78, 0.78);
       }
       live.draggingCat.lastClientX = e.clientX;
       live.draggingCat.lastClientY = e.clientY;
@@ -653,7 +656,7 @@
       return;
     }
 
-    // Hover interactions inside the canvas (petting head/body, mini-mouse wiggle, grab cursor)
+    // Hover interactions inside the canvas (petting head/body, tail brush flick, mini-mouse wiggle, grab cursor)
     if (editingRegionIdx < 0) {
       const activeSkinNow = penPreviewSkin || resolvedSkin;
       const zone = Renderer.hitTestCat(pos, activeSkinNow, animState);
@@ -670,6 +673,8 @@
         } else if (zone === 'mouse') {
           animState.mouseOffsetX = Spec.clamp((pos.x - Renderer.MOUSE_BASE.x) * 0.25, -5, 5);
           animState.mouseOffsetY = Spec.clamp((pos.y - Renderer.MOUSE_BASE.y) * 0.25, -4, 4);
+        } else if (Renderer.updateTailHover) {
+          Renderer.updateTailHover(animState, activeSkinNow, pos);
         }
       }
     } else {
@@ -2918,6 +2923,7 @@
     let tHunt = 0, tPetH = 0, tPetB = 0, tSleep = 0, tEarFold = 0, tHind = 0, tSquash = 1, tHeadY = 0;
 
     let effectivePose = 'idle';
+    animState.tailTypingTarget = 0;
     if (isEditingNow) {
       tYaw = 0; tPitch = 0; tGazeX = 0; tGazeY = 0;
     } else if (isDraggingNow) {
@@ -2928,15 +2934,47 @@
     } else if (currentPose !== 'idle') {
       effectivePose = currentPose;
       if (currentPose === 'hunt') { tHunt = 1; tSquash = 0.90; tHeadY = 8; tEarFold = 0.45; }
-      else if (currentPose === 'petHead') { tPetH = 1; tEarFold = 0.78; tSquash = 0.95; tHeadY = 3; }
-      else if (currentPose === 'petBody') { tPetB = 0.85; tEarFold = 0.45; tSquash = 0.96; }
-      else if (currentPose === 'sleep') { tSleep = 1; tPitch = 0.35; tHeadY = 6; tEarFold = 0.32; }
-      else if (currentPose === 'hindFoot') {
-        tHind = 1; animState.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
+      else if (currentPose === 'petHead') {
+        tPetH = 1; tEarFold = 0.78; tSquash = 0.95; tHeadY = 3;
+        animState.leftPawActive = false; animState.rightPawActive = false;
+      } else if (currentPose === 'petBody') {
+        tPetB = 0.85; tEarFold = 0.45; tSquash = 0.96;
+      } else if (currentPose === 'sleep') {
+        tSleep = 1; tPitch = 0.35; tHeadY = 6; tEarFold = 0.32;
+        animState.leftPawActive = false; animState.rightPawActive = false;
+      } else if (currentPose === 'dizzy') {
+        tYaw = 0; tPitch = 0; tEarFold = 0.36;
+        animState.leftPawActive = false; animState.rightPawActive = false;
+      } else if (currentPose === 'hindFoot') {
+        // 3-key hind foot kick + 4-key tail typing combo demo!
+        tHind = 1;
+        animState.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
+        if (!isDouniTick) {
+          animState.leftPaw = Renderer.screenQuadPoint(0.68, 0.52);
+          animState.rightPaw = Renderer.screenQuadPoint(0.46, 0.35);
+          animState.leftPawActive = true;
+          animState.rightPawActive = true;
+          animState.tailTypingTarget = 1;
+          animState.tailTipGoal = Renderer.screenQuadPoint(0.14, 0.62);
+          animState.keyGlow['2_3'] = 0.9;
+          animState.keyGlow['1_6'] = 0.9;
+          animState.keyGlow['2_9'] = 0.9;
+          animState.keyGlow['1_11'] = 0.9;
+        }
       } else if (currentPose === 'typing') {
         typingTimer += dt;
         if (typingTimer > (isDouniTick ? 0.17 : 0.22)) { typingTimer = 0; triggerRandomKeyTap(); }
         tPitch = 0.28;
+      } else if (currentPose === 'anger') {
+        typingTimer += dt;
+        if (typingTimer > 0.12) { typingTimer = 0; triggerRandomKeyTap(); }
+        tPitch = 0.26;
+        tSquash = 0.95;
+        tEarFold = 0.26;
+      } else if (currentPose === 'tablet') {
+        tYaw = -0.22;
+        tPitch = 0.22;
+        animState.rightPawActive = false;
       }
     } else {
       // Full live interactive mode!
@@ -2960,6 +2998,14 @@
         const sv = 1 - (thirdCap.row + 0.5) / 5;
         animState.hindFoot = Renderer.screenQuadPoint(su, sv);
         tHind = 1;
+      }
+      // 4+ simultaneous keys -> tail sweeps forward to press the 4th key!
+      if (heldCaps.length >= 4 && !isDouniTick) {
+        const fourthCap = heldCaps[3];
+        const su4 = 1 - (fourthCap.xUnits + fourthCap.widthUnits * 0.5);
+        const sv4 = 1 - (fourthCap.row + 0.5) / 5;
+        animState.tailTipGoal = Renderer.screenQuadPoint(su4, sv4);
+        animState.tailTypingTarget = 1;
       }
       // Petting
       if (live.petHead > 0.08) {
@@ -3106,7 +3152,7 @@
     },
     switchTab,
     showToast,
-    setPose: (p) => { currentPose = p; },
+    setPose: (p) => { setWorkshopPose(p || 'idle'); },
     getKeyboardThemeId: () => kbTheme,
     applyKeyboardTheme: (id, label, colors) => {
       if (!id || !colors) return false;
@@ -3151,6 +3197,30 @@
       img.src = url;
     })
   };
+
+  function setWorkshopPose(pose) {
+    currentPose = pose || 'idle';
+    live.lastActivity = performance.now();
+    if (currentPose === 'idle') {
+      animState._dizzyTimer = 0;
+      animState._fastMouseDuration = 0;
+    }
+    const bar = document.getElementById('stage-pose-bar');
+    if (bar) {
+      bar.querySelectorAll('.pose-pill[data-pose]').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.pose === currentPose);
+      });
+    }
+  }
+
+  const stagePoseBar = document.getElementById('stage-pose-bar');
+  if (stagePoseBar) {
+    stagePoseBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.pose-pill[data-pose]');
+      if (!btn) return;
+      setWorkshopPose(btn.dataset.pose);
+    });
+  }
 
   // Boot
   syncSkin();
