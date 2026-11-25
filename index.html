@@ -81,24 +81,20 @@
           </button>
         </div>
 
-        <!-- Support / Reward QR Card -->
-        <button type="button" class="sidebar-reward-card" id="btn-open-reward" aria-label="赞赏作者，点击查看大图">
-          <div class="sidebar-reward-head">
-            <span class="sidebar-reward-badge">
-              <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
-                <path d="M8 14s-5.5-3.4-5.5-7.4A3.1 3.1 0 0 1 8 4.4a3.1 3.1 0 0 1 5.5 2.2C13.5 10.6 8 14 8 14Z"/>
-              </svg>
-              <span>赞赏作者</span>
-            </span>
-            <span class="sidebar-reward-zoom">放大 ↗</span>
-          </div>
-          <div class="sidebar-reward-qr">
-            <img src="assets/reward-qr.jpg" alt="KuroCat 微信赞赏码" loading="lazy" />
-          </div>
-          <div class="sidebar-reward-caption">
-            <strong>请作者喝杯咖啡 ☕</strong>
-            <span>微信扫码助力持续更新</span>
-          </div>
+        <!-- Support / Reward Click-to-Open Trigger -->
+        <button type="button" class="sidebar-reward-card" id="btn-open-reward" aria-label="赞赏作者，点击查看赞赏码">
+          <span class="sidebar-reward-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="currentColor">
+              <path d="M10 16.5s-6.5-4-6.5-8.7A3.7 3.7 0 0 1 10 5.2a3.7 3.7 0 0 1 6.5 2.6c0 4.7-6.5 8.7-6.5 8.7Z"/>
+            </svg>
+          </span>
+          <span class="sidebar-reward-text">
+            <strong>请作者喝杯咖啡</strong>
+            <span>支持 KuroCat 持续开发</span>
+          </span>
+          <svg class="sidebar-reward-arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 3.5 10.5 8 6 12.5"/>
+          </svg>
         </button>
       </nav>
 
