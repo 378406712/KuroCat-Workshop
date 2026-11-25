@@ -566,9 +566,383 @@
     ctx.restore();
   }
 
+  function isDazedSkin(skin) {
+    return Boolean(skin && skin.renderStyle === 'dazed');
+  }
+
+  function drawDazedPaw(ctx, x, y, w, h) {
+    ctx.save();
+    const grad = ctx.createLinearGradient(x, y, x, y + h);
+    grad.addColorStop(0, '#FFF1CD');
+    grad.addColorStop(1, '#CCAC7F');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(x + w * 0.5, y + h * 0.5, w * 0.5, h * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(126, 99, 74, 0.67)';
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawDazedSword(ctx, seatX, seatY, state) {
+    ctx.save();
+    ctx.translate(seatX, seatY + (1.0 - (state.bodySquash || 1.0)) * 36.0);
+    ctx.rotate(state.bodyTilt || 0);
+
+    // Steel blade
+    ctx.beginPath();
+    ctx.moveTo(38.0, -96.0);
+    ctx.bezierCurveTo(7.0, -61.0, -31.0, -33.0, -65.0, -38.0);
+    ctx.bezierCurveTo(-62.0, -24.0, -51.0, -21.0, -37.0, -25.0);
+    ctx.bezierCurveTo(-5.0, -33.0, 27.0, -60.0, 50.0, -84.0);
+    ctx.closePath();
+    const steel = ctx.createLinearGradient(-46.0, -51.0, -29.0, -22.0);
+    steel.addColorStop(0, '#8395B0');
+    steel.addColorStop(1, '#DDE7F2');
+    ctx.fillStyle = steel;
+    ctx.fill();
+    ctx.strokeStyle = '#232638';
+    ctx.lineWidth = 3.6;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // Blade bevel highlight
+    ctx.beginPath();
+    ctx.moveTo(-59.0, -33.5);
+    ctx.bezierCurveTo(-34.0, -24.0, 12.0, -53.0, 43.0, -87.0);
+    ctx.strokeStyle = '#F3F7FB';
+    ctx.lineWidth = 2.1;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Hilt & brass crossguard
+    ctx.translate(44.0, -90.0);
+    ctx.rotate(44.0 * Math.PI / 180.0);
+
+    roundedRectPath(ctx, -7.5, -32.0, 15.0, 32.0, 3.6);
+    ctx.fillStyle = '#58617D';
+    ctx.fill();
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = '#B5BED0';
+    for (const y of [-27.0, -19.0, -11.0]) {
+      ctx.beginPath();
+      ctx.moveTo(-7.5, y - 2.0);
+      ctx.lineTo(7.5, y + 1.0);
+      ctx.lineTo(7.5, y + 4.3);
+      ctx.lineTo(-7.5, y + 1.3);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+    roundedRectPath(ctx, -7.5, -32.0, 15.0, 32.0, 3.6);
+    ctx.strokeStyle = '#232638';
+    ctx.lineWidth = 3.6;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    roundedRectPath(ctx, -13.5, -3.8, 27.0, 7.6, 2.5);
+    ctx.fillStyle = '#E2C58B';
+    ctx.fill();
+    ctx.strokeStyle = '#232638';
+    ctx.lineWidth = 3.6;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawDazedEar(ctx, sign, yawRad, pitchRad, fold, twitch) {
+    const foldAngle = sign * fold * 0.34 + twitch;
+    const tipDx = Math.sin(foldAngle) * 37.0;
+    const tipDy = (1.0 - Math.cos(foldAngle)) * 37.0;
+    const proj = (x, y, tipW) => projectHead3D(sign * x + tipDx * tipW, y + tipDy * tipW, -3.0 * tipW, yawRad, pitchRad);
+
+    const innerBase = proj(5.0, -25.0, 0.0);
+    const tip = proj(40.0, -63.0, 1.0);
+    const outerBase = proj(42.5, -5.0, 0.0);
+    const c1 = proj(13.0, -46.0, 0.30);
+    const c2 = proj(31.0, -62.0, 0.90);
+    const c3 = proj(54.0, -66.0, 0.95);
+    const c4 = proj(57.0, -34.0, 0.40);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(innerBase.x, innerBase.y);
+    ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, tip.x, tip.y);
+    ctx.bezierCurveTo(c3.x, c3.y, c4.x, c4.y, outerBase.x, outerBase.y);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(tip.x, tip.y, outerBase.x, outerBase.y);
+    grad.addColorStop(0, '#777FBD');
+    grad.addColorStop(1, '#4D5892');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawDazedSilhouette(ctx, seatX, seatY, headCenter, state) {
+    ctx.save();
+    ctx.translate(seatX, seatY);
+    ctx.rotate(state.bodyTilt || 0);
+    const squash = state.bodySquash || 1.0;
+    ctx.scale(1.0 + (1.0 - squash) * 0.55, squash);
+
+    drawDazedPaw(ctx, -34.0, -2.0, 19.0, 18.0);
+    if ((state.hindFootActive || 0) < 0.35) {
+      drawDazedPaw(ctx, 15.0, -2.0, 19.0, 18.0);
+    }
+
+    // Warm cream belly
+    ctx.beginPath();
+    ctx.moveTo(-42.0, -19.0);
+    ctx.bezierCurveTo(-46.0, -5.0, -41.0, 11.5, 0.0, 11.5);
+    ctx.bezierCurveTo(41.0, 11.5, 46.0, -5.0, 42.0, -19.0);
+    ctx.closePath();
+    const bellyGrad = ctx.createLinearGradient(0.0, -16.0, 0.0, 12.0);
+    bellyGrad.addColorStop(0, '#F4DFB8');
+    bellyGrad.addColorStop(1, '#C8A77A');
+    ctx.fillStyle = bellyGrad;
+    ctx.fill();
+
+    // Indigo Palico tunic
+    ctx.beginPath();
+    ctx.moveTo(-21.0, -65.0);
+    ctx.bezierCurveTo(-34.0, -56.0, -44.0, -35.0, -44.0, -17.0);
+    ctx.bezierCurveTo(-37.0, -2.0, 37.0, -2.0, 44.0, -17.0);
+    ctx.bezierCurveTo(44.0, -35.0, 34.0, -56.0, 21.0, -65.0);
+    ctx.closePath();
+    const clothGrad = ctx.createLinearGradient(-16.0, -65.0, 12.0, -5.0);
+    clothGrad.addColorStop(0, '#555F9B');
+    clothGrad.addColorStop(1, '#252E58');
+    ctx.fillStyle = clothGrad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-39.0, -15.0);
+    ctx.bezierCurveTo(-28.0, -6.0, 28.0, -6.0, 39.0, -15.0);
+    ctx.strokeStyle = 'rgba(124, 134, 188, 0.61)';
+    ctx.lineWidth = 1.1;
+    ctx.stroke();
+    ctx.restore();
+
+    // Hood around head
+    ctx.save();
+    ctx.translate(headCenter.x, headCenter.y);
+    ctx.rotate(state.headTilt || 0);
+    ctx.beginPath();
+    ctx.moveTo(0.0, -33.0);
+    ctx.bezierCurveTo(28.0, -35.0, 48.0, -16.0, 48.0, 9.0);
+    ctx.bezierCurveTo(48.0, 32.0, 25.0, 41.0, 0.0, 41.0);
+    ctx.bezierCurveTo(-25.0, 41.0, -48.0, 32.0, -48.0, 9.0);
+    ctx.bezierCurveTo(-48.0, -16.0, -28.0, -35.0, 0.0, -33.0);
+    ctx.closePath();
+    const hoodGrad = ctx.createLinearGradient(-16.0, -35.0, 15.0, 42.0);
+    hoodGrad.addColorStop(0, '#6871B4');
+    hoodGrad.addColorStop(1, '#2F386D');
+    ctx.fillStyle = hoodGrad;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawDazedFace(ctx, state, eyeThemeName, yawRad, pitchRad, scruffStartle, scruffWide) {
+    const face = projectHead3D(0.0, 4.0, 22.0, yawRad * 0.72, pitchRad * 0.78);
+    ctx.save();
+    ctx.translate(face.x, face.y);
+    ctx.scale(Math.cos(yawRad), Math.cos(pitchRad));
+
+    // Cream face opening inside hood
+    ctx.beginPath();
+    ctx.moveTo(0.0, -22.0);
+    ctx.bezierCurveTo(17.0, -23.0, 32.0, -9.0, 32.0, 8.0);
+    ctx.bezierCurveTo(32.0, 22.0, 17.0, 27.5, 0.0, 27.5);
+    ctx.bezierCurveTo(-17.0, 27.5, -32.0, 22.0, -32.0, 8.0);
+    ctx.bezierCurveTo(-32.0, -9.0, -17.0, -23.0, 0.0, -22.0);
+    ctx.closePath();
+    const furGrad = ctx.createLinearGradient(-7.0, -23.0, 8.0, 29.0);
+    furGrad.addColorStop(0, '#FFF4D4');
+    furGrad.addColorStop(1, '#DDBF91');
+    ctx.fillStyle = furGrad;
+    ctx.fill();
+    ctx.strokeStyle = '#34355D';
+    ctx.lineWidth = 1.9;
+    ctx.stroke();
+
+    // Soft Siamese-brown nose/muzzle colorpoint
+    ctx.save();
+    ctx.translate(0.0, 11.0);
+    ctx.scale(1.0, 34.0 / 42.0);
+    const ptGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 21.0);
+    ptGrad.addColorStop(0.0, 'rgba(141, 91, 68, 0.86)');
+    ptGrad.addColorStop(0.62, 'rgba(141, 91, 68, 0.61)');
+    ptGrad.addColorStop(0.83, 'rgba(141, 91, 68, 0.02)');
+    ptGrad.addColorStop(1.0, 'rgba(141, 91, 68, 0.0)');
+    ctx.fillStyle = ptGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 21.0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Rosy cheeks
+    ctx.fillStyle = 'rgba(207, 129, 115, 0.37)';
+    ctx.beginPath();
+    ctx.ellipse(-18.5, 12.0, 4.5, 2.0, 0, 0, Math.PI * 2);
+    ctx.ellipse(18.5, 12.0, 4.5, 2.0, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mouth & nose
+    const ink = '#282333';
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1.7;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-6.5, 12.0);
+    ctx.bezierCurveTo(-5.9, 17.0, -1.8, 17.5, 0.0, 13.4);
+    ctx.bezierCurveTo(1.8, 17.5, 5.9, 17.0, 6.5, 12.0);
+    ctx.stroke();
+
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.ellipse(0.0, 11.5, 1.9, 1.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes
+    const happy = (state.happyIntensity || 0) > 0.35;
+    const squint = (state.pettingIntensity || 0) > 0.35;
+    if (happy || squint) {
+      for (const x of [-11.8, 11.8]) {
+        ctx.beginPath();
+        ctx.moveTo(x - 7.2, 2.0);
+        ctx.quadraticCurveTo(x, happy ? 7.0 : 4.0, x + 7.2, 2.0);
+        ctx.stroke();
+      }
+      ctx.restore();
+      return;
+    }
+
+    const closure = Math.max(state.eyeBlink || 0, (state.sleepIntensity || 0) * 0.92, (scruffStartle || 0) * 0.44);
+    const open = 1.0 - clamp(closure, 0.0, 1.0);
+    if (open <= 0.025) {
+      ctx.restore();
+      return;
+    }
+
+    const hunt = clamp(Math.max(state.huntIntensity || 0, (scruffWide || 0) * 0.94), 0.0, 1.0);
+    const gx = clamp(state.gazeX || 0, -1.0, 1.0) * (1.35 - hunt * 0.65);
+    const gy = clamp(state.gazeY || 0, -1.0, 1.0) * (1.1 - hunt * 0.55);
+    const radius = 8.5 + hunt * 1.0;
+    const pupilRadius = 6.25 + hunt * 1.35;
+    const themeCol = (EYE_THEMES[eyeThemeName] || EYE_THEMES.neonChartreuse).primary;
+    const irisCol = blendRgba({ r: 1.0, g: 248 / 255, b: 229 / 255, a: 1 }, themeCol, 0.20);
+
+    for (const x of [-11.8, 11.8]) {
+      ctx.save();
+      ctx.translate(x, 1.0);
+      ctx.scale(1.0, open);
+      ctx.fillStyle = ink;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = rgbaToCss(irisCol);
+      ctx.beginPath();
+      ctx.arc(0, 0, radius - 1.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#191825';
+      ctx.beginPath();
+      ctx.arc(gx, gy, pupilRadius, 0, Math.PI * 2);
+      ctx.fill();
+      if (hunt > 0.25) {
+        const shine = 1.1 + hunt * 0.6;
+        ctx.fillStyle = '#FFF9EA';
+        ctx.beginPath();
+        ctx.arc(gx - 3.4, gy - 4.2, shine, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawDazedArm(ctx, traceLimb, leftEdge, rightEdge, pawRect) {
+    ctx.save();
+    traceLimb();
+    ctx.fillStyle = '#465189';
+    ctx.fill();
+
+    const sleeveLength = 15.0;
+    let distance = 0.0;
+    for (let i = 1; i < leftEdge.length; i++) {
+      const dx = (leftEdge[i].x + rightEdge[i].x - leftEdge[i - 1].x - rightEdge[i - 1].x) * 0.5;
+      const dy = (leftEdge[i].y + rightEdge[i].y - leftEdge[i - 1].y - rightEdge[i - 1].y) * 0.5;
+      const segment = Math.hypot(dx, dy);
+      if (distance + segment < sleeveLength && i < leftEdge.length - 1) {
+        distance += segment;
+        continue;
+      }
+
+      const t = clamp((sleeveLength - distance) / Math.max(segment, 0.001), 0.0, 1.0);
+      const interp = (a, b, f) => ({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f });
+      const leftCuff = interp(leftEdge[i - 1], leftEdge[i], t);
+      const rightCuff = interp(rightEdge[i - 1], rightEdge[i], t);
+      const leftLip = interp(rightCuff, leftCuff, 1.23);
+      const rightLip = interp(leftCuff, rightCuff, 1.23);
+      const offsetAlong = (pt, off) => {
+        const sc = off / Math.max(segment, 0.001);
+        return { x: pt.x + dx * sc, y: pt.y + dy * sc };
+      };
+      const leftFront = offsetAlong(leftLip, 4.0);
+      const rightFront = offsetAlong(rightLip, 4.0);
+      const leftBack = offsetAlong(leftCuff, -8.0);
+      const rightBack = offsetAlong(rightCuff, -8.0);
+
+      // Flared indigo sleeve cuff
+      ctx.beginPath();
+      ctx.moveTo(leftBack.x, leftBack.y);
+      ctx.lineTo(leftLip.x, leftLip.y);
+      ctx.bezierCurveTo(leftFront.x, leftFront.y, rightFront.x, rightFront.y, rightLip.x, rightLip.y);
+      ctx.lineTo(rightBack.x, rightBack.y);
+      ctx.closePath();
+      ctx.fillStyle = '#465189';
+      ctx.fill();
+
+      // Dark sleeve opening lining
+      const rIn = offsetAlong(rightLip, -3.5);
+      const lIn = offsetAlong(leftLip, -3.5);
+      ctx.beginPath();
+      ctx.moveTo(leftLip.x, leftLip.y);
+      ctx.bezierCurveTo(leftFront.x, leftFront.y, rightFront.x, rightFront.y, rightLip.x, rightLip.y);
+      ctx.bezierCurveTo(rIn.x, rIn.y, lIn.x, lIn.y, leftLip.x, leftLip.y);
+      ctx.closePath();
+      ctx.fillStyle = '#252D54';
+      ctx.fill();
+
+      // Cream fur forearm emerging from cuff
+      ctx.beginPath();
+      ctx.moveTo(leftCuff.x, leftCuff.y);
+      for (let k = i; k < leftEdge.length; k++) ctx.lineTo(leftEdge[k].x, leftEdge[k].y);
+      for (let k = rightEdge.length - 1; k >= i; k--) ctx.lineTo(rightEdge[k].x, rightEdge[k].y);
+      ctx.lineTo(rightCuff.x, rightCuff.y);
+      ctx.closePath();
+      ctx.fillStyle = '#E3C99F';
+      ctx.fill();
+
+      drawDazedPaw(ctx, pawRect.x, pawRect.y, pawRect.w, pawRect.h);
+
+      // Cuff seam highlight
+      ctx.beginPath();
+      ctx.moveTo(leftLip.x, leftLip.y);
+      ctx.bezierCurveTo(leftFront.x, leftFront.y, rightFront.x, rightFront.y, rightLip.x, rightLip.y);
+      ctx.strokeStyle = '#8790C8';
+      ctx.lineWidth = 1.25;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      break;
+    }
+    ctx.restore();
+  }
+
   function drawTail(ctx, seatX, seatY, state, skin, outlineOnly) {
     const curve = tailCurve(seatX, seatY, state, skin);
-    const width = getBuild(skin).tailWidth * skin.shape.tailThickness;
+    const width = isDazedSkin(skin) ? 13.0 : (getBuild(skin).tailWidth * skin.shape.tailThickness);
     const lie = clamp(state.lieIntensity || 0, 0, 1);
     const lieS = lie * lie * (3.0 - 2.0 * lie);
 
@@ -654,6 +1028,10 @@
   }
 
   function drawEar3D(ctx, isLeft, yawRad, pitchRad, fold, twitch, skin, outlineOnly) {
+    if (isDazedSkin(skin)) {
+      if (!outlineOnly) drawDazedEar(ctx, isLeft ? -1 : 1, yawRad, pitchRad, fold, twitch);
+      return;
+    }
     const bd = getBuild(skin);
     const sign = isLeft ? -1 : 1;
     const foldAngle = sign * (bd.earFold + fold * 0.34) + twitch;
@@ -752,6 +1130,10 @@
   }
 
   function drawUnifiedSilhouette(ctx, seatX, seatY, headCenter, breath, state, skin, outlineOnly) {
+    if (isDazedSkin(skin)) {
+      if (!outlineOnly) drawDazedSilhouette(ctx, seatX, seatY, headCenter, state);
+      return;
+    }
     const bd = getBuild(skin);
     const pal = skin.palette;
     const yaw = state.headYaw, pitch = state.headPitch;
@@ -1203,6 +1585,12 @@
     const yawRad = state.headYaw * 0.50;
     const pitchRad = state.headPitch * 0.36;
 
+    if (isDazedSkin(skin)) {
+      drawDazedFace(ctx, state, eyeThemeName, yawRad, pitchRad, scruffStartle, scruffWide);
+      ctx.restore();
+      return;
+    }
+
     drawEye3D(ctx, true, yawRad, pitchRad, state, eyeThemeName, skin, scruffStartle, scruffWide);
     drawEye3D(ctx, false, yawRad, pitchRad, state, eyeThemeName, skin, scruffStartle, scruffWide);
 
@@ -1348,7 +1736,7 @@
     };
   }
 
-  function drawLimb(ctx, start, control, end, startW, endW, outlineOnLeft, outlineAlpha, skin) {
+  function drawLimb(ctx, start, control, end, startW, endW, outlineOnLeft, outlineAlpha, skin, frontPaw = false) {
     const pal = skin.palette;
     const steps = 14;
     const leftEdge = [], rightEdge = [];
@@ -1380,6 +1768,26 @@
 
     const pawR = endW * 0.58;
     const lineColor = pal.outline || pal.crease;
+
+    if (isDazedSkin(skin)) {
+      const pawRect = {
+        x: end.x - pawR * 1.28,
+        y: end.y - pawR * (0.85 + 0.46),
+        w: pawR * 2.56,
+        h: pawR * (1.70 + 0.92)
+      };
+      if (frontPaw) {
+        drawDazedArm(ctx, traceLimb, leftEdge, rightEdge, pawRect);
+      } else {
+        ctx.save();
+        traceLimb();
+        ctx.fillStyle = '#E3C99F';
+        ctx.fill();
+        drawDazedPaw(ctx, pawRect.x, pawRect.y, pawRect.w, pawRect.h);
+        ctx.restore();
+      }
+      return;
+    }
 
     ctx.save();
     if (stateWhiteOutline) {
@@ -1477,6 +1885,14 @@
   }
 
   function drawIdleFrontLeg(ctx, top, bottom, isLeft, skin) {
+    if (isDazedSkin(skin)) {
+      const sign = isLeft ? -1 : 1;
+      const shoulder = { x: top.x + sign * 4.0, y: top.y - 10.0 };
+      const elbow = { x: top.x + sign * 11.0, y: top.y + 1.0 };
+      const paw = { x: top.x + sign * 10.0, y: top.y + 15.0 };
+      drawLimb(ctx, shoulder, elbow, paw, 19.0, 14.0, !isLeft, 0.78, skin, true);
+      return;
+    }
     const pal = skin.palette;
     const sign = isLeft ? -1 : 1;
     ctx.save();
@@ -1584,7 +2000,7 @@
     } else {
       const ls = shoulder(-shX);
       const mid = { x: (ls.x + lPos.x) * 0.5 - 6, y: (ls.y + lPos.y) * 0.5 - 6 };
-      drawLimb(ctx, ls, mid, lPos, bd.limbStartW, bd.limbEndW, false, 0.78, skin);
+      drawLimb(ctx, ls, mid, lPos, bd.limbStartW, bd.limbEndW, false, 0.78, skin, true);
     }
 
     if (rDist < 6.0 && !state.rightPawActive) {
@@ -1592,7 +2008,7 @@
     } else {
       const rs = shoulder(shX);
       const mid = { x: (rs.x + rPos.x) * 0.5 + 4, y: (rs.y + rPos.y) * 0.5 - 6 };
-      drawLimb(ctx, rs, mid, rPos, bd.limbStartW, bd.limbEndW, true, 0.78, skin);
+      drawLimb(ctx, rs, mid, rPos, bd.limbStartW, bd.limbEndW, true, 0.78, skin, true);
     }
   }
 
@@ -4963,6 +5379,10 @@
       drawTail(ctx, seatX, seatY, state, skin, true);
       drawEarsLayer(true);
       drawUnifiedSilhouette(ctx, seatX, seatY, headCenter, breath, state, skin, true);
+    }
+
+    if (isDazedSkin(skin)) {
+      drawDazedSword(ctx, seatX, seatY, state);
     }
 
     if (!tailInFront) {
