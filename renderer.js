@@ -1308,57 +1308,61 @@
 
   function traceV1UnifiedHeadWithEars(ctx, headCX, headCY, headRX, headRY, earTipY, shiftX) {
     const headTopY = headCY - headRY;
-    const leftEarOut = { x: 173 + shiftX, y: headTopY + 14 };
+    // Place outer ear roots right on the true soft oval contour (y = headTopY + 0.22 * headRY)
+    // so the temples flow seamlessly with ZERO boxy upper-left/upper-right corners!
+    const earRootDrop = headRY * 0.22;
+    const leftEarOut = { x: 176 + shiftX, y: headTopY + earRootDrop };
     const leftEarTip = { x: 278 + shiftX, y: earTipY };
-    const leftEarIn = { x: 342 + shiftX, y: headTopY + 1 };
-    const rightEarIn = { x: 398 + shiftX, y: headTopY + 1 };
+    const leftEarIn = { x: 342 + shiftX, y: headTopY + 2 };
+    const rightEarIn = { x: 398 + shiftX, y: headTopY + 2 };
     const rightEarTip = { x: 455 + shiftX, y: earTipY + 1 };
-    const rightEarOut = { x: 566 + shiftX, y: headTopY + 14 };
-    const rightCheek = { x: headCX + headRX, y: headCY };
+    const rightEarOut = { x: 564 + shiftX, y: headTopY + earRootDrop };
+    const cheekY = headCY + headRY * 0.06;
+    const rightCheek = { x: headCX + headRX, y: cheekY };
     const chin = { x: headCX, y: headCY + headRY };
-    const leftCheek = { x: headCX - headRX, y: headCY };
+    const leftCheek = { x: headCX - headRX, y: cheekY };
 
     ctx.beginPath();
     ctx.moveTo(leftEarOut.x, leftEarOut.y);
     ctx.bezierCurveTo(
-      204 + shiftX, lerpNum(headTopY + 14, earTipY, 0.56),
+      206 + shiftX, lerpNum(leftEarOut.y, earTipY, 0.56),
       242 + shiftX, earTipY,
       leftEarTip.x, leftEarTip.y
     );
     ctx.bezierCurveTo(
       318 + shiftX, earTipY,
-      338 + shiftX, lerpNum(headTopY + 1, earTipY, 0.48),
+      338 + shiftX, lerpNum(leftEarIn.y, earTipY, 0.48),
       leftEarIn.x, leftEarIn.y
     );
-    ctx.quadraticCurveTo(370 + shiftX, headTopY - 1, rightEarIn.x, rightEarIn.y);
+    ctx.quadraticCurveTo(370 + shiftX, headTopY, rightEarIn.x, rightEarIn.y);
     ctx.bezierCurveTo(
-      402 + shiftX, lerpNum(headTopY + 1, earTipY + 1, 0.48),
+      402 + shiftX, lerpNum(rightEarIn.y, earTipY + 1, 0.48),
       420 + shiftX, earTipY + 1,
       rightEarTip.x, rightEarTip.y
     );
     ctx.bezierCurveTo(
       496 + shiftX, earTipY + 1,
-      536 + shiftX, lerpNum(headTopY + 14, earTipY + 1, 0.56),
+      534 + shiftX, lerpNum(rightEarOut.y, earTipY + 1, 0.56),
       rightEarOut.x, rightEarOut.y
     );
     ctx.bezierCurveTo(
-      632 + shiftX, headTopY + 26,
-      headCX + headRX, headCY - headRY * 0.56,
+      628 + shiftX, headTopY + headRY * 0.44,
+      headCX + headRX, cheekY - headRY * 0.34,
       rightCheek.x, rightCheek.y
     );
     ctx.bezierCurveTo(
-      headCX + headRX, headCY + headRY * 0.60,
-      headCX + headRX * 0.64, headCY + headRY,
+      headCX + headRX, cheekY + headRY * 0.52,
+      headCX + headRX * 0.54, headCY + headRY,
       chin.x, chin.y
     );
     ctx.bezierCurveTo(
-      headCX - headRX * 0.64, headCY + headRY,
-      headCX - headRX, headCY + headRY * 0.60,
+      headCX - headRX * 0.54, headCY + headRY,
+      headCX - headRX, cheekY + headRY * 0.52,
       leftCheek.x, leftCheek.y
     );
     ctx.bezierCurveTo(
-      headCX - headRX, headCY - headRY * 0.56,
-      112 + shiftX, headTopY + 26,
+      headCX - headRX, cheekY - headRY * 0.34,
+      112 + shiftX, headTopY + headRY * 0.44,
       leftEarOut.x, leftEarOut.y
     );
     ctx.closePath();
@@ -1496,12 +1500,23 @@
     const squishX = 1.0 + petAmt * 0.032 - breathWave * (isSleep ? 0.014 : 0.008);
     const purrShiftX = isPet ? Math.sin(state.time * 13.0) * 4.5 * petAmt : 0;
 
+    const loafSpacePerCanvas = 1 / 0.345;
+    const loafSpaceAnchors = {
+      tailTip: { origin: { x: 845, y: 525 }, rot: 0, kx: 1.0, ky: 1.0, offsetScaleX: 1, offsetScaleY: 1 },
+      neck: { origin: { x: 380, y: 616 }, rot: 0, kx: 1.32, ky: 1.05, offsetScaleX: 1.2, offsetScaleY: 1.0 },
+      headTop: { origin: { x: 370, y: 328 }, rot: 0, kx: 1.25, ky: 1.18, offsetScaleX: 1.25, offsetScaleY: 1.18 },
+      face: { origin: { x: 374, y: 468 + 6 * loafSpacePerCanvas }, rot: 0, kx: 1.48, ky: 1.18, offsetScaleX: 1.4, offsetScaleY: 1.15 }
+    };
+
     ctx.save();
     ctx.translate(440 + purrShiftX, 616);
     ctx.scale(squishX, squishY);
     ctx.translate(-440, -616);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+
+    // 0. Tail-tip decorations behind loaf body
+    drawDecorationsInSpace(ctx, skin, ['tailTip'], loafSpaceAnchors, loafSpacePerCanvas);
 
     // 1. Far back paw peeking right
     ctx.beginPath();
@@ -1553,6 +1568,9 @@
     ctx.moveTo(90, 562); ctx.lineTo(90, 596);
     ctx.stroke();
 
+    // 3b. Neck decorations behind head & right paw
+    drawDecorationsInSpace(ctx, skin, ['neck'], loafSpaceAnchors, loafSpacePerCanvas);
+
     // 4-6. Unified Seamless Head + Ears Silhouette
     drawV1UnifiedHeadAndEars(
       ctx, 380, 472, 292, 144, 165, 0,
@@ -1570,6 +1588,9 @@
     ctx.moveTo(410, 490);
     ctx.quadraticCurveTo(486, 456, 576, 462);
     ctx.stroke();
+
+    // 7b. Face & head-top decorations above eyes, behind front right paw
+    drawDecorationsInSpace(ctx, skin, ['face', 'headTop'], loafSpaceAnchors, loafSpacePerCanvas);
 
     // 8. Right front paw IN FRONT of lower-right cheek
     ctx.beginPath();
@@ -1618,14 +1639,54 @@
         drawComicZ(ctx, { x: zx, y: zy }, 24 + p * 18, alpha, ink);
       }
     }
+    return { loafSpaceAnchors, squishX, squishY, purrShiftX };
   }
 
-  function drawDouniV1LoafInCanvas(ctx, state, skin) {
+  function drawDouniV1LoafInCanvas(ctx, state, skin, loafMorph) {
+    const m = clamp(loafMorph === undefined ? 1.0 : loafMorph, 0, 1);
+    const alpha = smoothstep(0.36, 0.56, m);
+    if (alpha <= 0.01) return null;
+    const arrive = smoothstep(0.30, 0.64, m);
+    const settlePhase = clamp((m - 0.52) / 0.48, 0, 1);
+    const bounce = Math.sin(settlePhase * Math.PI) * 0.08 * (1.0 - settlePhase * 0.35);
+
     ctx.save();
-    ctx.translate(20.0 + state.bodyShiftX, 46.0);
-    ctx.scale(0.345, 0.345);
-    drawDouniV1LoafInSpace(ctx, state, skin);
+    ctx.globalAlpha *= alpha;
+    const scale = 0.345;
+    const tx = 20.0 + state.bodyShiftX + (1.0 - arrive) * 26.0;
+    const ty = 46.0 - (1.0 - arrive) * 14.0;
+    const pivotX = tx + 440 * scale;
+    const pivotY = ty + 616 * scale;
+    const sx = 0.94 + 0.06 * arrive + bounce;
+    const sy = 1.08 - 0.08 * arrive - bounce * 1.15;
+    ctx.translate(pivotX, pivotY);
+    ctx.scale(sx, sy);
+    ctx.translate(-pivotX, -pivotY);
+    ctx.translate(tx, ty);
+    ctx.scale(scale, scale);
+    const meta = drawDouniV1LoafInSpace(ctx, state, skin);
     ctx.restore();
+
+    const decoAnchors = {};
+    for (const key of Object.keys(meta.loafSpaceAnchors)) {
+      const sp = meta.loafSpaceAnchors[key];
+      const vx = 440 + meta.purrShiftX + (sp.origin.x - 440) * meta.squishX;
+      const vy = 616 + (sp.origin.y - 616) * meta.squishY;
+      const cx0 = tx + vx * scale;
+      const cy0 = ty + vy * scale;
+      decoAnchors[key] = {
+        origin: {
+          x: pivotX + (cx0 - pivotX) * sx,
+          y: pivotY + (cy0 - pivotY) * sy
+        },
+        rot: sp.rot,
+        kx: sp.kx * meta.squishX * sx,
+        ky: sp.ky * meta.squishY * sy,
+        offsetScaleX: sp.offsetScaleX * meta.squishX * sx,
+        offsetScaleY: sp.offsetScaleY * meta.squishY * sy
+      };
+    }
+    return decoAnchors;
   }
 
   function drawV1WateryEye(ctx, center, rx, ry, isLeft, iris, ink, lw, startle) {
@@ -1749,11 +1810,54 @@
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
+    const dragSpacePerCanvas = 1 / 0.330;
+    const tPivot = { x: 754, y: 222 };
+    const tAng = swing * 1.18 * (1 - s);
+    const tPt = (x, y) => v1RotatePoint({ x, y }, tPivot, tAng);
+    const dragTailAlpha = s < 0.85 ? (1 - smoothstep(0.45, 0.85, s)) : 0;
+    const leftEyePos = { x: lerpNum(273, 268, s), y: lerpNum(223, 324, s) };
+    const rightEyePos = { x: lerpNum(510, 501, s), y: lerpNum(222, 324, s) };
+    const dragSpaceAnchors = {
+      tailTip: {
+        origin: tPt(764, 566),
+        rot: tAng,
+        kx: 1.0,
+        ky: 1.0,
+        offsetScaleX: 1,
+        offsetScaleY: 1,
+        alpha: dragTailAlpha
+      },
+      neck: {
+        origin: { x: headCX, y: headCY + headRY + 22 },
+        rot: swing * 0.16,
+        kx: 1.32,
+        ky: 1.12,
+        offsetScaleX: 1.25,
+        offsetScaleY: 1.1
+      },
+      headTop: {
+        origin: { x: headCX - 10, y: headTopY },
+        rot: 0,
+        kx: 1.25,
+        ky: 1.20,
+        offsetScaleX: 1.25,
+        offsetScaleY: 1.20
+      },
+      face: {
+        origin: {
+          x: (leftEyePos.x + rightEyePos.x) * 0.5,
+          y: (leftEyePos.y + rightEyePos.y) * 0.5 + 6 * dragSpacePerCanvas
+        },
+        rot: 0,
+        kx: 1.48,
+        ky: 1.24,
+        offsetScaleX: 1.4,
+        offsetScaleY: 1.2
+      }
+    };
+
     // 1. Limp hanging tail behind right hip
     if (s < 0.85) {
-      const tPivot = { x: 754, y: 222 };
-      const tAng = swing * 1.18 * (1 - s);
-      const tPt = (x, y) => v1RotatePoint({ x, y }, tPivot, tAng);
       const traceTailOpen = () => {
         const p0 = tPt(726, 224), c1 = tPt(730, 326), c2 = tPt(722, 444), p1 = tPt(724, 520);
         const c3 = tPt(726, 554), c4 = tPt(744, 568), p2 = tPt(764, 566);
@@ -1767,7 +1871,7 @@
         ctx.bezierCurveTo(c7.x, c7.y, c8.x, c8.y, p4.x, p4.y);
       };
       ctx.save();
-      ctx.globalAlpha *= (1 - smoothstep(0.45, 0.85, s));
+      ctx.globalAlpha *= dragTailAlpha;
       ctx.save();
       traceTailOpen();
       ctx.closePath();
@@ -1780,6 +1884,9 @@
       ctx.stroke();
       ctx.restore();
     }
+
+    // 1b. Tail-tip decorations on drooping tail, behind torso & limbs
+    drawDecorationsInSpace(ctx, skin, ['tailTip'], dragSpaceAnchors, dragSpacePerCanvas);
 
     // 2. Back-left inner leg peeking under belly
     const blPivot = { x: lerpNum(590, 368, s), y: lerpNum(404, 524, s) };
@@ -1874,6 +1981,9 @@
       ctx.bezierCurveTo(c3.x, c3.y, c4.x, c4.y, p2.x, p2.y);
     }, bodyColor, legColor, lerpNum(366, 448, s), lerpNum(436, 516, s), inkColor, lw, frToes);
 
+    // 5b. Neck decorations over chest/legs, tucked behind head & chin
+    drawDecorationsInSpace(ctx, skin, ['neck'], dragSpaceAnchors, dragSpacePerCanvas);
+
     // 6-7. Unified Seamless Head + Ears Silhouette
     drawV1UnifiedHeadAndEars(
       ctx, headCX, headCY, headRX, headRY, earTipY, earShiftX,
@@ -1882,8 +1992,8 @@
     );
 
     // 8. Huge Watery Ice-Blue Anime Boba Eyes (double catchlights <-> flat half-lidded startle)
-    const leftEye = { x: lerpNum(273, 268, s), y: lerpNum(223, 324, s) };
-    const rightEye = { x: lerpNum(510, 501, s), y: lerpNum(222, 324, s) };
+    const leftEye = leftEyePos;
+    const rightEye = rightEyePos;
     const eyeRX = lerpNum(87, 89, s);
     const eyeRY = lerpNum(91, 84, s);
     drawV1WateryEye(ctx, leftEye, eyeRX, eyeRY, true, irisColor, inkColor, lw, s);
@@ -1902,7 +2012,11 @@
     }
     ctx.stroke();
 
+    // 10. Face & head-top decorations above head & watery eyes
+    drawDecorationsInSpace(ctx, skin, ['face', 'headTop'], dragSpaceAnchors, dragSpacePerCanvas);
+
     ctx.restore();
+    return { dragSpaceAnchors, headCX, headCY };
   }
 
   function drawDouniV1DragInCanvas(ctx, state, skin, lift) {
@@ -1923,8 +2037,26 @@
     const ty = 68.0 - liftS * 22.0 + Math.sin(state.time * 3.8) * 2.5 * (1 - startleTarget);
     ctx.translate(tx, ty);
     ctx.scale(0.330, 0.330);
-    drawDouniV1DragInSpace(ctx, skin, startleTarget, swing);
+    const meta = drawDouniV1DragInSpace(ctx, skin, startleTarget, swing);
     ctx.restore();
+
+    const decoAnchors = {};
+    for (const key of Object.keys(meta.dragSpaceAnchors)) {
+      const sp = meta.dragSpaceAnchors[key];
+      decoAnchors[key] = {
+        origin: { x: tx + sp.origin.x * 0.330, y: ty + sp.origin.y * 0.330 },
+        rot: sp.rot,
+        kx: sp.kx,
+        ky: sp.ky,
+        offsetScaleX: sp.offsetScaleX,
+        offsetScaleY: sp.offsetScaleY,
+        alpha: sp.alpha
+      };
+    }
+    return {
+      headCenter: { x: tx + meta.headCX * 0.330, y: ty + meta.headCY * 0.330 },
+      decoAnchors
+    };
   }
 
   // V2Space (832 x 720) Pixel-Exact Video 2 Typing / Idle / Mouse Scene
@@ -1947,32 +2079,35 @@
     ctx.restore();
   }
 
-  function drawV2UnifiedHeadAndEars(ctx, earLagX, cream, taupe, ink, lw) {
-    const headCX = 582, headCY = 269, rx = 174, ry = 97;
-    const leftEarOut = { x: 470, y: 186 };
-    const leftEarTip = { x: 571 + earLagX, y: 61 };
-    const leftEarIn = { x: 584, y: 173 };
-    const rightEarIn = { x: 610, y: 178 };
-    const rightEarTip = { x: 682 + earLagX, y: 74 };
-    const rightEarOut = { x: 712, y: 196 };
-    const rightCheek = { x: headCX + rx, y: headCY };
+  function drawV2UnifiedHeadAndEars(ctx, earLagX, earFlare, cream, taupe, ink, lw, angerBlush) {
+    const flare = earFlare || 0;
+    const blush = angerBlush || 0;
+    const headCX = 582, headCY = 272, rx = 172, ry = 95;
+    const cheekY = 278;
+    const leftEarOut = { x: 472, y: 196 };
+    const leftEarTip = { x: 568 + earLagX - flare, y: 63 + Math.max(0, -flare) * 0.9 };
+    const leftEarIn = { x: 584, y: 175 };
+    const rightEarIn = { x: 610, y: 179 };
+    const rightEarTip = { x: 682 + earLagX + flare, y: 76 + Math.max(0, -flare) * 0.9 };
+    const rightEarOut = { x: 706, y: 204 };
+    const rightCheek = { x: headCX + rx, y: cheekY };
     const neckRight = { x: 702, y: 344 };
     const chin = { x: headCX, y: headCY + ry };
-    const neckLeft = { x: 576, y: 365 };
-    const leftCheek = { x: headCX - rx, y: headCY };
+    const neckLeft = { x: 576, y: 367 };
+    const leftCheek = { x: headCX - rx, y: cheekY };
 
     const traceOpenStroke = () => {
       ctx.beginPath();
       ctx.moveTo(neckLeft.x, neckLeft.y);
-      ctx.bezierCurveTo(headCX - rx * 0.62, headCY + ry, headCX - rx, headCY + ry * 0.58, leftCheek.x, leftCheek.y);
-      ctx.bezierCurveTo(headCX - rx, headCY - ry * 0.54, 428, 204, leftEarOut.x, leftEarOut.y);
-      ctx.bezierCurveTo(492, 122, 542 + earLagX * 0.6, 63, leftEarTip.x, leftEarTip.y);
-      ctx.bezierCurveTo(584 + earLagX * 0.4, 62, 588, 124, leftEarIn.x, leftEarIn.y);
-      ctx.quadraticCurveTo(597, 175, rightEarIn.x, rightEarIn.y);
-      ctx.bezierCurveTo(626, 128, 660 + earLagX * 0.6, 74, rightEarTip.x, rightEarTip.y);
-      ctx.bezierCurveTo(702 + earLagX * 0.4, 76, 714, 138, rightEarOut.x, rightEarOut.y);
-      ctx.bezierCurveTo(744, 214, headCX + rx, headCY - ry * 0.46, rightCheek.x, rightCheek.y);
-      ctx.bezierCurveTo(headCX + rx, headCY + ry * 0.52, 734, 326, neckRight.x, neckRight.y);
+      ctx.bezierCurveTo(headCX - rx * 0.54, headCY + ry, headCX - rx, cheekY + ry * 0.46, leftCheek.x, leftCheek.y);
+      ctx.bezierCurveTo(headCX - rx, cheekY - ry * 0.28, 436, 222, leftEarOut.x, leftEarOut.y);
+      ctx.bezierCurveTo(494, 126, 540 + (earLagX - flare) * 0.6, 65 + Math.max(0, -flare) * 0.6, leftEarTip.x, leftEarTip.y);
+      ctx.bezierCurveTo(583 + (earLagX - flare) * 0.4, 64 + Math.max(0, -flare) * 0.5, 588, 126, leftEarIn.x, leftEarIn.y);
+      ctx.quadraticCurveTo(597, 176, rightEarIn.x, rightEarIn.y);
+      ctx.bezierCurveTo(626, 130, 660 + (earLagX + flare) * 0.6, 76 + Math.max(0, -flare) * 0.6, rightEarTip.x, rightEarTip.y);
+      ctx.bezierCurveTo(702 + (earLagX + flare) * 0.4, 78 + Math.max(0, -flare) * 0.5, 710, 142, rightEarOut.x, rightEarOut.y);
+      ctx.bezierCurveTo(728, 228, headCX + rx, cheekY - ry * 0.26, rightCheek.x, rightCheek.y);
+      ctx.bezierCurveTo(headCX + rx, cheekY + ry * 0.42, 734, 328, neckRight.x, neckRight.y);
     };
     const traceClosedFill = () => {
       traceOpenStroke();
@@ -1986,7 +2121,7 @@
     ctx.fillStyle = rgbaToCss(cream);
     ctx.fill();
 
-    // 2. Clipped soft taupe-to-cream ear gradients + nose-bridge taupe smudge
+    // 2. Clipped soft taupe-to-cream ear gradients + nose-bridge taupe smudge + optional furious rosy blush
     ctx.save();
     traceClosedFill();
     ctx.clip();
@@ -1999,18 +2134,26 @@
       return g;
     };
     ctx.save();
-    ctx.beginPath(); ctx.rect(454, 52, 136, 154); ctx.clip();
-    ctx.fillStyle = makeGrad(540, 62, 202);
-    ctx.fillRect(454, 52, 136, 154);
+    ctx.beginPath(); ctx.rect(454, 52, 136, 158); ctx.clip();
+    ctx.fillStyle = makeGrad(540, 64, 204);
+    ctx.fillRect(454, 52, 136, 158);
     ctx.restore();
 
     ctx.save();
-    ctx.beginPath(); ctx.rect(604, 64, 124, 154); ctx.clip();
-    ctx.fillStyle = makeGrad(668, 74, 212);
-    ctx.fillRect(604, 64, 124, 154);
+    ctx.beginPath(); ctx.rect(604, 64, 124, 158); ctx.clip();
+    ctx.fillStyle = makeGrad(668, 76, 214);
+    ctx.fillRect(604, 64, 124, 158);
     ctx.restore();
 
-    drawSoftTaupePatch(ctx, { x: 584, y: 268 }, 52, 48, taupe, 0.72);
+    drawSoftTaupePatch(ctx, { x: 584, y: 270 }, 52, 48, taupe, 0.72);
+
+    if (blush > 0.08) {
+      ctx.fillStyle = `rgba(255, 112, 122, ${Math.min(0.42, blush * 0.42).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.ellipse(426 + 29, 294 + 15, 29, 15, 0, 0, Math.PI * 2);
+      ctx.ellipse(678 + 29, 304 + 15, 29, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
 
     // 3. Single unbroken bold ink contour
@@ -2026,8 +2169,13 @@
     drawV2EarTufts(ctx, false, ink, lw);
   }
 
-  function drawV2BobaEye(ctx, center, r, gazeX, gazeY, blink, hunt, ink, lw) {
-    if (blink > 0.72) {
+  function drawV2BobaEye(ctx, center, r, isLeft, gazeX, gazeY, blink, hunt, dizzy, dizzyPhase, anger, cream, ink, lw) {
+    const h = hunt || 0;
+    const dz = dizzy || 0;
+    const dzPhase = dizzyPhase || 0;
+    const ang = anger || 0;
+
+    if (blink > 0.72 && dz < 0.25) {
       ctx.save();
       ctx.strokeStyle = rgbaToCss(ink);
       ctx.lineWidth = lw * 1.05;
@@ -2039,44 +2187,355 @@
       ctx.restore();
       return;
     }
-    const openScaleY = Math.max(0.18, 1.0 - blink * 0.85);
+    const openScaleY = dz > 0.28 ? 1.0 : Math.max(0.18, 1.0 - blink * 0.85);
     ctx.save();
     ctx.translate(center.x, center.y);
     ctx.scale(1.0, openScaleY);
 
+    // 1. Soft pale off-white sclera disc
     ctx.fillStyle = rgbaToCss(DOUNI_V2_SCLERA);
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.fill();
 
+    // 2. Interior: Dizzy spinning spiral (@ @) OR Video 2 Boba Pupil (+ Hunting 4-point star glint / Anger fierce dot)
     ctx.save();
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.clip();
-    const pr = r * (0.80 + (hunt || 0) * 0.08);
-    const px = -5.5 + gazeX * 7.5;
-    const py = 7.5 + gazeY * 5.5;
-    ctx.fillStyle = '#000000';
-    ctx.beginPath();
-    ctx.arc(px, py, pr, 0, Math.PI * 2);
-    ctx.fill();
-    if (hunt > 0.35) {
-      const a = Math.min(1, (hunt - 0.35) / 0.45) * 0.92;
-      ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+    if (dz > 0.28) {
+      const dir = isLeft ? 1.0 : -1.0;
+      const phase = dzPhase * dir;
+      const steps = 44;
+      const maxTheta = Math.PI * 4.4;
+      const maxR = r * 0.78;
       ctx.beginPath();
-      ctx.arc(px - pr * 0.25, py - pr * 0.30, 8.5, 0, Math.PI * 2);
-      ctx.fill();
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const theta = t * maxTheta + phase;
+        const rad = t * maxR;
+        const sx = Math.cos(theta) * rad;
+        const sy = Math.sin(theta) * rad;
+        if (i === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.strokeStyle = rgbaToCss(ink);
+      ctx.lineWidth = lw * 0.72;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    } else {
+      const pr = r * (0.80 + h * 0.11);
+      const baseX = lerpNum(-5.5, 0.0, h);
+      const baseY = lerpNum(7.5, 0.0, h);
+      const px = baseX + gazeX * (7.5 + h * 10.5);
+      const py = baseY + gazeY * (5.5 + h * 8.5);
+      ctx.fillStyle = '#000000';
       ctx.beginPath();
-      ctx.arc(px + pr * 0.22, py + pr * 0.26, 4.2, 0, Math.PI * 2);
+      ctx.arc(px, py, pr, 0, Math.PI * 2);
       ctx.fill();
+
+      if (h > 0.12) {
+        const ha = smoothstep(0.12, 0.65, h);
+        ctx.fillStyle = `rgba(255,255,255,${ha.toFixed(3)})`;
+        const sx = px - pr * 0.34, sy = py - pr * 0.32;
+        const sr = r * (0.28 + h * 0.08);
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - sr);
+        ctx.quadraticCurveTo(sx + sr * 0.18, sy - sr * 0.18, sx + sr, sy);
+        ctx.quadraticCurveTo(sx + sr * 0.18, sy + sr * 0.18, sx, sy + sr);
+        ctx.quadraticCurveTo(sx - sr * 0.18, sy + sr * 0.18, sx - sr, sy);
+        ctx.quadraticCurveTo(sx - sr * 0.18, sy - sr * 0.18, sx, sy - sr);
+        ctx.closePath();
+        ctx.fill();
+        const dotR = r * 0.12;
+        ctx.beginPath();
+        ctx.arc(px + pr * 0.28, py + pr * 0.26, dotR, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (ang > 0.18) {
+        const fa = smoothstep(0.18, 0.60, ang);
+        ctx.fillStyle = `rgba(255,255,255,${(0.85 * fa).toFixed(3)})`;
+        const dotR = r * 0.11;
+        ctx.beginPath();
+        ctx.arc(px + (isLeft ? -11 : 11), py + 6, dotR, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     ctx.restore();
 
+    // 3. Bold ink border around eye circle
     ctx.strokeStyle = rgbaToCss(ink);
     ctx.lineWidth = lw * 0.94;
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.stroke();
+
+    // 4. Cleanly clipped comic slanted upper eyelid + bold ink V-brow when angry
+    if (ang > 0.06 && dz < 0.25) {
+      const a = smoothstep(0.06, 0.72, ang);
+      const tiltAngle = (isLeft ? 1.0 : -1.0) * (0.32 * a);
+      const lidY = -r + a * (r * 0.62);
+      ctx.save();
+      ctx.rotate(tiltAngle);
+      ctx.fillStyle = rgbaToCss(cream);
+      ctx.fillRect(-r - 16, -r - 22, r * 2 + 32, lidY - (-r - 22));
+      const span = r * 1.12;
+      const outerLift = -6.0 * a;
+      const pLx = -span, pLy = lidY + (isLeft ? outerLift : 2.0);
+      const pRx = span, pRy = lidY + (isLeft ? 2.0 : outerLift);
+      ctx.strokeStyle = rgbaToCss(ink);
+      ctx.lineWidth = lw * 1.12;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(pLx, pLy);
+      ctx.quadraticCurveTo(0, lidY + 4.0 * a, pRx, pRy);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  function drawDouniAngerVein(ctx, center, scale, alpha) {
+    if (alpha <= 0.02) return;
+    ctx.save();
+    ctx.globalAlpha *= alpha;
+    ctx.translate(center.x, center.y);
+    ctx.scale(scale, scale);
+    ctx.strokeStyle = '#F03847';
+    ctx.lineWidth = 8.6;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const d = 9.0, r = 24.0;
+    ctx.beginPath();
+    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      ctx.moveTo(sx * r, sy * d);
+      ctx.quadraticCurveTo(sx * d, sy * d, sx * d, sy * r);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawDouniDizzyStars(ctx, center, phase, dizzy, ink) {
+    const a = smoothstep(0.08, 0.40, dizzy);
+    if (a <= 0.01) return;
+    const rx = 136.0, ry = 32.0;
+    ctx.save();
+    ctx.globalAlpha *= a;
+    for (let i = 0; i < 3; i++) {
+      const ang = phase * 0.72 + i * ((Math.PI * 2.0) / 3.0);
+      const sx = center.x + Math.cos(ang) * rx;
+      const sy = center.y + Math.sin(ang) * ry;
+      const sz = 20.0 + Math.sin(ang) * 4.5;
+      ctx.beginPath();
+      for (let k = 0; k < 8; k++) {
+        const ka = k * (Math.PI / 4.0) + phase * 0.4;
+        const rad = (k % 2 === 0) ? sz : sz * 0.42;
+        const px = sx + Math.cos(ka) * rad;
+        const py = sy + Math.sin(ka) * rad;
+        if (k === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fillStyle = '#FFD63D';
+      ctx.fill();
+      ctx.strokeStyle = rgbaToCss(ink);
+      ctx.lineWidth = 6.5;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function v2TabletPoint(u, v) {
+    const tl = { x: 84, y: 184 };
+    const tr = { x: 268, y: 222 };
+    const br = { x: 192, y: 316 };
+    const bl = { x: 14, y: 274 };
+    const topX = tl.x + (tr.x - tl.x) * u;
+    const topY = tl.y + (tr.y - tl.y) * u;
+    const botX = bl.x + (br.x - bl.x) * u;
+    const botY = bl.y + (br.y - bl.y) * u;
+    return { x: topX + (botX - topX) * v, y: topY + (botY - topY) * v };
+  }
+
+  function douniTabletUV(canvasPt) {
+    const dx = canvasPt.x - 18.0;
+    const dy = canvasPt.y - 235.0;
+    const det = 76.0 * 49.0 - (-5.0) * 5.0;
+    const u = clamp((dx * 49.0 + dy * 5.0) / det, 0.06, 0.94);
+    const v = clamp((-dx * 5.0 + dy * 76.0) / det, 0.06, 0.94);
+    return { u, v };
+  }
+
+  function drawDouniComicStylus(ctx, length, accentColor, eyeColor, ink, lw, pressed) {
+    const halfW = 10.5, coneX = 26.0;
+    const tracePen = () => {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(coneX, -halfW);
+      ctx.lineTo(length - 12, -halfW);
+      ctx.quadraticCurveTo(length, -halfW, length, 0);
+      ctx.quadraticCurveTo(length, halfW, length - 12, halfW);
+      ctx.lineTo(coneX, halfW);
+      ctx.closePath();
+    };
+    tracePen();
+    ctx.fillStyle = 'rgb(64,61,64)';
+    ctx.fill();
+
+    ctx.save();
+    tracePen();
+    ctx.clip();
+    ctx.fillStyle = 'rgb(92,89,94)';
+    ctx.fillRect(coneX, -halfW - 2, 34, (halfW + 2) * 2);
+    ctx.fillStyle = rgbaToCss(accentColor);
+    ctx.fillRect(coneX + 34, -halfW - 2, 10, (halfW + 2) * 2);
+    ctx.fillStyle = pressed > 0.12 ? rgbaToCss(eyeColor) : 'rgb(240,240,240)';
+    ctx.fillRect(-2, -halfW, 14, halfW * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.26)';
+    ctx.fillRect(coneX + 2, -halfW + 2.5, length - coneX - 18, 3.5);
+    ctx.restore();
+
+    tracePen();
+    ctx.strokeStyle = rgbaToCss(ink);
+    ctx.lineWidth = lw * 0.72;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    roundedRectPath(ctx, coneX + 8, -halfW - 3.5, 18, 5.5, 2.5);
+    ctx.fillStyle = 'rgb(214,214,214)';
+    ctx.fill();
+    ctx.strokeStyle = rgbaToCss(ink);
+    ctx.lineWidth = lw * 0.45;
+    ctx.stroke();
+  }
+
+  function drawDouniComicTablet(ctx, state, deckColor, bevelColor, padColor, accentColor, glowColor, eyeColor, ink, lw, showParkedStylus) {
+    const tl = v2TabletPoint(0, 0), tr = v2TabletPoint(1, 0), br = v2TabletPoint(1, 1), bl = v2TabletPoint(0, 1);
+    const depth = 16.0;
+    const penPress = clamp(state.tabletPenPress || 0, 0, 1);
+
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // 1. Short wavy comic USB cord
+    const cordStart = v2TabletPoint(0.36, 0.0);
+    ctx.strokeStyle = rgbaToCss(ink);
+    ctx.lineWidth = lw * 0.85;
+    ctx.beginPath();
+    ctx.moveTo(cordStart.x, cordStart.y);
+    ctx.bezierCurveTo(cordStart.x - 16, cordStart.y - 42, cordStart.x - 50, cordStart.y - 54, cordStart.x - 74, cordStart.y - 42);
+    ctx.stroke();
+
+    // 2. 3D Underside bevel lip
+    roundedQuadPath(ctx,
+      { x: tl.x, y: tl.y + depth * 0.45 }, { x: tr.x, y: tr.y + depth },
+      { x: br.x, y: br.y + depth }, { x: bl.x, y: bl.y + depth * 0.85 }, 18
+    );
+    ctx.fillStyle = rgbaToCss(bevelColor);
+    ctx.fill();
+    ctx.strokeStyle = rgbaToCss(ink);
+    ctx.lineWidth = lw;
+    ctx.stroke();
+
+    // 3. Top tablet hull
+    roundedQuadPath(ctx, tl, tr, br, bl, 18);
+    ctx.fillStyle = rgbaToCss(deckColor);
+    ctx.fill();
+    ctx.strokeStyle = rgbaToCss(ink);
+    ctx.lineWidth = lw;
+    ctx.stroke();
+
+    // 4. Recessed active drawing pad
+    const tracePad = () => roundedQuadPath(ctx,
+      v2TabletPoint(0.23, 0.12), v2TabletPoint(0.93, 0.12),
+      v2TabletPoint(0.93, 0.88), v2TabletPoint(0.23, 0.88), 12
+    );
+    tracePad();
+    ctx.fillStyle = rgbaToCss(padColor);
+    ctx.fill();
+
+    ctx.save();
+    tracePad();
+    ctx.clip();
+    const padIsDark = colorBrightness(padColor) < 0.30;
+    ctx.strokeStyle = padIsDark ? 'rgba(219,219,219,0.48)' : rgbaToCss(ink, 0.45);
+    ctx.lineWidth = lw * 0.45;
+    ctx.beginPath();
+    for (const [cu, cv, du, dv] of [
+      [0.28, 0.20, 0.09, 0.14], [0.88, 0.20, -0.09, 0.14],
+      [0.28, 0.80, 0.09, -0.14], [0.88, 0.80, -0.09, -0.14]
+    ]) {
+      const c = v2TabletPoint(cu, cv), h = v2TabletPoint(cu + du, cv), v = v2TabletPoint(cu, cv + dv);
+      ctx.moveTo(h.x, h.y); ctx.lineTo(c.x, c.y); ctx.lineTo(v.x, v.y);
+    }
+    ctx.stroke();
+
+    const trail = state.tabletTrail || [];
+    if (trail.length >= 2) {
+      for (let i = 1; i < trail.length; i++) {
+        const a = trail[i - 1], b = trail[i];
+        if (Math.hypot(b.x - a.x, b.y - a.y) > 22.0) continue;
+        const life = Math.max(0, 1.0 - b.age / 0.72);
+        if (life <= 0.01) continue;
+        const uvA = douniTabletUV(a), uvB = douniTabletUV(b);
+        const pA = v2TabletPoint(uvA.u, uvA.v), pB = v2TabletPoint(uvB.u, uvB.v);
+        ctx.strokeStyle = rgbaToCss(eyeColor, life * 0.92);
+        ctx.lineWidth = 4.5 + life * 5.0;
+        ctx.beginPath();
+        ctx.moveTo(pA.x, pA.y); ctx.lineTo(pB.x, pB.y);
+        ctx.stroke();
+      }
+    }
+
+    if (!showParkedStylus && penPress > 0.08) {
+      const uv = douniTabletUV(state.tabletNib || { x: 56, y: 260 });
+      const nib = v2TabletPoint(uv.u, uv.v);
+      drawRadialGlow(ctx, nib, 24.0 + penPress * 14.0, eyeColor, 0.55 * penPress);
+    }
+    ctx.restore();
+
+    tracePad();
+    ctx.strokeStyle = rgbaToCss(ink);
+    ctx.lineWidth = lw * 0.72;
+    ctx.stroke();
+
+    // 5. Left bezel ExpressKeys + glowing LED dot
+    const ledPt = v2TabletPoint(0.125, 0.20);
+    const ledCol = penPress > 0.12 ? eyeColor : glowColor;
+    drawRadialGlow(ctx, ledPt, 14.0, ledCol, 0.65);
+    ctx.fillStyle = rgbaToCss(ledCol);
+    ctx.beginPath(); ctx.arc(ledPt.x, ledPt.y, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = rgbaToCss(ink);
+    ctx.lineWidth = lw * 0.42;
+    ctx.stroke();
+
+    for (const kv of [0.40, 0.58, 0.76]) {
+      roundedQuadPath(ctx,
+        v2TabletPoint(0.07, kv - 0.06), v2TabletPoint(0.175, kv - 0.06),
+        v2TabletPoint(0.175, kv + 0.06), v2TabletPoint(0.07, kv + 0.06), 4.5
+      );
+      ctx.fillStyle = rgbaToCss(accentColor);
+      ctx.fill();
+      ctx.strokeStyle = rgbaToCss(ink);
+      ctx.lineWidth = lw * 0.48;
+      ctx.stroke();
+    }
+
+    // 6. Parked stylus along top bezel
+    if (showParkedStylus) {
+      const nib = v2TabletPoint(0.88, -0.06), tail = v2TabletPoint(0.14, -0.06);
+      const ang = Math.atan2(tail.y - nib.y, tail.x - nib.x);
+      const len = Math.hypot(tail.x - nib.x, tail.y - nib.y);
+      ctx.save();
+      ctx.translate(nib.x, nib.y);
+      ctx.rotate(ang);
+      drawDouniComicStylus(ctx, len, glowColor, eyeColor, ink, lw, 0);
+      ctx.restore();
+    }
     ctx.restore();
   }
 
@@ -2595,12 +3054,23 @@
     const mousePress = Math.max(pressL, pressR);
     drawDouniComicMouse(ctx, mouseCenter, pressL, pressR, mouseBodyColor, kbBevelColor, mouseWheelColor, glowBaseColor, ink, catLW);
 
+    const v2SpacePerCanvas = 1 / 0.405;
+    const v2SpaceAnchors = {
+      tailTip: { origin: { x: 758, y: 408 }, rot: 0, kx: 1.0, ky: 1.0, offsetScaleX: 1, offsetScaleY: 1 },
+      neck: { origin: { x: 582, y: 374 }, rot: 0.05, kx: 1.26, ky: 1.12, offsetScaleX: 1.2, offsetScaleY: 1.1 },
+      headTop: { origin: { x: 597, y: 176 }, rot: 0.06, kx: 1.18, ky: 1.15, offsetScaleX: 1.18, offsetScaleY: 1.15 },
+      face: { origin: { x: 585, y: 266 + 6 * v2SpacePerCanvas }, rot: 0.089, kx: 1.38, ky: 1.24, offsetScaleX: 1.3, offsetScaleY: 1.2 }
+    };
+
     // 2. Cat torso, unified head+ears, and boba eyes behind angled keyboard
     ctx.save();
     ctx.translate(582, 340 + headBobY);
     ctx.rotate(headTiltRad);
     ctx.scale(headSquashX, headSquashY);
     ctx.translate(-582, -340);
+
+    // 2a0. Tail-tip decorations tucked behind shoulder/back
+    drawDecorationsInSpace(ctx, skin, ['tailTip'], v2SpaceAnchors, v2SpacePerCanvas);
 
     // 2a. Right shoulder / back
     ctx.beginPath();
@@ -2618,6 +3088,9 @@
     ctx.bezierCurveTo(742, 356, 758, 400, 762, 444);
     ctx.stroke();
 
+    // 2a2. Neck decorations over shoulder/chest, behind head, keyboard & arms
+    drawDecorationsInSpace(ctx, skin, ['neck'], v2SpaceAnchors, v2SpacePerCanvas);
+
     // 2b. Whiskers
     ctx.strokeStyle = rgbaToCss(ink);
     ctx.lineWidth = catLW * 0.90;
@@ -2634,6 +3107,9 @@
     // 2d. Boba eyes with off-white sclera crescent & live gaze
     drawV2BobaEye(ctx, { x: 518, y: 260 }, 47.5, state.eyeGazeX || 0, state.eyeGazeY || 0, state.blinkProgress || 0, state.huntIntensity || 0, ink, catLW);
     drawV2BobaEye(ctx, { x: 652, y: 272 }, 46.5, state.eyeGazeX || 0, state.eyeGazeY || 0, state.blinkProgress || 0, state.huntIntensity || 0, ink, catLW);
+
+    // 2e. Face & head-top decorations above head & boba eyes, behind keyboard & flailing arms
+    drawDecorationsInSpace(ctx, skin, ['face', 'headTop'], v2SpaceAnchors, v2SpacePerCanvas);
 
     ctx.restore();
 
@@ -2657,14 +3133,37 @@
     drawV2RightArm(ctx, rightPose, rTarget, cream, taupe, ink, catLW, state.douniRightRaiseVel || 0);
 
     ctx.restore();
+    return { v2SpaceAnchors, headBobY, headTiltRad, headSquashX, headSquashY };
   }
 
   function drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName) {
     ctx.save();
     ctx.translate(14.0 + state.bodyShiftX, 22.0);
     ctx.scale(0.405, 0.405);
-    drawDouniV2InSpace(ctx, state, skin, kbThemeName, eyeThemeName);
+    const meta = drawDouniV2InSpace(ctx, state, skin, kbThemeName, eyeThemeName);
     ctx.restore();
+
+    const c = Math.cos(meta.headTiltRad), s = Math.sin(meta.headTiltRad);
+    const toCanvas = (px, py) => {
+      const dx = (px - 582) * meta.headSquashX;
+      const dy = (py - 340) * meta.headSquashY;
+      const vx = 582 + dx * c - dy * s;
+      const vy = 340 + meta.headBobY + dx * s + dy * c;
+      return { x: 14.0 + state.bodyShiftX + vx * 0.405, y: 22.0 + vy * 0.405 };
+    };
+    const decoAnchors = {};
+    for (const key of Object.keys(meta.v2SpaceAnchors)) {
+      const sp = meta.v2SpaceAnchors[key];
+      decoAnchors[key] = {
+        origin: toCanvas(sp.origin.x, sp.origin.y),
+        rot: sp.rot + meta.headTiltRad,
+        kx: sp.kx * meta.headSquashX,
+        ky: sp.ky * meta.headSquashY,
+        offsetScaleX: sp.offsetScaleX * meta.headSquashX,
+        offsetScaleY: sp.offsetScaleY * meta.headSquashY
+      };
+    }
+    return { headCenter: toCanvas(582, 269), decoAnchors };
   }
 
   function drawDouniScene(ctx, skin, state, kbThemeName, eyeThemeName) {
@@ -2681,34 +3180,39 @@
         drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName);
         ctx.restore();
       }
-      drawDouniV1DragInCanvas(ctx, state, skin, scruff);
+      const dragMeta = drawDouniV1DragInCanvas(ctx, state, skin, scruff);
       return {
         seatX: 184 + state.bodyShiftX,
         seatY: 226,
-        headCenter: { x: 24 + state.bodyShiftX + 400 * 0.33, y: 68 - scruff * 22 + 236 * 0.33 }
+        headCenter: dragMeta.headCenter,
+        decoAnchors: dragMeta.decoAnchors
       };
     }
 
+    let v2Meta = null;
     if (loafS < 0.99) {
       ctx.save();
       ctx.globalAlpha *= (1 - smoothstep(0.18, 0.72, loafS));
-      drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName);
+      v2Meta = drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName);
       ctx.restore();
     }
 
+    let loafAnchors = null;
     if (loafS > 0.01) {
       ctx.save();
       ctx.globalAlpha *= smoothstep(0.10, 0.65, loafS);
-      drawDouniV1LoafInCanvas(ctx, state, skin);
+      loafAnchors = drawDouniV1LoafInCanvas(ctx, state, skin);
       ctx.restore();
     }
 
-    const v2Head = { x: 14 + state.bodyShiftX + 582 * 0.405, y: 22 + 269 * 0.405 };
+    const v2Head = (v2Meta && v2Meta.headCenter) || { x: 14 + state.bodyShiftX + 582 * 0.405, y: 22 + 269 * 0.405 };
     const v1Head = { x: 20 + state.bodyShiftX + 380 * 0.345, y: 46 + 472 * 0.345 };
+    const activeAnchors = (loafS >= 0.5 && loafAnchors) ? loafAnchors : (v2Meta ? v2Meta.decoAnchors : loafAnchors);
     return {
       seatX: 184 + state.bodyShiftX,
       seatY: 226,
-      headCenter: lerpPt(v2Head, v1Head, loafS)
+      headCenter: lerpPt(v2Head, v1Head, loafS),
+      decoAnchors: activeAnchors
     };
   }
 
@@ -2894,6 +3398,26 @@
       ctx.restore();
     }
 
+    const hasDecos = skin.decorations && skin.decorations.length > 0;
+    const decoAnchors = {
+      neck: {
+        origin: { x: headCenter.x, y: headCenter.y + 36.0 * hs },
+        rot: swing * 0.16,
+        kx: hs,
+        ky: hs,
+        offsetScaleX: bw,
+        offsetScaleY: hs
+      },
+      tailTip: {
+        origin: { x: tailTip.x, y: tailTip.y },
+        rot: tailAng,
+        kx: 1,
+        ky: 1,
+        offsetScaleX: 1,
+        offsetScaleY: 1
+      }
+    };
+
     // 1. Limp drooping tail
     ctx.save();
     ctx.lineCap = 'round';
@@ -2917,6 +3441,11 @@
       ctx.stroke();
     }
     ctx.restore();
+
+    // 1b. Tail-tip decorations (behind torso & limbs, anchored to drooping tail tip)
+    if (hasDecos) {
+      drawDecorations(ctx, backCenter.x, backCenter.y + 30, headCenter, state, skin, { anchors: ['tailTip'], decoAnchors });
+    }
 
     // 2. Back-left inner leg
     drawDragLimb(backLeftLimb);
@@ -2957,6 +3486,11 @@
     drawDragLimb(backRightLimb);
     drawDragLimb(frontLeftLimb);
     drawDragLimb(frontRightLimb);
+
+    // 4b. Neck decorations (over chest & shoulder roots, tucked cleanly behind chin & head)
+    if (hasDecos) {
+      drawDecorations(ctx, backCenter.x, backCenter.y + 30, headCenter, state, skin, { anchors: ['neck'], decoAnchors });
+    }
 
     // 5. Native 3D ears
     drawEars(false);
@@ -3021,13 +3555,13 @@
     // 7. Native KuroCat face features (brief half-lidded startle -> wide pleading eyes with 2 catchlights)
     drawHeadFeatures(ctx, headCenter, state, eyeThemeName, skin, startle, 1 - startle);
 
-    // 8. Decorations stay anchored to lifted cat
-    if (skin.decorations && skin.decorations.length > 0) {
-      drawDecorations(ctx, backCenter.x, backCenter.y + 30, headCenter, state, skin);
+    // 8. Face & head-top decorations stay anchored on top of head & features
+    if (hasDecos) {
+      drawDecorations(ctx, backCenter.x, backCenter.y + 30, headCenter, state, skin, { anchors: ['face', 'headTop'], decoAnchors });
     }
 
     ctx.restore();
-    return { seatX: backCenter.x, seatY: backCenter.y + 30, headCenter };
+    return { seatX: backCenter.x, seatY: backCenter.y + 30, headCenter, decoAnchors };
   }
 
   // Spring helper & shared Douni/Drag physics stepping for both Workshop Editor & Plaza Play Modal
@@ -3042,30 +3576,60 @@
     const chosen = cap || KEYCAPS[Math.floor(Math.random() * KEYCAPS.length)];
     state.keyGlow[chosen.id] = 1.0;
 
+    // Track recent keystroke timestamps (2.5s rolling window) for live fast-typing anger
+    const nowT = state.time || 0;
+    if (!state._recentKeyTimes) state._recentKeyTimes = [];
+    state._recentKeyTimes.push(nowT);
+
+    const badgeLabel = chosen.isSpace ? 'SPACE' : chosen.legend;
+
     if (skin && (skin.typingStyle === 'douni' || skin.renderStyle === 'douni')) {
       const info = v2KeyCellInfo(chosen);
       const useLeft = info.prefersLeftPaw;
-      state.douniSlapTimer = 0.38;
-      state.douniMouseBlend = 0;
+      state.douniSlapTimer = 0.28;
+      state.douniMouseTimer = 0;
+      if ((state.douniMouseBlend || 0) > 0.05) {
+        state.douniMouseBlendVel = Math.min(state.douniMouseBlendVel || 0, -14.0);
+      }
       state.douniLoafBlend = 0;
+      const angerBoost = 1.0 + clamp(state.angerIntensity || 0, 0, 1) * 0.35;
       if (useLeft) {
+        const chordOther = (nowT - (state.douniLastRightKeyTime ?? -10)) < 0.035;
+        state.douniLastLeftKeyTime = nowT;
         state.douniLeftKeyTargetGoal = info.center;
-        state.douniLeftRaiseTarget = 0;
-        state.douniLeftRaiseVel = (state.douniLeftRaiseVel || 0) - 11.0;
-        state.douniRightRaiseTarget = 1.04;
-        state.douniRightRaiseVel = (state.douniRightRaiseVel || 0) + 12.0;
+        if ((state.douniLeftRaise || 0) < -0.15) {
+          state.douniLeftRaise = 0.50;
+          state.douniLeftRaiseVel = -15.5 * angerBoost;
+        } else {
+          state.douniLeftRaiseVel = -22.0 * angerBoost;
+        }
+        state.douniLeftRaiseTarget = -1.0;
+        if (!chordOther) {
+          state.douniRightRaiseTarget = 1.02;
+          state.douniRightRaiseVel = Math.max((state.douniRightRaiseVel || 0) + 6.0, 17.0 * angerBoost);
+        }
       } else {
+        const chordOther = (nowT - (state.douniLastLeftKeyTime ?? -10)) < 0.035;
+        state.douniLastRightKeyTime = nowT;
         state.douniRightKeyTargetGoal = info.center;
-        state.douniRightRaiseTarget = 0;
-        state.douniRightRaiseVel = (state.douniRightRaiseVel || 0) - 11.0;
-        state.douniLeftRaiseTarget = 1.04;
-        state.douniLeftRaiseVel = (state.douniLeftRaiseVel || 0) + 12.0;
+        if ((state.douniRightRaise || 0) < -0.15) {
+          state.douniRightRaise = 0.50;
+          state.douniRightRaiseVel = -15.5 * angerBoost;
+        } else {
+          state.douniRightRaiseVel = -22.0 * angerBoost;
+        }
+        state.douniRightRaiseTarget = -1.0;
+        if (!chordOther) {
+          state.douniLeftRaiseTarget = 1.02;
+          state.douniLeftRaiseVel = Math.max((state.douniLeftRaiseVel || 0) + 6.0, 17.0 * angerBoost);
+        }
       }
       state.kbImpactYVel = (state.kbImpactYVel || 0) + 24.0;
       state.kbImpactTiltVel = (state.kbImpactTiltVel || 0) + (useLeft ? -10.5 : 10.5);
       state.kbSparkTimer = 0.14;
       state.kbSparkKey = chosen.id;
       state.earTwitch = (useLeft ? -1.8 : 1.8);
+      spawnBadge(state, badgeLabel, 14.0 + info.center.x * 0.405, 22.0 + info.center.y * 0.405 - 12);
       return chosen;
     }
 
@@ -3079,7 +3643,189 @@
       state.rightPaw = { x: pt.x, y: pt.y };
       state.rightPawActive = true;
     }
+    state.earTwitch = (pt.x < 188 ? -0.9 : 0.9);
+    spawnBadge(state, badgeLabel, pt.x, pt.y - 10);
     return chosen;
+  }
+
+  function triggerMouseClick(state, skin, isRight) {
+    state.mousePress = 1.0;
+    if (isRight) state.mousePressRight = 1.0;
+    else state.mousePressLeft = 1.0;
+    const label = isRight ? 'RMB' : 'LMB';
+    if (skin && skin.renderStyle === 'douni') {
+      state.douniSlapTimer = 0;
+      state.douniMouseTimer = 1.25;
+      spawnBadge(state, label, 82, 150);
+    } else {
+      state.leftPaw = { x: MOUSE_BASE.x + (state.mouseOffsetX || 0), y: MOUSE_BASE.y + (state.mouseOffsetY || 0) - 2 };
+      state.leftPawActive = true;
+      spawnBadge(state, label, MOUSE_BASE.x, MOUSE_BASE.y - 16);
+    }
+  }
+
+  function spawnBadge(state, label, x, y) {
+    if (!state.floatingBadges) state.floatingBadges = [];
+    state.floatingBadges.push({
+      label: String(label || ''),
+      x: clamp(x, 28, 332),
+      y: clamp(y, 36, 304),
+      vx: (Math.random() - 0.5) * 14,
+      vy: -36 - Math.random() * 10,
+      rot: (Math.random() - 0.5) * 0.12,
+      age: 0,
+      lifetime: 0.72
+    });
+    if (state.floatingBadges.length > 14) {
+      state.floatingBadges.splice(0, state.floatingBadges.length - 14);
+    }
+  }
+
+  const KEY_CODE_TO_ID = {
+    Escape: '0_0', Backquote: '0_0',
+    Digit1: '0_1', Digit2: '0_2', Digit3: '0_3', Digit4: '0_4', Digit5: '0_5',
+    Digit6: '0_6', Digit7: '0_7', Digit8: '0_8', Digit9: '0_9', Digit0: '0_10',
+    Minus: '0_11', Equal: '0_12', Backspace: '0_13',
+    Tab: '1_0',
+    KeyQ: '1_1', KeyW: '1_2', KeyE: '1_3', KeyR: '1_4', KeyT: '1_5',
+    KeyY: '1_6', KeyU: '1_7', KeyI: '1_8', KeyO: '1_9', KeyP: '1_10',
+    BracketLeft: '1_11', BracketRight: '1_12', Backslash: '1_13',
+    CapsLock: '2_0',
+    KeyA: '2_1', KeyS: '2_2', KeyD: '2_3', KeyF: '2_4', KeyG: '2_5',
+    KeyH: '2_6', KeyJ: '2_7', KeyK: '2_8', KeyL: '2_9',
+    Semicolon: '2_10', Quote: '2_11', Enter: '2_12', NumpadEnter: '2_12',
+    ShiftLeft: '3_0',
+    KeyZ: '3_1', KeyX: '3_2', KeyC: '3_3', KeyV: '3_4', KeyB: '3_5',
+    KeyN: '3_6', KeyM: '3_7', Comma: '3_8', Period: '3_9', Slash: '3_10',
+    ShiftRight: '3_11', ArrowUp: '3_12',
+    ControlLeft: '4_0', ControlRight: '4_0',
+    AltLeft: '4_1', MetaLeft: '4_2', Space: '4_3',
+    MetaRight: '4_4', AltRight: '4_5',
+    ArrowLeft: '4_6', ArrowDown: '4_7', ArrowRight: '4_8'
+  };
+
+  function mapKeyboardEventToCap(evt) {
+    if (!evt) return KEYCAPS[Math.floor(Math.random() * KEYCAPS.length)];
+    const id = KEY_CODE_TO_ID[evt.code];
+    if (id && KEYCAP_BY_ID.has(id)) return KEYCAP_BY_ID.get(id);
+    if (evt.key && evt.key.length === 1) {
+      const upper = evt.key.toUpperCase();
+      const found = KEYCAPS.find((c) => c.legend === upper);
+      if (found) return found;
+    }
+    return KEYCAPS[Math.floor(Math.random() * KEYCAPS.length)];
+  }
+
+  function findNearestKeycap(pos, skin) {
+    const isDouni = skin && skin.renderStyle === 'douni';
+    let best = null;
+    let bestD = Infinity;
+    for (const cap of KEYCAPS) {
+      let cx, cy;
+      if (isDouni) {
+        const info = v2KeyCellInfo(cap);
+        cx = 14.0 + info.center.x * 0.405;
+        cy = 22.0 + info.center.y * 0.405;
+      } else {
+        const su = 1 - (cap.xUnits + cap.widthUnits * 0.5);
+        const sv = 1 - (cap.row + 0.5) / 5;
+        const pt = screenQuadPoint(su, sv);
+        cx = pt.x; cy = pt.y;
+      }
+      const d = Math.hypot(pos.x - cx, pos.y - cy);
+      if (d < bestD) { bestD = d; best = cap; }
+    }
+    return best;
+  }
+
+  function hitTestCat(pos, skin, state) {
+    if (skin && skin.renderStyle === 'douni') {
+      const loafing = state && (state.douniLoafBlend || 0) > 0.5;
+      if (!loafing && pos.x < 118 && pos.y > 100 && pos.y < 180) return 'mouse';
+      if (!loafing && pos.y > 180) return 'keyboard';
+      const headX = loafing ? 151 : (250 + (state ? state.bodyShiftX : 0));
+      const headY = loafing ? 209 : 132;
+      const hdx = (pos.x - headX) / (loafing ? 105 : 74);
+      const hdy = (pos.y - headY) / (loafing ? 56 : 52);
+      if (hdx * hdx + hdy * hdy <= 1.0) return 'head';
+      const bdx = (pos.x - (loafing ? 210 : 250)) / 86;
+      const bdy = (pos.y - (loafing ? 200 : 176)) / 62;
+      if (bdx * bdx + bdy * bdy <= 1.0) return 'body';
+      return 'none';
+    }
+    const mdx = (pos.x - MOUSE_BASE.x) / 22;
+    const mdy = (pos.y - MOUSE_BASE.y) / 24;
+    if (mdx * mdx + mdy * mdy <= 1.0) return 'mouse';
+    if (pos.x >= 96 && pos.x <= 294 && pos.y >= 234 && pos.y <= 298) return 'keyboard';
+    const seatX = SEAT_ANCHOR.x + (state ? state.bodyShiftX : 0);
+    const bd = getBuild(skin || { shape: { build: 'standard', headScale: 1, cheekFullness: 1, bodyWidth: 1 } });
+    const shape = (skin && skin.shape) || { headScale: 1, cheekFullness: 1, bodyWidth: 1 };
+    const headX = seatX + (state ? state.bodyTilt * 36 + state.headYaw * 7.5 : 0);
+    const headY = 126 + bd.headLift + (state ? state.headOffsetY : 0);
+    const hdx = (pos.x - headX) / (46 * shape.headScale * shape.cheekFullness);
+    const hdy = (pos.y - headY) / (42 * shape.headScale);
+    if (hdx * hdx + hdy * hdy <= 1.0) return 'head';
+    const bdx = (pos.x - seatX) / (56 * shape.bodyWidth);
+    const bdy = (pos.y - 188) / 56;
+    if (bdx * bdx + bdy * bdy <= 1.0) return 'body';
+    return 'none';
+  }
+
+  function drawFloatingBadges(ctx, state) {
+    const badges = state.floatingBadges;
+    if (!badges || !badges.length) return;
+    ctx.save();
+    for (const b of badges) {
+      const p = clamp(b.age / b.lifetime, 0, 1);
+      const scale = p < 0.16 ? (0.72 + (p / 0.16) * 0.34) : (p < 0.28 ? (1.06 - ((p - 0.16) / 0.12) * 0.06) : 1.0);
+      const alpha = p < 0.65 ? 1.0 : Math.max(0, 1.0 - (p - 0.65) / 0.35);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.rot);
+      ctx.scale(scale, scale);
+      ctx.font = '700 9.5px -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif';
+      const tw = ctx.measureText(b.label).width;
+      const w = Math.max(19, tw + 11);
+      const h = 17;
+      ctx.fillStyle = 'rgba(34, 28, 24, 0.90)';
+      roundedRectPath(ctx, -w * 0.5, -h * 0.5, w, h, 5);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+      ctx.lineWidth = 0.85;
+      ctx.stroke();
+      ctx.fillStyle = '#FFFDF9';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(b.label, 0, 0.5);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function drawSparkles(ctx, state) {
+    const list = state.sparkles;
+    if (!list || !list.length) return;
+    ctx.save();
+    for (const s of list) {
+      const p = clamp(s.age / s.lifetime, 0, 1);
+      const alpha = Math.sin(p * Math.PI) * 0.92;
+      const r = s.size * (0.65 + Math.sin(p * Math.PI) * 0.45);
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#F7B955';
+      ctx.beginPath();
+      ctx.moveTo(0, -r);
+      ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.quadraticCurveTo(0, 0, 0, r);
+      ctx.quadraticCurveTo(0, 0, -r, 0);
+      ctx.quadraticCurveTo(0, 0, 0, -r);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
   }
 
   function stepPhysicsExtras(state, skin, pose, dt) {
@@ -3106,34 +3852,106 @@
     const [sd, sdv] = stepSpring(state.scruffDrag || 0, state.scruffDragVel || 0, wantDrag ? 1.0 : 0.0, dt, 190, 17);
     state.scruffDrag = clamp(sd, 0, 1.05);
     state.scruffDragVel = sdv;
-    const targetSwing = wantDrag ? Math.sin(state.time * 2.6) * 0.14 : 0;
+    const targetSwing = wantDrag
+      ? clamp((state.dragSwingTarget || 0) + Math.sin(state.time * 2.6) * 0.08, -0.52, 0.52)
+      : 0;
     const [sw, swv] = stepSpring(state.scruffSwing || 0, state.scruffSwingVel || 0, targetSwing, dt, 115, 9.5);
     state.scruffSwing = sw;
     state.scruffSwingVel = swv;
+    state.dragSwingTarget = lerpNum(state.dragSwingTarget || 0, 0, Math.min(1, dt * 7));
+    state.mousePress = Math.max(0, (state.mousePress || 0) - dt * 6.5);
+    state.mousePressLeft = Math.max(0, (state.mousePressLeft || 0) - dt * 6.5);
+    state.mousePressRight = Math.max(0, (state.mousePressRight || 0) - dt * 6.5);
 
-    // 2. Douni slap springs, key target springs, keyboard recoil/shake & sparks
+    // Step floating keycap badges
+    if (state.floatingBadges && state.floatingBadges.length) {
+      for (let i = state.floatingBadges.length - 1; i >= 0; i--) {
+        const b = state.floatingBadges[i];
+        b.age += dt;
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        b.vy *= Math.max(0, 1 - dt * 1.4);
+        if (b.age >= b.lifetime) state.floatingBadges.splice(i, 1);
+      }
+    }
+
+    // Spawn & step petting sparkles
+    if (!state.sparkles) state.sparkles = [];
+    if ((state.petHead || 0) > 0.35 && !wantDrag) {
+      state._sparkleCd = (state._sparkleCd || 0) - dt;
+      if (state._sparkleCd <= 0) {
+        state._sparkleCd = 0.22 + Math.random() * 0.16;
+        state.sparkles.push({
+          x: 184 + (Math.random() - 0.5) * 86,
+          y: 94 + (Math.random() - 0.5) * 32,
+          vy: -18 - Math.random() * 14,
+          size: 4.5 + Math.random() * 3.5,
+          age: 0,
+          lifetime: 0.85
+        });
+      }
+    }
+    for (let i = state.sparkles.length - 1; i >= 0; i--) {
+      const s = state.sparkles[i];
+      s.age += dt;
+      s.y += s.vy * dt;
+      if (s.age >= s.lifetime) state.sparkles.splice(i, 1);
+    }
+
+    // 2. Expressive states: Anger (fast typing >= 240 KPM / pose='anger' / Douni hindFoot) & Dizzy (pose='dizzy') & Tablet
+    const nowT = state.time || 0;
+    if (state._recentKeyTimes && state._recentKeyTimes.length) {
+      while (state._recentKeyTimes.length && nowT - state._recentKeyTimes[0] > 2.5) {
+        state._recentKeyTimes.shift();
+      }
+    }
+    const recentKpm = ((state._recentKeyTimes ? state._recentKeyTimes.length : 0) / 2.5) * 60.0;
+    const autoAnger = (!wantDrag && (state.dizzyIntensity || 0) < 0.25 && recentKpm >= 240)
+      ? clamp((recentKpm - 240.0) / 140.0, 0, 1) : 0;
+    const angerTarget = (pose === 'anger' || (isDouni && pose === 'hindFoot')) ? 1.0 : autoAnger;
+    const [angV, angVel] = stepSpring(state.angerIntensity || 0, state.angerIntensityVel || 0, angerTarget, dt, 70, 14);
+    state.angerIntensity = clamp(angV, 0, 1);
+    state.angerIntensityVel = angVel;
+
+    const dizzyTarget = pose === 'dizzy' ? 1.0 : 0.0;
+    const [dzV, dzVel] = stepSpring(state.dizzyIntensity || 0, state.dizzyIntensityVel || 0, dizzyTarget, dt, 75, 14);
+    state.dizzyIntensity = clamp(dzV, 0, 1);
+    state.dizzyIntensityVel = dzVel;
+    if (state.dizzyIntensity > 0.01) {
+      state.dizzyPhase = (state.dizzyPhase || 0) + dt * 7.5;
+    }
+
+    if (pose === 'tablet') state.isTabletActive = true;
+    if (state.tabletTrail && state.tabletTrail.length) {
+      for (let i = state.tabletTrail.length - 1; i >= 0; i--) {
+        state.tabletTrail[i].age += dt;
+        if (state.tabletTrail[i].age >= 0.72) state.tabletTrail.splice(i, 1);
+      }
+    }
+
+    // 3. Douni slap springs, key target springs, keyboard recoil/shake & sparks
     if (isDouniTyping) {
       state.douniSlapTimer = Math.max(0, (state.douniSlapTimer || 0) - dt);
-      if (state.douniSlapTimer <= 0.12 && pose !== 'typing' && pose !== 'hindFoot') {
+      if (state.douniSlapTimer <= 0.08 && pose !== 'typing' && pose !== 'hindFoot') {
         state.douniLeftRaiseTarget = 0;
         state.douniRightRaiseTarget = 0;
       }
-      const [lr, lrv] = stepSpring(state.douniLeftRaise || 0, state.douniLeftRaiseVel || 0, state.douniLeftRaiseTarget || 0, dt, 500, 20);
+      const [lr, lrv] = stepSpring(state.douniLeftRaise || 0, state.douniLeftRaiseVel || 0, state.douniLeftRaiseTarget || 0, dt, 680, 25);
       state.douniLeftRaise = lr; state.douniLeftRaiseVel = lrv;
-      const [rr, rrv] = stepSpring(state.douniRightRaise || 0, state.douniRightRaiseVel || 0, state.douniRightRaiseTarget || 0, dt, 500, 20);
+      const [rr, rrv] = stepSpring(state.douniRightRaise || 0, state.douniRightRaiseVel || 0, state.douniRightRaiseTarget || 0, dt, 680, 25);
       state.douniRightRaise = rr; state.douniRightRaiseVel = rrv;
 
       const lGoal = state.douniLeftKeyTargetGoal || { x: 274, y: 412 };
       const rGoal = state.douniRightKeyTargetGoal || { x: 406, y: 414 };
       const lCur = state.douniLeftKeyTarget || { x: 274, y: 412 };
       const rCur = state.douniRightKeyTarget || { x: 406, y: 414 };
-      const kt = Math.min(1, dt * 22);
+      const kt = Math.min(1, dt * 28);
       state.douniLeftKeyTarget = { x: lerpNum(lCur.x, lGoal.x, kt), y: lerpNum(lCur.y, lGoal.y, kt) };
       state.douniRightKeyTarget = { x: lerpNum(rCur.x, rGoal.x, kt), y: lerpNum(rCur.y, rGoal.y, kt) };
 
-      const [iy, iyv] = stepSpring(state.kbImpactY || 0, state.kbImpactYVel || 0, 0, dt, 520, 16);
+      const [iy, iyv] = stepSpring(state.kbImpactY || 0, state.kbImpactYVel || 0, 0, dt, 560, 16);
       state.kbImpactY = iy; state.kbImpactYVel = iyv;
-      const [it, itv] = stepSpring(state.kbImpactTilt || 0, state.kbImpactTiltVel || 0, 0, dt, 460, 14);
+      const [it, itv] = stepSpring(state.kbImpactTilt || 0, state.kbImpactTiltVel || 0, 0, dt, 500, 14);
       state.kbImpactTilt = it; state.kbImpactTiltVel = itv;
       state.kbSparkTimer = Math.max(0, (state.kbSparkTimer || 0) - dt);
     } else {
@@ -3145,7 +3963,7 @@
       state.kbSparkTimer = 0;
     }
 
-    // 3. Douni Video 1 loaf blend & comic mouse blend
+    // 4. Douni Video 1 loaf blend & comic mouse/tablet blend
     if (isDouni) {
       state.douniLoafAnimated = true;
       const wantsLoaf = !wantDrag && state.scruffDrag < 0.08 && (state.petHead > 0.15 || state.petBody > 0.25 || state.sleepiness > 0.42);
@@ -3153,12 +3971,11 @@
       state.douniLoafBlend = clamp(lb, 0, 1);
       state.douniLoafBlendVel = lbv;
 
-      const wantsMouse = !wantDrag && !wantsLoaf && state.douniSlapTimer <= 0.03 && (state.douniMouseTimer || 0) > 0;
+      const wantsMouse = !wantDrag && !wantsLoaf && state.douniSlapTimer <= 0.03 && ((state.douniMouseTimer || 0) > 0 || pose === 'tablet');
       state.douniMouseTimer = Math.max(0, (state.douniMouseTimer || 0) - dt);
       const [mb, mbv] = stepSpring(state.douniMouseBlend || 0, state.douniMouseBlendVel || 0, wantsMouse ? 1.0 : 0.0, dt, 260, 22);
       state.douniMouseBlend = clamp(mb, 0, 1);
       state.douniMouseBlendVel = mbv;
-      state.mousePressLeft = Math.max(0, (state.mousePressLeft || 0) - dt * 6.0);
     } else {
       state.douniLoafBlend = 0; state.douniLoafBlendVel = 0;
       state.douniMouseBlend = 0; state.douniMouseBlendVel = 0;
@@ -3178,12 +3995,11 @@
 
     if (skin.renderStyle === 'douni') {
       const xforms = drawDouniScene(ctx, skin, state, kbTheme, eyeTheme);
-      if (skin.decorations && skin.decorations.length > 0 && (state.scruffDrag || 0) <= 0.04) {
-        drawDecorations(ctx, xforms.seatX, xforms.seatY, xforms.headCenter, state, skin);
-      }
+      drawSparkles(ctx, state);
+      drawFloatingBadges(ctx, state);
       if (typeof opts.editDecorationIndex === 'number' && opts.editDecorationIndex >= 0 &&
           skin.decorations && skin.decorations[opts.editDecorationIndex]) {
-        drawDecorationOverlay(ctx, skin.decorations[opts.editDecorationIndex], skin, xforms.seatX, xforms.seatY, xforms.headCenter, state);
+        drawDecorationOverlay(ctx, skin.decorations[opts.editDecorationIndex], skin, xforms.seatX, xforms.seatY, xforms.headCenter, state, xforms.decoAnchors);
       }
       ctx.restore();
       return xforms;
@@ -3200,6 +4016,12 @@
         ctx.restore();
       }
       const xforms = drawNativeScruffDragCat(ctx, state, skin, eyeTheme, scruff);
+      drawSparkles(ctx, state);
+      drawFloatingBadges(ctx, state);
+      if (typeof opts.editDecorationIndex === 'number' && opts.editDecorationIndex >= 0 &&
+          skin.decorations && skin.decorations[opts.editDecorationIndex]) {
+        drawDecorationOverlay(ctx, skin.decorations[opts.editDecorationIndex], skin, xforms.seatX, xforms.seatY, xforms.headCenter, state, xforms.decoAnchors);
+      }
       ctx.restore();
       return xforms;
     }
@@ -3212,10 +4034,14 @@
       x: seatX + state.bodyTilt * 36 + state.headYaw * 7.5,
       y: 126 + bd.headLift + state.headOffsetY + state.headPitch * 4.8 + breath * 1.1
     };
+    const hasDecos = skin.decorations && skin.decorations.length > 0;
 
     drawMouse(ctx, state, kbTheme);
     drawKeyboard(ctx, state, kbTheme, eyeTheme);
     drawTail(ctx, seatX, seatY, state, skin);
+    if (hasDecos) {
+      drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['tailTip'] });
+    }
 
     // 3D ears
     ctx.save();
@@ -3235,11 +4061,19 @@
       drawLimb(ctx, hip, mid, target, 15.0, 12.0, true, 0.85 * state.hindFootActive, skin);
     }
 
-    drawHeadFeatures(ctx, headCenter, state, eyeTheme, skin);
-    if (skin.decorations && skin.decorations.length > 0) {
-      drawDecorations(ctx, seatX, seatY, headCenter, state, skin);
+    // Neck decorations over torso/chest, behind face features & front paws
+    if (hasDecos) {
+      drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['neck'] });
     }
+
+    drawHeadFeatures(ctx, headCenter, state, eyeTheme, skin);
     drawFrontPaws(ctx, seatX, seatY, breath, state, skin);
+    // Face & head-top decorations cleanly above head, ears, features & paws
+    if (hasDecos) {
+      drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { anchors: ['face', 'headTop'] });
+    }
+    drawSparkles(ctx, state);
+    drawFloatingBadges(ctx, state);
 
     // Sleep Z or petting sparkles
     if (state.sleepiness > 0.5) {
@@ -3493,20 +4327,50 @@
     }
   }
 
-  function getDecorationTransform(deco, skin, seatX, seatY, headCenter, state) {
+  function getDecorationTransform(deco, skin, seatX, seatY, headCenter, state, decoAnchors) {
     const yawRad = state.headYaw * 0.50;
     const pitchRad = state.headPitch * 0.36;
+    const override = decoAnchors && decoAnchors[deco.anchor];
     let at = { x: headCenter.x, y: headCenter.y };
-    let rot = 0, kx = 1, ky = 1;
-    if (deco.anchor === 'headTop' || deco.anchor === 'face') {
+    let rot = 0, kx = 1, ky = 1, alpha = 1, hidden = false;
+    let offsetScaleX = 1, offsetScaleY = 1;
+
+    if (override) {
+      hidden = !!override.hidden;
+      alpha = override.alpha !== undefined ? override.alpha : 1;
+      rot = override.rot || 0;
+      kx = override.kx !== undefined ? override.kx : 1;
+      ky = override.ky !== undefined ? override.ky : 1;
+      offsetScaleX = override.offsetScaleX !== undefined ? override.offsetScaleX : kx;
+      offsetScaleY = override.offsetScaleY !== undefined ? override.offsetScaleY : ky;
+      if (typeof override.mapOffset === 'function') {
+        at = override.mapOffset(deco.offsetX, deco.offsetY);
+      } else {
+        const dx = deco.offsetX * offsetScaleX;
+        const dy = deco.offsetY * offsetScaleY;
+        const c = Math.cos(rot), s = Math.sin(rot);
+        at = {
+          x: override.origin.x + dx * c - dy * s,
+          y: override.origin.y + dx * s + dy * c
+        };
+      }
+    } else if (deco.anchor === 'headTop' || deco.anchor === 'face') {
       const baseY = deco.anchor === 'headTop' ? -30 : 4;
       at = headPoint({ x: deco.offsetX, y: baseY + deco.offsetY }, false, skin, headCenter, state);
       rot = state.headTilt;
       kx = Math.max(0.55, Math.cos(yawRad)) * skin.shape.headScale;
       ky = Math.max(0.70, Math.cos(pitchRad)) * skin.shape.headScale;
+      offsetScaleX = skin.shape.headScale;
+      offsetScaleY = skin.shape.headScale;
     } else if (deco.anchor === 'neck') {
-      at = bodyPoint({ x: deco.offsetX, y: -64 + deco.offsetY }, skin, seatX, seatY, state);
+      const baseNeck = bodyPoint({ x: 0, y: -64 }, skin, seatX, seatY, state);
+      const minChinNeckY = headCenter.y + 36.0 * skin.shape.headScale;
+      const chinDrop = Math.max(0, minChinNeckY - baseNeck.y);
+      const rawPt = bodyPoint({ x: deco.offsetX, y: -64 + deco.offsetY }, skin, seatX, seatY, state);
+      at = { x: rawPt.x, y: rawPt.y + chinDrop };
       rot = state.bodyTilt;
+      offsetScaleX = skin.shape.bodyWidth;
+      offsetScaleY = state.bodySquash || 1;
     } else if (deco.anchor === 'tailTip') {
       const curve = tailCurve(seatX, seatY, state, skin);
       at = { x: curve.tip.x + deco.offsetX, y: curve.tip.y + deco.offsetY };
@@ -3518,19 +4382,30 @@
     return {
       at,
       totalRot: rot + (deco.rotation * Math.PI) / 180,
+      baseRot: rot,
       sx: scale * kx,
       sy: scale * ky,
+      offsetScaleX,
+      offsetScaleY,
       w,
       h,
-      img
+      img,
+      alpha,
+      hidden
     };
   }
 
-  function drawDecorations(ctx, seatX, seatY, headCenter, state, skin) {
+  function drawDecorations(ctx, seatX, seatY, headCenter, state, skin, options) {
+    if (!skin.decorations || skin.decorations.length === 0) return;
+    const opts = options || {};
+    const allow = opts.anchors || null;
+    const decoAnchors = opts.decoAnchors || null;
     for (const d of skin.decorations) {
-      const tf = getDecorationTransform(d, skin, seatX, seatY, headCenter, state);
-      if (!tf.img) continue;
+      if (allow && !allow.includes(d.anchor)) continue;
+      const tf = getDecorationTransform(d, skin, seatX, seatY, headCenter, state, decoAnchors);
+      if (tf.hidden || tf.alpha <= 0.01 || !tf.img) continue;
       ctx.save();
+      if (tf.alpha < 1) ctx.globalAlpha *= tf.alpha;
       ctx.translate(tf.at.x, tf.at.y);
       ctx.rotate(tf.totalRot);
       ctx.scale(tf.sx, tf.sy);
@@ -3541,8 +4416,45 @@
     }
   }
 
-  function getDecorationOverlayGeometry(deco, skin, seatX, seatY, headCenter, state) {
-    const tf = getDecorationTransform(deco, skin, seatX, seatY, headCenter, state);
+  // Helper to draw decoration layers directly inside Douni's local vector space
+  // so stickers inherit head bob/tilt/squash & cross-fade cleanly at exact anatomical depth.
+  function drawDecorationsInSpace(ctx, skin, anchors, spaceAnchors, spacePerCanvas) {
+    if (!skin.decorations || skin.decorations.length === 0) return;
+    for (const d of skin.decorations) {
+      if (anchors && !anchors.includes(d.anchor)) continue;
+      const spec = spaceAnchors[d.anchor];
+      if (!spec || spec.hidden) continue;
+      const alpha = spec.alpha !== undefined ? spec.alpha : 1;
+      if (alpha <= 0.01) continue;
+      const img = getDecorationImage(d.png);
+      if (!img) continue;
+      const w = img.naturalWidth || 64;
+      const h = img.naturalHeight || 64;
+      const rot = spec.rot || 0;
+      const kx = spec.kx !== undefined ? spec.kx : 1;
+      const ky = spec.ky !== undefined ? spec.ky : 1;
+      const osx = (spec.offsetScaleX !== undefined ? spec.offsetScaleX : kx) * spacePerCanvas;
+      const osy = (spec.offsetScaleY !== undefined ? spec.offsetScaleY : ky) * spacePerCanvas;
+      const dx = d.offsetX * osx;
+      const dy = d.offsetY * osy;
+      const c = Math.cos(rot), s = Math.sin(rot);
+      const ax = spec.origin.x + dx * c - dy * s;
+      const ay = spec.origin.y + dx * s + dy * c;
+      const baseScale = 0.5 * d.scale * spacePerCanvas;
+      ctx.save();
+      if (alpha < 1) ctx.globalAlpha *= alpha;
+      ctx.translate(ax, ay);
+      ctx.rotate(rot + (d.rotation * Math.PI) / 180);
+      ctx.scale(baseScale * kx, baseScale * ky);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, -w * 0.5, -h * 0.5, w, h);
+      ctx.restore();
+    }
+  }
+
+  function getDecorationOverlayGeometry(deco, skin, seatX, seatY, headCenter, state, decoAnchors) {
+    const tf = getDecorationTransform(deco, skin, seatX, seatY, headCenter, state, decoAnchors);
     const hw = Math.max(12, tf.w * tf.sx * 0.5);
     const hh = Math.max(12, tf.h * tf.sy * 0.5);
     const c = Math.cos(tf.totalRot), s = Math.sin(tf.totalRot);
@@ -3555,6 +4467,10 @@
       hw,
       hh,
       rot: tf.totalRot,
+      baseRot: tf.baseRot,
+      offsetScaleX: tf.offsetScaleX,
+      offsetScaleY: tf.offsetScaleY,
+      hidden: tf.hidden,
       corners: [toCanvas(-hw, -hh), toCanvas(hw, -hh), toCanvas(hw, hh), toCanvas(-hw, hh)],
       scaleHandle: toCanvas(hw, hh),
       rotateHandle: toCanvas(0, -hh - 16),
@@ -3562,8 +4478,9 @@
     };
   }
 
-  function drawDecorationOverlay(ctx, deco, skin, seatX, seatY, headCenter, state) {
-    const g = getDecorationOverlayGeometry(deco, skin, seatX, seatY, headCenter, state);
+  function drawDecorationOverlay(ctx, deco, skin, seatX, seatY, headCenter, state, decoAnchors) {
+    const g = getDecorationOverlayGeometry(deco, skin, seatX, seatY, headCenter, state, decoAnchors);
+    if (g.hidden) return;
     ctx.save();
     // Dashed amber selection box
     ctx.beginPath();
@@ -3668,7 +4585,23 @@
       kbImpactTilt: 0,
       kbImpactTiltVel: 0,
       kbSparkTimer: 0,
-      kbSparkKey: null
+      kbSparkKey: null,
+      angerIntensity: 0,
+      angerIntensityVel: 0,
+      dizzyIntensity: 0,
+      dizzyIntensityVel: 0,
+      dizzyPhase: 0,
+      isTabletActive: false,
+      tabletNib: { x: 56, y: 260 },
+      tabletPenPress: 0,
+      tabletPenTilt: 0,
+      tabletTrail: [],
+      douniLastLeftKeyTime: -10,
+      douniLastRightKeyTime: -10,
+      _recentKeyTimes: [],
+      dragSwingTarget: 0,
+      floatingBadges: [],
+      sparkles: []
     };
   }
 
@@ -3736,6 +4669,11 @@
     v2KeyCellInfo,
     createDefaultState,
     triggerKeyTap,
+    triggerMouseClick,
+    spawnBadge,
+    mapKeyboardEventToCap,
+    findNearestKeycap,
+    hitTestCat,
     stepPhysicsExtras,
     drawScene,
     mapPointToCanvas,

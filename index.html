@@ -178,7 +178,7 @@
             <div class="stage-header">
               <div class="stage-title-group">
                 <span class="stage-badge" id="stage-coat-badge">实时 2.5D 预览</span>
-                <span class="stage-hint" id="stage-hint">移动鼠标让小猫转头 · 点击键盘体验敲键</span>
+                <span class="stage-hint" id="stage-hint">敲键盘打字 · 轻抚撸猫 · 按住拎起拖拽</span>
               </div>
               <div class="backdrop-pills" role="group" aria-label="预览背景">
                 <button type="button" class="chip active" data-bg="cream">暖米纸</button>
@@ -189,11 +189,12 @@
             </div>
 
             <div class="canvas-frame bg-cream" id="canvas-frame">
-              <canvas id="cat-canvas" width="720" height="640"></canvas>
-              <div class="canvas-overlay-badge" id="edit-mode-banner" hidden>
-                <span>正在编辑曲线锚点：拖动圆点调形状，拖动小菱形调弧度</span>
-                <button type="button" id="btn-exit-region-edit" class="mini-btn">完成编辑</button>
-              </div>
+              <canvas id="cat-canvas" width="720" height="640" tabindex="0" aria-label="小猫实时互动预览区"></canvas>
+              <button type="button" id="btn-exit-region-edit" class="canvas-confirm-btn" title="完成锚点编辑（点击空白处也可完成）" aria-label="完成锚点编辑" hidden>
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4.5 10.5l3.8 3.8 7.2-8.2"/>
+                </svg>
+              </button>
               <div class="canvas-overlay-badge pen-banner" id="pen-banner" hidden>
                 <span id="pen-banner-text">钢笔：点一下放锚点</span>
                 <span class="pen-banner-actions">
@@ -209,17 +210,6 @@
             </div>
 
             <div class="stage-controls">
-              <div class="pose-bar" role="group" aria-label="动作测试">
-                <button type="button" class="pose-btn active" data-pose="idle">待机</button>
-                <button type="button" class="pose-btn" data-pose="typing">敲键盘</button>
-                <button type="button" class="pose-btn" data-pose="hunt">捕猎大眼</button>
-                <button type="button" class="pose-btn" data-pose="petHead">摸头闭眼</button>
-                <button type="button" class="pose-btn" data-pose="petBody">半眯享受</button>
-                <button type="button" class="pose-btn" data-pose="hindFoot">三键踢脚</button>
-                <button type="button" class="pose-btn" data-pose="sleep">打瞌睡</button>
-                <button type="button" class="pose-btn" data-pose="drag">拎起拖拽</button>
-              </div>
-
               <div class="stage-subbar">
                 <div class="mini-group">
                   <span class="mini-label">键盘配色</span>
@@ -816,18 +806,9 @@
         </button>
       </div>
       <div class="play-modal-body">
-        <div class="play-stage-wrap">
-          <canvas id="play-modal-canvas" width="540" height="480"></canvas>
-          <div class="pose-bar play-pose-bar" id="play-modal-poses">
-            <button type="button" class="pose-btn active" data-pose="idle">待机</button>
-            <button type="button" class="pose-btn" data-pose="typing">敲键盘</button>
-            <button type="button" class="pose-btn" data-pose="hunt">捕猎大眼</button>
-            <button type="button" class="pose-btn" data-pose="petHead">摸头闭眼</button>
-            <button type="button" class="pose-btn" data-pose="petBody">半眯享受</button>
-            <button type="button" class="pose-btn" data-pose="hindFoot">三键踢脚</button>
-            <button type="button" class="pose-btn" data-pose="sleep">打瞌睡</button>
-            <button type="button" class="pose-btn" data-pose="drag">拎起拖拽</button>
-          </div>
+        <div class="play-stage-wrap" id="play-stage-wrap">
+          <canvas id="play-modal-canvas" width="540" height="480" tabindex="0" aria-label="皮肤试玩实时互动预览区"></canvas>
+          <p class="play-live-hint">直接敲键盘体验打字 · 轻抚猫头撸猫 · 按住小猫可拎起拖拽</p>
         </div>
         <div class="play-modal-info">
           <p class="play-modal-desc" id="play-modal-desc"></p>

@@ -852,10 +852,45 @@
     }
   });
 
-  // --- Interactive 7-Pose Skin Play Modal ---
+  // --- Interactive Live Skin Play Modal ---
+  const playPressedCaps = new Map();
+  const playLive = {
+    lastActivity: performance.now(),
+    lastKeyTime: 0,
+    lastMouseClickTime: 0,
+    huntEnergy: 0,
+    petHead: 0,
+    petBody: 0,
+    lastClientX: 0,
+    lastClientY: 0,
+    lastClientTime: 0,
+    draggingCat: null,
+    dragOffsetX: 0,
+    dragOffsetY: 0
+  };
+  const playStageWrap = document.getElementById('play-stage-wrap');
+
+  function setPlayDragClasses(active) {
+    if (playStageWrap) playStageWrap.classList.toggle('is-dragging-cat', active);
+    playCanvas.classList.toggle('cat-dragging', active);
+  }
+
   async function openPlayModal(item) {
     playModalItem = item;
     playModalPose = 'idle';
+    playPressedCaps.clear();
+    playLive.lastActivity = performance.now();
+    playLive.lastKeyTime = 0;
+    playLive.lastMouseClickTime = 0;
+    playLive.huntEnergy = 0;
+    playLive.petHead = 0;
+    playLive.petBody = 0;
+    playLive.draggingCat = null;
+    playLive.dragOffsetX = 0;
+    playLive.dragOffsetY = 0;
+    playCanvas.style.transform = '';
+    setPlayDragClasses(false);
+
     document.getElementById('play-modal-title').textContent = item.title;
     const url = safeUrl(item.authorUrl);
     document.getElementById('play-modal-author').innerHTML = url
@@ -864,9 +899,6 @@
     document.getElementById('play-modal-desc').textContent = item.description || '';
     document.getElementById('play-modal-tags').innerHTML = (item.tags || [])
       .map((t) => `<span class="plaza-tag">#${escapeHtml(t)}</span>`).join('');
-    document.querySelectorAll('#play-modal-poses .pose-btn').forEach((b) => {
-      b.classList.toggle('active', b.dataset.pose === 'idle');
-    });
 
     playModal.hidden = false;
 
@@ -880,6 +912,7 @@
       playModalNextBlink = 2.4;
       cancelAnimationFrame(playModalRaf);
       playModalRaf = requestAnimationFrame(tickPlayModal);
+      playCanvas.focus({ preventScroll: true });
     } catch (err) {
       toast('载入试玩皮肤失败：' + err.message);
       closePlayModal();
@@ -888,6 +921,12 @@
 
   function closePlayModal() {
     playModal.hidden = true;
+    playPressedCaps.clear();
+    playLive.draggingCat = null;
+    playLive.dragOffsetX = 0;
+    playLive.dragOffsetY = 0;
+    playCanvas.style.transform = '';
+    setPlayDragClasses(false);
     cancelAnimationFrame(playModalRaf);
     playModalRaf = 0;
     playModalItem = null;
@@ -898,16 +937,48 @@
     if (!playModalResolved || playModal.hidden) return;
     const dt = Math.min(0.05, (ts - playModalLastTs) / 1000);
     playModalLastTs = ts;
+    const nowMs = performance.now();
     const st = playModalState;
     st.time += dt;
-    st.tailPhase += dt * (playModalPose === 'hunt' ? 5.2 : 2.2);
 
-    for (const k of Object.keys(st.keyGlow)) {
-      st.keyGlow[k] = Math.max(0, st.keyGlow[k] - dt * 3.8);
-      if (st.keyGlow[k] <= 0.01) delete st.keyGlow[k];
+    if (playLive.draggingCat && !playLive.draggingCat.engaged && nowMs - playLive.draggingCat.downTime > 150) {
+      playLive.draggingCat.engaged = true;
+      setPlayDragClasses(true);
+    }
+    const isDraggingNow = !!(playLive.draggingCat && playLive.draggingCat.engaged);
+
+    if (isDraggingNow) {
+      playCanvas.style.transform = `translate3d(${playLive.dragOffsetX.toFixed(1)}px, ${playLive.dragOffsetY.toFixed(1)}px, 0)`;
+    } else if (Math.abs(playLive.dragOffsetX) > 0.4 || Math.abs(playLive.dragOffsetY) > 0.4) {
+      const sk = Math.min(1, dt * 13);
+      playLive.dragOffsetX += (0 - playLive.dragOffsetX) * sk;
+      playLive.dragOffsetY += (0 - playLive.dragOffsetY) * sk;
+      playCanvas.style.transform = `translate3d(${playLive.dragOffsetX.toFixed(1)}px, ${playLive.dragOffsetY.toFixed(1)}px, 0)`;
+    } else if (playCanvas.style.transform) {
+      playLive.dragOffsetX = 0;
+      playLive.dragOffsetY = 0;
+      playCanvas.style.transform = '';
+      setPlayDragClasses(false);
     }
 
-    if (playModalPose === 'idle' || playModalPose === 'typing') {
+    playLive.petHead = Math.max(0, playLive.petHead - dt * 0.55);
+    playLive.petBody = Math.max(0, playLive.petBody - dt * 0.55);
+    playLive.huntEnergy = Math.max(0, playLive.huntEnergy - dt * 0.85);
+
+    const heldCaps = Array.from(playPressedCaps.values());
+    for (const cap of heldCaps) st.keyGlow[cap.id] = 1.0;
+    for (const k of Object.keys(st.keyGlow)) {
+      if (!heldCaps.some((c) => c.id === k)) {
+        st.keyGlow[k] = Math.max(0, st.keyGlow[k] - dt * 3.8);
+        if (st.keyGlow[k] <= 0.01) delete st.keyGlow[k];
+      }
+    }
+
+    st.tailPhase += dt * (playLive.huntEnergy > 0.25 ? 5.2 : 2.2);
+    const idleSec = (nowMs - playLive.lastActivity) / 1000;
+    const isSleeping = !isDraggingNow && heldCaps.length === 0 && idleSec > 18;
+
+    if (!isSleeping && playLive.petHead < 0.35) {
       if (st.time >= playModalNextBlink) {
         const el = st.time - playModalNextBlink;
         if (el < 0.08) st.blinkProgress = el / 0.08;
@@ -921,37 +992,56 @@
     let tYaw = playModalPointer.active ? playModalPointer.yaw : Math.sin(st.time * 0.8) * 0.14;
     let tPitch = playModalPointer.active ? playModalPointer.pitch : 0;
     let tHunt = 0, tPetH = 0, tPetB = 0, tSleep = 0, tEarFold = 0, tHind = 0, tSquash = 1, tHeadY = 0;
-
     const isDouniPlay = playModalResolved && (playModalResolved.renderStyle === 'douni' || playModalResolved.typingStyle === 'douni');
-    if (playModalPose === 'hunt') { tHunt = 1; tSquash = 0.9; tHeadY = 8; tEarFold = 0.45; }
-    else if (playModalPose === 'petHead') { tPetH = 1; tEarFold = 0.78; tSquash = 0.95; tHeadY = 3; }
-    else if (playModalPose === 'petBody') { tPetB = 0.85; tEarFold = 0.45; tSquash = 0.96; }
-    else if (playModalPose === 'sleep') { tSleep = 1; tPitch = 0.35; tHeadY = 6; tEarFold = 0.32; }
-    else if (playModalPose === 'hindFoot') {
-      if (isDouniPlay) {
-        playModalTypingTimer += dt;
-        if (playModalTypingTimer > 0.11) {
-          playModalTypingTimer = 0;
-          Renderer.triggerKeyTap(st, playModalResolved);
-        }
-      } else {
-        tHind = 1; st.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
-      }
-    }
-    else if (playModalPose === 'typing') {
-      playModalTypingTimer += dt;
-      if (playModalTypingTimer > (isDouniPlay ? 0.17 : 0.22)) {
-        playModalTypingTimer = 0;
-        Renderer.triggerKeyTap(st, playModalResolved);
-      }
-      tPitch = 0.28;
-    } else if (playModalPose === 'drag') {
+    let effectivePose = 'idle';
+
+    if (isDraggingNow) {
+      effectivePose = 'drag';
       tYaw = 0; tPitch = 0;
       st.leftPawActive = false;
       st.rightPawActive = false;
     } else {
-      st.leftPawActive = false;
-      st.rightPawActive = false;
+      const recentKey = heldCaps.length > 0 || (nowMs - playLive.lastKeyTime < 220);
+      const recentMouse = nowMs - playLive.lastMouseClickTime < 340;
+      if (recentKey) {
+        effectivePose = 'typing';
+        tPitch = Math.max(tPitch, 0.22);
+        tSquash = 0.97;
+      }
+      if (!recentKey && !recentMouse) {
+        st.leftPawActive = false;
+        st.rightPawActive = false;
+      } else if (recentMouse && !recentKey) {
+        st.rightPawActive = false;
+      }
+      if (heldCaps.length >= 3 && !isDouniPlay) {
+        const c3 = heldCaps[2];
+        st.hindFoot = Renderer.screenQuadPoint(1 - (c3.xUnits + c3.widthUnits * 0.5), 1 - (c3.row + 0.5) / 5);
+        tHind = 1;
+      }
+      if (playLive.petHead > 0.08) {
+        tPetH = playLive.petHead;
+        tEarFold = Math.max(tEarFold, playLive.petHead * 0.78);
+        tSquash = Math.min(tSquash, 1 - playLive.petHead * 0.05);
+        tHeadY = Math.max(tHeadY, playLive.petHead * 3);
+      }
+      if (playLive.petBody > 0.08) {
+        tPetB = playLive.petBody;
+        tEarFold = Math.max(tEarFold, playLive.petBody * 0.45);
+        tSquash = Math.min(tSquash, 1 - playLive.petBody * 0.04);
+      }
+      if (playLive.huntEnergy > 0.12 && playLive.petHead < 0.25) {
+        tHunt = playLive.huntEnergy;
+        tSquash = Math.min(tSquash, 1 - playLive.huntEnergy * 0.10);
+        tHeadY = Math.max(tHeadY, playLive.huntEnergy * 7);
+        tEarFold = Math.max(tEarFold, playLive.huntEnergy * 0.45);
+      }
+      if (isSleeping) {
+        tSleep = Math.min(1, (idleSec - 18) / 3.0);
+        tPitch = 0.35 * tSleep;
+        tHeadY = 6 * tSleep;
+        tEarFold = 0.32 * tSleep;
+      }
     }
 
     const k = Math.min(1, dt * 9);
@@ -971,7 +1061,7 @@
     st.bodySquash = lerp(st.bodySquash, tSquash);
     st.headOffsetY = lerp(st.headOffsetY, tHeadY);
     st.hindFootActive = lerp(st.hindFootActive, tHind);
-    Renderer.stepPhysicsExtras(st, playModalResolved, playModalPose, dt);
+    Renderer.stepPhysicsExtras(st, playModalResolved, effectivePose, dt);
     if (!st.leftPawActive) {
       st.leftPaw.x = lerp(st.leftPaw.x, Renderer.LEFT_PAW_REST.x);
       st.leftPaw.y = lerp(st.leftPaw.y, Renderer.LEFT_PAW_REST.y);
@@ -985,37 +1075,135 @@
     playModalRaf = requestAnimationFrame(tickPlayModal);
   }
 
+  playCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
   playCanvas.addEventListener('pointermove', (e) => {
+    if (!playModalResolved || !playModalState) return;
+    const now = performance.now();
     const rect = playCanvas.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 360;
     const y = ((e.clientY - rect.top) / rect.height) * 320;
+    if (playLive.draggingCat) {
+      const dist = Math.hypot(e.clientX - playLive.draggingCat.startClientX, e.clientY - playLive.draggingCat.startClientY);
+      if (!playLive.draggingCat.engaged && dist > 5) {
+        playLive.draggingCat.engaged = true;
+        setPlayDragClasses(true);
+      }
+      if (playLive.draggingCat.engaged) {
+        const dx = e.clientX - playLive.draggingCat.lastClientX;
+        const dtMs = Math.max(8, now - playLive.draggingCat.lastTime);
+        const vx = (dx / dtMs) * 1000;
+        playLive.dragOffsetX = e.clientX - playLive.draggingCat.startClientX;
+        playLive.dragOffsetY = e.clientY - playLive.draggingCat.startClientY;
+        playModalState.dragSwingTarget = Spec.clamp(-vx * 0.00042, -0.46, 0.46);
+      }
+      playLive.draggingCat.lastClientX = e.clientX;
+      playLive.draggingCat.lastClientY = e.clientY;
+      playLive.draggingCat.lastTime = now;
+      playLive.lastActivity = now;
+      return;
+    }
+    if (playLive.lastClientTime > 0) {
+      const dtSec = Math.max(0.008, (now - playLive.lastClientTime) / 1000);
+      const speed = Math.hypot(e.clientX - playLive.lastClientX, e.clientY - playLive.lastClientY) / dtSec;
+      if (speed > 1750 && playLive.petHead < 0.25) {
+        playLive.huntEnergy = Math.min(1.0, playLive.huntEnergy + Math.min(0.35, (speed - 1750) / 3600));
+      }
+    }
+    const moveDist = playLive.lastClientTime ? Math.hypot(e.clientX - playLive.lastClientX, e.clientY - playLive.lastClientY) : 0;
+    playLive.lastClientX = e.clientX;
+    playLive.lastClientY = e.clientY;
+    playLive.lastClientTime = now;
+    playLive.lastActivity = now;
+
     playModalPointer.active = true;
     playModalPointer.yaw = Spec.clamp((x - 184) / 145, -1, 1);
     playModalPointer.pitch = Spec.clamp((y - 130) / 135, -1, 1);
     playModalPointer.gazeX = Spec.clamp((x - 184) / 110, -1, 1);
     playModalPointer.gazeY = Spec.clamp((y - 130) / 110, -1, 1);
+
+    const zone = Renderer.hitTestCat({ x, y }, playModalResolved, playModalState);
+    playCanvas.classList.toggle('cat-grabbable', zone === 'head' || zone === 'body');
+    if (moveDist > 0.8 && moveDist < 65) {
+      if (zone === 'head') playLive.petHead = Math.min(1, playLive.petHead + moveDist * 0.015);
+      else if (zone === 'body') playLive.petBody = Math.min(0.9, playLive.petBody + moveDist * 0.012);
+    }
   });
-  playCanvas.addEventListener('pointerleave', () => { playModalPointer.active = false; });
+  playCanvas.addEventListener('pointerleave', () => {
+    playModalPointer.active = false;
+    playCanvas.classList.remove('cat-grabbable');
+  });
   playCanvas.addEventListener('pointerdown', (e) => {
     if (!playModalResolved || !playModalState) return;
+    const now = performance.now();
+    playLive.lastActivity = now;
     const rect = playCanvas.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 360;
     const y = ((e.clientY - rect.top) / rect.height) * 320;
-    if (playModalResolved.renderStyle === 'douni' && x < 120 && y > 100 && y < 195) {
-      playModalState.douniSlapTimer = 0;
-      playModalState.douniMouseTimer = 1.25;
-      playModalState.mousePressLeft = 1.0;
-    } else if (y > 175) {
-      Renderer.triggerKeyTap(playModalState, playModalResolved);
+    const zone = Renderer.hitTestCat({ x, y }, playModalResolved, playModalState);
+    if (e.button === 2) {
+      Renderer.triggerMouseClick(playModalState, playModalResolved, true);
+      playLive.lastMouseClickTime = now;
+      return;
+    }
+    if (zone === 'mouse') {
+      Renderer.triggerMouseClick(playModalState, playModalResolved, false);
+      playLive.lastMouseClickTime = now;
+      return;
+    }
+    if (zone === 'keyboard') {
+      const cap = Renderer.findNearestKeycap({ x, y }, playModalResolved);
+      Renderer.triggerKeyTap(playModalState, playModalResolved, cap);
+      playLive.lastKeyTime = now;
+      return;
+    }
+    if (zone === 'head' || zone === 'body') {
+      playLive.draggingCat = {
+        pointerId: e.pointerId,
+        startClientX: e.clientX,
+        startClientY: e.clientY,
+        lastClientX: e.clientX,
+        lastClientY: e.clientY,
+        lastTime: now,
+        downTime: now,
+        engaged: false,
+        startZone: zone
+      };
+      playCanvas.setPointerCapture(e.pointerId);
+    }
+    playCanvas.focus({ preventScroll: true });
+  });
+  playCanvas.addEventListener('pointerup', () => {
+    const dc = playLive.draggingCat;
+    if (!dc) return;
+    playLive.draggingCat = null;
+    if (!dc.engaged && playModalState) {
+      if (dc.startZone === 'head') {
+        playModalState.earTwitch = 1.6;
+        playModalState.bodySquash = 0.94;
+        playLive.petHead = Math.min(1, playLive.petHead + 0.55);
+      } else {
+        playModalState.bodySquash = 0.95;
+        playLive.petBody = Math.min(0.85, playLive.petBody + 0.5);
+      }
     }
   });
+  playCanvas.addEventListener('pointercancel', () => { playLive.draggingCat = null; });
 
-  document.querySelectorAll('#play-modal-poses .pose-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      playModalPose = btn.dataset.pose;
-      document.querySelectorAll('#play-modal-poses .pose-btn').forEach((b) => b.classList.toggle('active', b === btn));
-    });
+  document.addEventListener('keydown', (e) => {
+    if (playModal.hidden || !playModalResolved || !playModalState) return;
+    if (e.key === 'Escape') { closePlayModal(); return; }
+    if ((e.ctrlKey || e.metaKey || e.altKey) && !['ControlLeft', 'ControlRight', 'MetaLeft', 'MetaRight', 'AltLeft', 'AltRight'].includes(e.code)) return;
+    if (e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
+    const now = performance.now();
+    playLive.lastActivity = now;
+    playLive.lastKeyTime = now;
+    if (!e.repeat) {
+      const cap = Renderer.mapKeyboardEventToCap(e);
+      playPressedCaps.set(e.code, cap);
+      Renderer.triggerKeyTap(playModalState, playModalResolved, cap);
+    }
   });
+  document.addEventListener('keyup', (e) => { playPressedCaps.delete(e.code); });
 
   document.getElementById('btn-close-play-modal').addEventListener('click', closePlayModal);
   playModal.addEventListener('click', (e) => { if (e.target === playModal) closePlayModal(); });

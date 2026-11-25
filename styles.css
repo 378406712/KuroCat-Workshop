@@ -792,6 +792,14 @@ textarea {
   place-items: center;
 }
 
+.canvas-frame.is-dragging-cat,
+.stage-card.is-dragging-cat,
+.stage-column.is-dragging-cat,
+.play-stage-wrap.is-dragging-cat {
+  overflow: visible !important;
+  z-index: 80;
+}
+
 .canvas-frame.bg-cream { background: var(--stage-cream); }
 .canvas-frame.bg-slate { background: #E4E7EC; }
 .canvas-frame.bg-dark { background: #1E2026; }
@@ -806,6 +814,12 @@ textarea {
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }
 
+#cat-canvas,
+#play-modal-canvas {
+  outline: none;
+  will-change: transform;
+}
+
 #cat-canvas {
   width: 100%;
   height: auto;
@@ -815,8 +829,61 @@ textarea {
   cursor: default;
 }
 
+#cat-canvas.cat-grabbable,
+#play-modal-canvas.cat-grabbable {
+  cursor: grab;
+}
+
+#cat-canvas.cat-dragging,
+#play-modal-canvas.cat-dragging {
+  cursor: grabbing;
+  position: relative;
+  z-index: 90;
+  filter: drop-shadow(0 18px 26px rgba(34, 24, 16, 0.22));
+}
+
+.play-live-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-align: center;
+}
+
 #cat-canvas.pen-active {
   cursor: crosshair;
+}
+
+.canvas-confirm-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--accent);
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(44, 34, 26, 0.22);
+  transition: transform 0.14s ease, background-color 0.14s ease, box-shadow 0.14s ease;
+  z-index: 25;
+}
+
+.canvas-confirm-btn:hover {
+  background: var(--accent-hover);
+  transform: scale(1.06);
+  box-shadow: 0 6px 16px rgba(44, 34, 26, 0.28);
+}
+
+.canvas-confirm-btn:active {
+  transform: scale(0.95);
+}
+
+.canvas-confirm-btn[hidden] {
+  display: none;
 }
 
 .canvas-overlay-badge {
@@ -1669,15 +1736,21 @@ textarea {
   height: 52px;
   border-radius: 6px;
   background: var(--stage-cream);
-  display: grid;
-  place-items: center;
-  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .deco-card-thumb img {
+  width: 100%;
+  height: 100%;
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  display: block;
 }
 
 .deco-card-name {
@@ -1698,16 +1771,21 @@ textarea {
   border-radius: 5px;
   background: var(--stage-cream);
   border: 1px solid var(--border);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 2px;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
 .deco-item-thumb img {
+  width: 100%;
+  height: 100%;
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  display: block;
 }
 
 /* ============================================================

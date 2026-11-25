@@ -13,7 +13,7 @@
   let resolvedSkin = Spec.resolveSkin(rawSkin);
   const animState = Renderer.createDefaultState();
 
-  let currentPose = 'idle';
+  let currentPose = 'idle'; // optional API override; default 'idle' runs full live interactive mode
   let kbTheme = 'classicMilk';
   let eyeTheme = 'neonChartreuse';
   let pointerTarget = { yaw: 0, pitch: 0, gazeX: 0, gazeY: 0, active: false };
@@ -23,6 +23,25 @@
   let draggingDeco = null; // { mode: 'move'|'scale'|'rotate', startPos, origOffsetX, origOffsetY, origScale, origRot, center, startDist, startAngle }
   let decoFilterCat = 'all';
   let lastRenderTransforms = { seatX: 184, seatY: 226, headCenter: { x: 184, y: 126 } };
+
+  // Live interactive state (real keyboard typing, petting, hunting shake, scruff dragging, idle sleep)
+  const pressedKeyCaps = new Map(); // KeyboardEvent.code -> KEYCAPS item
+  const live = {
+    lastActivity: performance.now(),
+    lastKeyTime: 0,
+    lastMouseClickTime: 0,
+    huntEnergy: 0,
+    petHead: 0,
+    petBody: 0,
+    lastClientX: 0,
+    lastClientY: 0,
+    lastClientTime: 0,
+    draggingCat: null, // { pointerId, startClientX, startClientY, lastClientX, lastClientY, lastTime, downTime, engaged, startZone, startRegionIdx }
+    dragOffsetX: 0,
+    dragOffsetY: 0,
+    dragVelX: 0,
+    dragVelY: 0
+  };
 
   // Photo state
   let photoImg = null;
@@ -68,7 +87,9 @@
   const skinAuthorInput = document.getElementById('skin-author');
   const validationPill = document.getElementById('validation-pill');
   const stageCoatBadge = document.getElementById('stage-coat-badge');
-  const editModeBanner = document.getElementById('edit-mode-banner');
+  const stageCard = canvasFrame ? canvasFrame.closest('.stage-card') : null;
+  const stageColumn = canvasFrame ? canvasFrame.closest('.stage-column') : null;
+  const editModeBanner = document.getElementById('btn-exit-region-edit');
   const decoBanner = document.getElementById('deco-banner');
   const toastEl = document.getElementById('toast');
 
@@ -280,13 +301,6 @@
     });
   });
 
-  document.querySelectorAll('.stage-controls .pose-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      currentPose = btn.dataset.pose;
-      document.querySelectorAll('.stage-controls .pose-btn').forEach((b) => b.classList.toggle('active', b === btn));
-    });
-  });
-
   document.getElementById('keyboard-theme-select').addEventListener('change', (e) => {
     kbTheme = e.target.value;
   });
@@ -295,11 +309,24 @@
     eyeTheme = e.target.value;
   });
 
-  document.getElementById('btn-exit-region-edit').addEventListener('click', () => {
+  function enterRegionEdit(idx) {
+    if (idx < 0 || !rawSkin.regions[idx]) return;
+    if (pen) exitPen();
+    selectedDecoIdx = -1;
+    decoBanner.hidden = true;
+    editingRegionIdx = idx;
+    editModeBanner.hidden = false;
+    renderRegionsAndMarksUI();
+  }
+
+  function exitRegionEdit() {
+    if (editingRegionIdx < 0) return;
     editingRegionIdx = -1;
     editModeBanner.hidden = true;
     renderRegionsAndMarksUI();
-  });
+  }
+
+  editModeBanner.addEventListener('click', exitRegionEdit);
 
   document.getElementById('btn-exit-deco-edit').addEventListener('click', () => {
     selectedDecoIdx = -1;
@@ -307,9 +334,51 @@
     renderDecorationsUI();
   });
 
+  function pointInPolygon(pt, poly) {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const xi = poly[i].x, yi = poly[i].y;
+      const xj = poly[j].x, yj = poly[j].y;
+      const intersect = ((yi > pt.y) !== (yj > pt.y)) &&
+        (pt.x < ((xj - xi) * (pt.y - yi)) / ((yj - yi) || 1e-9) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  function hitTestRegion(pos) {
+    const regs = resolvedSkin.regions || [];
+    const T = lastRenderTransforms;
+    for (let i = regs.length - 1; i >= 0; i--) {
+      if (!rawSkin.regions[i] || !regs[i].flat || regs[i].flat.length < 3) continue;
+      const space = regs[i].space;
+      const poly = regs[i].flat.map((pt) =>
+        Renderer.mapPointToCanvas(pt, space, resolvedSkin, T.seatX, T.seatY, T.headCenter, animState)
+      );
+      if (pointInPolygon(pos, poly)) return i;
+    }
+    return -1;
+  }
+
+  function isWorkshopVisible() {
+    const view = document.getElementById('workshop-view');
+    const playModal = document.getElementById('play-modal');
+    if (view && view.hidden) return false;
+    if (playModal && !playModal.hidden) return false;
+    return true;
+  }
+
+  function setCatDragClasses(active) {
+    canvasFrame.classList.toggle('is-dragging-cat', active);
+    if (stageCard) stageCard.classList.toggle('is-dragging-cat', active);
+    if (stageColumn) stageColumn.classList.toggle('is-dragging-cat', active);
+    catCanvas.classList.toggle('cat-dragging', active);
+  }
+
   function hitTestDecoration(pos, deco) {
     const T = lastRenderTransforms;
-    const g = Renderer.getDecorationOverlayGeometry(deco, resolvedSkin, T.seatX, T.seatY, T.headCenter, animState);
+    const g = Renderer.getDecorationOverlayGeometry(deco, resolvedSkin, T.seatX, T.seatY, T.headCenter, animState, T.decoAnchors);
+    if (g.hidden) return false;
     const dx = pos.x - g.center.x, dy = pos.y - g.center.y;
     const c = Math.cos(-g.rot), s = Math.sin(-g.rot);
     const lx = dx * c - dy * s;
@@ -326,8 +395,15 @@
     };
   }
 
+  catCanvas.addEventListener('contextmenu', (e) => {
+    if (!pen && editingRegionIdx < 0 && !draggingDeco) {
+      e.preventDefault();
+    }
+  });
+
   catCanvas.addEventListener('pointerdown', (e) => {
     const pos = getCanvasLogicalPos(e);
+    live.lastActivity = performance.now();
     if (pen) {
       penPointerDown(e, pos);
       return;
@@ -342,34 +418,41 @@
       for (let i = 0; i < reg.anchors.length; i++) {
         const a = reg.anchors[i];
         const pMain = map(a);
-        if (Math.hypot(pos.x - pMain.x, pos.y - pMain.y) < 9) {
+        if (Math.hypot(pos.x - pMain.x, pos.y - pMain.y) < 10) {
           draggingHandle = { anchorIdx: i, kind: 'main' };
           catCanvas.setPointerCapture(e.pointerId);
           return;
         }
         const pIn = map({ x: a.inX !== undefined ? a.inX : a.x, y: a.inY !== undefined ? a.inY : a.y });
-        if (Math.hypot(pos.x - pIn.x, pos.y - pIn.y) < 7) {
+        if (Math.hypot(pos.x - pIn.x, pos.y - pIn.y) < 8) {
           draggingHandle = { anchorIdx: i, kind: 'in' };
           catCanvas.setPointerCapture(e.pointerId);
           return;
         }
         const pOut = map({ x: a.outX !== undefined ? a.outX : a.x, y: a.outY !== undefined ? a.outY : a.y });
-        if (Math.hypot(pos.x - pOut.x, pos.y - pOut.y) < 7) {
+        if (Math.hypot(pos.x - pOut.x, pos.y - pOut.y) < 8) {
           draggingHandle = { anchorIdx: i, kind: 'out' };
           catCanvas.setPointerCapture(e.pointerId);
           return;
         }
       }
+      // Clicking another pattern region switches editing to it; clicking empty space confirms & exits editing!
+      const hitReg = hitTestRegion(pos);
+      if (hitReg >= 0 && hitReg !== editingRegionIdx) {
+        enterRegionEdit(hitReg);
+      } else if (hitReg < 0) {
+        exitRegionEdit();
+      }
       return;
     }
 
-    // Decoration direct canvas manipulation (handles + body drag)
+    // Decoration direct canvas manipulation (handles + body drag when selected or on Decorations tab)
     const decos = resolvedSkin.decorations || [];
     if (selectedDecoIdx >= 0 && decos[selectedDecoIdx] && rawSkin.decorations[selectedDecoIdx]) {
       const T = lastRenderTransforms;
-      const g = Renderer.getDecorationOverlayGeometry(decos[selectedDecoIdx], resolvedSkin, T.seatX, T.seatY, T.headCenter, animState);
+      const g = Renderer.getDecorationOverlayGeometry(decos[selectedDecoIdx], resolvedSkin, T.seatX, T.seatY, T.headCenter, animState, T.decoAnchors);
       const rawD = rawSkin.decorations[selectedDecoIdx];
-      if (Math.hypot(pos.x - g.rotateHandle.x, pos.y - g.rotateHandle.y) < 10) {
+      if (!g.hidden && Math.hypot(pos.x - g.rotateHandle.x, pos.y - g.rotateHandle.y) < 10) {
         draggingDeco = {
           mode: 'rotate',
           center: g.center,
@@ -379,7 +462,7 @@
         catCanvas.setPointerCapture(e.pointerId);
         return;
       }
-      if (Math.hypot(pos.x - g.scaleHandle.x, pos.y - g.scaleHandle.y) < 10) {
+      if (!g.hidden && Math.hypot(pos.x - g.scaleHandle.x, pos.y - g.scaleHandle.y) < 10) {
         draggingDeco = {
           mode: 'scale',
           center: g.center,
@@ -394,44 +477,95 @@
           mode: 'move',
           startPos: pos,
           origOffsetX: rawD.offsetX || 0,
-          origOffsetY: rawD.offsetY || 0
+          origOffsetY: rawD.offsetY || 0,
+          baseRot: g.baseRot || 0,
+          offsetScaleX: g.offsetScaleX || 1,
+          offsetScaleY: g.offsetScaleY || 1
         };
         catCanvas.setPointerCapture(e.pointerId);
         return;
       }
+      // Clicking outside the selected decoration confirms & exits decoration fine-tuning
+      selectedDecoIdx = -1;
+      decoBanner.hidden = true;
+      renderDecorationsUI();
     }
 
-    // Clicking any worn decoration selects & drags it directly
-    for (let i = decos.length - 1; i >= 0; i--) {
-      if (hitTestDecoration(pos, decos[i]) && rawSkin.decorations[i]) {
-        selectedDecoIdx = i;
-        decoBanner.hidden = false;
-        const rawD = rawSkin.decorations[i];
-        draggingDeco = {
-          mode: 'move',
-          startPos: pos,
-          origOffsetX: rawD.offsetX || 0,
-          origOffsetY: rawD.offsetY || 0
-        };
-        renderDecorationsUI();
-        catCanvas.setPointerCapture(e.pointerId);
-        return;
+    const decoTabEl = document.getElementById('tab-decorations');
+    const onDecoTab = decoTabEl && decoTabEl.classList.contains('active');
+    if (onDecoTab) {
+      const T = lastRenderTransforms;
+      const layerGroups = [['face', 'headTop'], ['neck'], ['tailTip']];
+      for (const group of layerGroups) {
+        for (let i = decos.length - 1; i >= 0; i--) {
+          if (!group.includes(decos[i].anchor)) continue;
+          if (hitTestDecoration(pos, decos[i]) && rawSkin.decorations[i]) {
+            selectedDecoIdx = i;
+            decoBanner.hidden = false;
+            const rawD = rawSkin.decorations[i];
+            const g = Renderer.getDecorationOverlayGeometry(decos[i], resolvedSkin, T.seatX, T.seatY, T.headCenter, animState, T.decoAnchors);
+            draggingDeco = {
+              mode: 'move',
+              startPos: pos,
+              origOffsetX: rawD.offsetX || 0,
+              origOffsetY: rawD.offsetY || 0,
+              baseRot: g.baseRot || 0,
+              offsetScaleX: g.offsetScaleX || 1,
+              offsetScaleY: g.offsetScaleY || 1
+            };
+            renderDecorationsUI();
+            catCanvas.setPointerCapture(e.pointerId);
+            return;
+          }
+        }
       }
     }
 
-    // Click near comic mouse (Douni) or keyboard -> fun paw tap!
     const activeSkinNow = penPreviewSkin || resolvedSkin;
-    if (activeSkinNow && activeSkinNow.renderStyle === 'douni' && pos.x < 120 && pos.y > 100 && pos.y < 195) {
-      animState.douniSlapTimer = 0;
-      animState.douniMouseTimer = 1.25;
-      animState.mousePressLeft = 1.0;
-    } else if (pos.y > 195 || (activeSkinNow && activeSkinNow.renderStyle === 'douni' && pos.y > 170)) {
-      triggerRandomKeyTap();
-    } else if (pos.y < 165) {
-      // Quick head pat ripple
-      animState.earTwitch = 1.6;
-      animState.bodySquash = 0.94;
+    const zone = Renderer.hitTestCat(pos, activeSkinNow, animState);
+
+    // Right click -> RMB mouse click preview
+    if (e.button === 2) {
+      Renderer.triggerMouseClick(animState, activeSkinNow, true);
+      live.lastMouseClickTime = performance.now();
+      return;
     }
+
+    if (zone === 'mouse') {
+      Renderer.triggerMouseClick(animState, activeSkinNow, false);
+      live.lastMouseClickTime = performance.now();
+      return;
+    }
+
+    if (zone === 'keyboard') {
+      const cap = Renderer.findNearestKeycap(pos, activeSkinNow);
+      Renderer.triggerKeyTap(animState, activeSkinNow, cap);
+      live.lastKeyTime = performance.now();
+      catCanvas.focus({ preventScroll: true });
+      return;
+    }
+
+    if (zone === 'head' || zone === 'body') {
+      const hitReg = hitTestRegion(pos);
+      live.draggingCat = {
+        pointerId: e.pointerId,
+        startClientX: e.clientX,
+        startClientY: e.clientY,
+        lastClientX: e.clientX,
+        lastClientY: e.clientY,
+        lastTime: performance.now(),
+        downTime: performance.now(),
+        engaged: false,
+        startZone: zone,
+        startRegionIdx: hitReg
+      };
+      catCanvas.setPointerCapture(e.pointerId);
+      catCanvas.focus({ preventScroll: true });
+      return;
+    }
+
+    // Clicking empty background focuses canvas for easy keyboard testing
+    catCanvas.focus({ preventScroll: true });
   });
 
   catCanvas.addEventListener('pointermove', (e) => {
@@ -493,12 +627,70 @@
       return;
     }
 
-    pointerTarget.active = true;
-    pointerTarget.yaw = Spec.clamp((pos.x - 184) / 145, -1, 1);
-    pointerTarget.pitch = Spec.clamp((pos.y - 130) / 135, -1, 1);
-    pointerTarget.gazeX = Spec.clamp((pos.x - 184) / 110, -1, 1);
-    pointerTarget.gazeY = Spec.clamp((pos.y - 130) / 110, -1, 1);
+    if (live.draggingCat) {
+      const now = performance.now();
+      const totalDist = Math.hypot(e.clientX - live.draggingCat.startClientX, e.clientY - live.draggingCat.startClientY);
+      if (!live.draggingCat.engaged && totalDist > 5) {
+        live.draggingCat.engaged = true;
+        setCatDragClasses(true);
+      }
+      if (live.draggingCat.engaged) {
+        const dx = e.clientX - live.draggingCat.lastClientX;
+        const dtMs = Math.max(8, now - live.draggingCat.lastTime);
+        const vx = (dx / dtMs) * 1000;
+        live.dragOffsetX = e.clientX - live.draggingCat.startClientX;
+        live.dragOffsetY = e.clientY - live.draggingCat.startClientY;
+        animState.dragSwingTarget = Spec.clamp(-vx * 0.00042, -0.46, 0.46);
+      }
+      live.draggingCat.lastClientX = e.clientX;
+      live.draggingCat.lastClientY = e.clientY;
+      live.draggingCat.lastTime = now;
+      live.lastActivity = now;
+      return;
+    }
+
+    // Hover interactions inside the canvas (petting head/body, mini-mouse wiggle, grab cursor)
+    if (editingRegionIdx < 0) {
+      const activeSkinNow = penPreviewSkin || resolvedSkin;
+      const zone = Renderer.hitTestCat(pos, activeSkinNow, animState);
+      catCanvas.classList.toggle('cat-grabbable', zone === 'head' || zone === 'body');
+      const now = performance.now();
+      const moveDist = live.lastClientTime ? Math.hypot(e.clientX - live.lastClientX, e.clientY - live.lastClientY) : 0;
+      if (moveDist > 0.8 && moveDist < 65) {
+        if (zone === 'head') {
+          live.petHead = Math.min(1, live.petHead + moveDist * 0.015);
+          live.lastActivity = now;
+        } else if (zone === 'body') {
+          live.petBody = Math.min(0.9, live.petBody + moveDist * 0.012);
+          live.lastActivity = now;
+        } else if (zone === 'mouse') {
+          animState.mouseOffsetX = Spec.clamp((pos.x - Renderer.MOUSE_BASE.x) * 0.25, -5, 5);
+          animState.mouseOffsetY = Spec.clamp((pos.y - Renderer.MOUSE_BASE.y) * 0.25, -4, 4);
+        }
+      }
+    } else {
+      catCanvas.classList.remove('cat-grabbable');
+    }
   });
+
+  function finishCatDrag() {
+    const dc = live.draggingCat;
+    if (!dc) return;
+    live.draggingCat = null;
+    if (!dc.engaged) {
+      // Quick click (not dragged): clicking a pattern region auto-enters anchor edit mode!
+      if (dc.startRegionIdx >= 0 && rawSkin.regions[dc.startRegionIdx]) {
+        enterRegionEdit(dc.startRegionIdx);
+      } else if (dc.startZone === 'head') {
+        animState.earTwitch = 1.6;
+        animState.bodySquash = 0.94;
+        live.petHead = Math.min(1, live.petHead + 0.55);
+      } else if (dc.startZone === 'body') {
+        animState.bodySquash = 0.95;
+        live.petBody = Math.min(0.85, live.petBody + 0.5);
+      }
+    }
+  }
 
   catCanvas.addEventListener('pointerup', () => {
     if (pen) {
@@ -518,14 +710,54 @@
       draggingDeco = null;
       syncSkin(true);
     }
+    if (live.draggingCat) {
+      finishCatDrag();
+    }
+  });
+
+  catCanvas.addEventListener('pointercancel', () => {
+    if (live.draggingCat) {
+      live.draggingCat = null;
+    }
   });
 
   catCanvas.addEventListener('pointerleave', () => {
-    pointerTarget.active = false;
+    catCanvas.classList.remove('cat-grabbable');
     if (pen && !pen.drag) {
       pen.hover = null;
       pen.closeHint = false;
       updatePenPreview();
+    }
+  });
+
+  // Track cursor across the entire webpage so the cat follows your mouse & detects rapid hunting shakes!
+  window.addEventListener('pointermove', (e) => {
+    if (!isWorkshopVisible()) return;
+    const now = performance.now();
+    if (live.lastClientTime > 0) {
+      const dtSec = Math.max(0.008, (now - live.lastClientTime) / 1000);
+      const speed = Math.hypot(e.clientX - live.lastClientX, e.clientY - live.lastClientY) / dtSec;
+      if (speed > 1750 && !live.draggingCat && !pen && editingRegionIdx < 0 && !draggingDeco && live.petHead < 0.25) {
+        live.huntEnergy = Math.min(1.0, live.huntEnergy + Math.min(0.35, (speed - 1750) / 3600));
+        live.lastActivity = now;
+      }
+    }
+    live.lastClientX = e.clientX;
+    live.lastClientY = e.clientY;
+    live.lastClientTime = now;
+
+    if (pen || editingRegionIdx >= 0 || draggingDeco || (live.draggingCat && live.draggingCat.engaged)) return;
+    const rect = catCanvas.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const lx = ((e.clientX - rect.left) / rect.width) * 360;
+    const ly = ((e.clientY - rect.top) / rect.height) * 320;
+    pointerTarget.active = true;
+    pointerTarget.yaw = Spec.clamp((lx - 184) / 210, -1, 1);
+    pointerTarget.pitch = Spec.clamp((ly - 130) / 190, -1, 1);
+    pointerTarget.gazeX = Spec.clamp((lx - 184) / 150, -1, 1);
+    pointerTarget.gazeY = Spec.clamp((ly - 130) / 150, -1, 1);
+    if (lx >= -30 && lx <= 390 && ly >= -30 && ly <= 350) {
+      live.lastActivity = now;
     }
   });
 
@@ -1073,25 +1305,68 @@
   document.getElementById('btn-pen-back').addEventListener('click', penBack);
   document.getElementById('btn-pen-cancel').addEventListener('click', exitPen);
 
+  function isEditableElement(el) {
+    if (!el) return false;
+    if (el.isContentEditable) return true;
+    const tag = el.tagName;
+    if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
+    if (tag === 'INPUT' && el.type !== 'color' && el.type !== 'range' && el.type !== 'checkbox' && el.type !== 'button') return true;
+    return false;
+  }
+
   document.addEventListener('keydown', (e) => {
-    const t = e.target;
-    const typing = t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type !== 'color' && t.type !== 'range' && t.type !== 'checkbox'));
+    const typingInField = isEditableElement(e.target);
     if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'z' || e.key === 'Z' || e.key === 'y' || e.key === 'Y')) {
-      if (typing) return;
+      if (typingInField) return;
       e.preventDefault();
       if (e.key === 'y' || e.key === 'Y' || e.shiftKey) redo(); else undo();
       return;
     }
-    if (!pen || typing) return;
-    if (e.key === 'Escape') {
+    if (pen && !typingInField) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        exitPen();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        finishPen();
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        penBack();
+      }
+      return;
+    }
+    if (editingRegionIdx >= 0 && !typingInField && (e.key === 'Escape' || e.key === 'Enter')) {
       e.preventDefault();
-      exitPen();
-    } else if (e.key === 'Enter') {
+      exitRegionEdit();
+      return;
+    }
+    // Live keyboard typing preview directly inside the Workshop page!
+    if (typingInField || !isWorkshopVisible() || editingRegionIdx >= 0 || draggingDeco) return;
+    if ((e.ctrlKey || e.metaKey || e.altKey) && !['ControlLeft', 'ControlRight', 'MetaLeft', 'MetaRight', 'AltLeft', 'AltRight'].includes(e.code)) {
+      return;
+    }
+    if (document.activeElement === catCanvas && (e.code === 'Space' || e.code.startsWith('Arrow'))) {
       e.preventDefault();
-      finishPen();
-    } else if (e.key === 'Backspace' || e.key === 'Delete') {
-      e.preventDefault();
-      penBack();
+    }
+    const now = performance.now();
+    live.lastActivity = now;
+    live.lastKeyTime = now;
+    if (!e.repeat) {
+      const activeSkin = penPreviewSkin || resolvedSkin;
+      const cap = Renderer.mapKeyboardEventToCap(e);
+      pressedKeyCaps.set(e.code, cap);
+      Renderer.triggerKeyTap(animState, activeSkin, cap);
+    }
+  });
+
+  document.addEventListener('keyup', (e) => {
+    pressedKeyCaps.delete(e.code);
+  });
+
+  window.addEventListener('blur', () => {
+    pressedKeyCaps.clear();
+    if (live.draggingCat) {
+      live.draggingCat = null;
     }
   });
 
@@ -2308,17 +2583,65 @@
     const dt = Math.min(0.05, (ts - lastTs) / 1000);
     lastTs = ts;
     animState.time += dt;
-    // the tail holds still while its anchors or a tail decoration are being edited
-    if (!pen && editingRegionIdx < 0 && !draggingDeco) animState.tailPhase += dt * (currentPose === 'hunt' ? 5.2 : 2.2);
 
-    // Decay key glow
-    for (const k of Object.keys(animState.keyGlow)) {
-      animState.keyGlow[k] = Math.max(0, animState.keyGlow[k] - dt * 3.8);
-      if (animState.keyGlow[k] <= 0.01) delete animState.keyGlow[k];
+    const nowMs = performance.now();
+    // Auto-engage scruff drag if pointer held steadily on the cat for > 150ms
+    if (live.draggingCat && !live.draggingCat.engaged && nowMs - live.draggingCat.downTime > 150) {
+      live.draggingCat.engaged = true;
+      setCatDragClasses(true);
     }
 
-    // Natural blinking in idle/typing
-    if (currentPose === 'idle' || currentPose === 'typing') {
+    const isDraggingNow = !!(live.draggingCat && live.draggingCat.engaged) || currentPose === 'drag';
+    const isEditingNow = editingRegionIdx >= 0 || !!pen || !!draggingDeco;
+
+    // Smoothly apply / spring-return the page-level drag translation of the cat canvas
+    if (live.draggingCat && live.draggingCat.engaged) {
+      catCanvas.style.transform = `translate3d(${live.dragOffsetX.toFixed(1)}px, ${live.dragOffsetY.toFixed(1)}px, 0)`;
+    } else if (Math.abs(live.dragOffsetX) > 0.4 || Math.abs(live.dragOffsetY) > 0.4) {
+      const springK = Math.min(1, dt * 13);
+      live.dragOffsetX = lerp(live.dragOffsetX, 0, springK);
+      live.dragOffsetY = lerp(live.dragOffsetY, 0, springK);
+      catCanvas.style.transform = `translate3d(${live.dragOffsetX.toFixed(1)}px, ${live.dragOffsetY.toFixed(1)}px, 0)`;
+    } else if (catCanvas.style.transform) {
+      live.dragOffsetX = 0;
+      live.dragOffsetY = 0;
+      catCanvas.style.transform = '';
+      setCatDragClasses(false);
+    }
+
+    // Decay live petting & hunting energy
+    live.petHead = Math.max(0, live.petHead - dt * 0.55);
+    live.petBody = Math.max(0, live.petBody - dt * 0.55);
+    live.huntEnergy = Math.max(0, live.huntEnergy - dt * 0.85);
+
+    const activeSkinForTick = penPreviewSkin || resolvedSkin;
+    const isDouniTick = activeSkinForTick && (activeSkinForTick.renderStyle === 'douni' || activeSkinForTick.typingStyle === 'douni');
+
+    // Keep held physical keys glowing & update paws
+    const heldCaps = Array.from(pressedKeyCaps.values());
+    for (const cap of heldCaps) {
+      animState.keyGlow[cap.id] = 1.0;
+    }
+
+    // Decay released key glow
+    for (const k of Object.keys(animState.keyGlow)) {
+      const stillHeld = heldCaps.some((c) => c.id === k);
+      if (!stillHeld) {
+        animState.keyGlow[k] = Math.max(0, animState.keyGlow[k] - dt * 3.8);
+        if (animState.keyGlow[k] <= 0.01) delete animState.keyGlow[k];
+      }
+    }
+
+    // Tail wag speed responds to live hunting excitement
+    const liveHunting = live.huntEnergy > 0.25 || currentPose === 'hunt';
+    if (!isEditingNow) animState.tailPhase += dt * (liveHunting ? 5.2 : 2.2);
+
+    // Idle sleepiness after 18s without input (wakes immediately on any key/mouse activity)
+    const idleSec = (nowMs - live.lastActivity) / 1000;
+    const isLiveSleeping = !isEditingNow && !isDraggingNow && heldCaps.length === 0 && idleSec > 18;
+
+    // Natural blinking when awake & not pet-closed
+    if (!isLiveSleeping && live.petHead < 0.35 && currentPose !== 'petHead' && currentPose !== 'sleep') {
       if (animState.time >= nextBlinkAt) {
         const elapsed = animState.time - nextBlinkAt;
         if (elapsed < 0.08) animState.blinkProgress = elapsed / 0.08;
@@ -2332,52 +2655,83 @@
       animState.blinkProgress = lerp(animState.blinkProgress, 0, dt * 10);
     }
 
-    // Pose targets
+    // Live pose targets
     let tYaw = pointerTarget.active ? pointerTarget.yaw : Math.sin(animState.time * 0.7) * 0.12;
     let tPitch = pointerTarget.active ? pointerTarget.pitch : 0;
     let tGazeX = pointerTarget.active ? pointerTarget.gazeX : Math.sin(animState.time * 0.7) * 0.15;
     let tGazeY = pointerTarget.active ? pointerTarget.gazeY : 0;
     let tHunt = 0, tPetH = 0, tPetB = 0, tSleep = 0, tEarFold = 0, tHind = 0, tSquash = 1, tHeadY = 0;
 
-    const activeSkinForTick = penPreviewSkin || resolvedSkin;
-    const isDouniTick = activeSkinForTick && (activeSkinForTick.renderStyle === 'douni' || activeSkinForTick.typingStyle === 'douni');
-
-    if (editingRegionIdx >= 0 || pen || draggingDeco) {
-      // Freeze head straight forward while editing or drawing anchors / dragging a decoration
+    let effectivePose = 'idle';
+    if (isEditingNow) {
       tYaw = 0; tPitch = 0; tGazeX = 0; tGazeY = 0;
-    } else if (currentPose === 'hunt') {
-      tHunt = 1; tSquash = 0.90; tHeadY = 8; tEarFold = 0.45;
-    } else if (currentPose === 'petHead') {
-      tPetH = 1; tEarFold = 0.78; tSquash = 0.95; tHeadY = 3;
-    } else if (currentPose === 'petBody') {
-      tPetB = 0.85; tEarFold = 0.45; tSquash = 0.96;
-    } else if (currentPose === 'sleep') {
-      tSleep = 1; tPitch = 0.35; tHeadY = 6; tEarFold = 0.32;
-    } else if (currentPose === 'hindFoot') {
-      if (isDouniTick) {
-        typingTimer += dt;
-        if (typingTimer > 0.11) {
-          typingTimer = 0;
-          triggerRandomKeyTap();
-        }
-      } else {
-        tHind = 1;
-        animState.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
-      }
-    } else if (currentPose === 'typing') {
-      typingTimer += dt;
-      if (typingTimer > (isDouniTick ? 0.17 : 0.22)) {
-        typingTimer = 0;
-        triggerRandomKeyTap();
-      }
-      tPitch = 0.28;
-    } else if (currentPose === 'drag') {
+    } else if (isDraggingNow) {
+      effectivePose = 'drag';
       tYaw = 0; tPitch = 0;
       animState.leftPawActive = false;
       animState.rightPawActive = false;
+    } else if (currentPose !== 'idle') {
+      effectivePose = currentPose;
+      if (currentPose === 'hunt') { tHunt = 1; tSquash = 0.90; tHeadY = 8; tEarFold = 0.45; }
+      else if (currentPose === 'petHead') { tPetH = 1; tEarFold = 0.78; tSquash = 0.95; tHeadY = 3; }
+      else if (currentPose === 'petBody') { tPetB = 0.85; tEarFold = 0.45; tSquash = 0.96; }
+      else if (currentPose === 'sleep') { tSleep = 1; tPitch = 0.35; tHeadY = 6; tEarFold = 0.32; }
+      else if (currentPose === 'hindFoot') {
+        tHind = 1; animState.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
+      } else if (currentPose === 'typing') {
+        typingTimer += dt;
+        if (typingTimer > (isDouniTick ? 0.17 : 0.22)) { typingTimer = 0; triggerRandomKeyTap(); }
+        tPitch = 0.28;
+      }
     } else {
-      animState.leftPawActive = false;
-      animState.rightPawActive = false;
+      // Full live interactive mode!
+      const recentKey = heldCaps.length > 0 || (nowMs - live.lastKeyTime < 220);
+      const recentMouse = nowMs - live.lastMouseClickTime < 340;
+      if (recentKey) {
+        effectivePose = 'typing';
+        tPitch = Math.max(tPitch, 0.22);
+        tSquash = 0.97;
+      }
+      if (!recentKey && !recentMouse) {
+        animState.leftPawActive = false;
+        animState.rightPawActive = false;
+      } else if (recentMouse && !recentKey) {
+        animState.rightPawActive = false;
+      }
+      // 3+ simultaneous keys -> 3rd hind foot kick easter egg!
+      if (heldCaps.length >= 3 && !isDouniTick) {
+        const thirdCap = heldCaps[2];
+        const su = 1 - (thirdCap.xUnits + thirdCap.widthUnits * 0.5);
+        const sv = 1 - (thirdCap.row + 0.5) / 5;
+        animState.hindFoot = Renderer.screenQuadPoint(su, sv);
+        tHind = 1;
+      }
+      // Petting
+      if (live.petHead > 0.08) {
+        tPetH = live.petHead;
+        tEarFold = Math.max(tEarFold, live.petHead * 0.78);
+        tSquash = Math.min(tSquash, 1 - live.petHead * 0.05);
+        tHeadY = Math.max(tHeadY, live.petHead * 3);
+      }
+      if (live.petBody > 0.08) {
+        tPetB = live.petBody;
+        tEarFold = Math.max(tEarFold, live.petBody * 0.45);
+        tSquash = Math.min(tSquash, 1 - live.petBody * 0.04);
+      }
+      // Hunting boba eyes on rapid mouse shake
+      if (live.huntEnergy > 0.12 && live.petHead < 0.25) {
+        tHunt = live.huntEnergy;
+        tSquash = Math.min(tSquash, 1 - live.huntEnergy * 0.10);
+        tHeadY = Math.max(tHeadY, live.huntEnergy * 7);
+        tEarFold = Math.max(tEarFold, live.huntEnergy * 0.45);
+      }
+      // Natural idle nap
+      if (isLiveSleeping) {
+        tSleep = Math.min(1, (idleSec - 18) / 3.0);
+        tPitch = 0.35 * tSleep;
+        tHeadY = 6 * tSleep;
+        tEarFold = 0.32 * tSleep;
+      }
     }
 
     const k = Math.min(1, dt * 9);
@@ -2396,8 +2750,10 @@
     animState.bodySquash = lerp(animState.bodySquash, tSquash, k);
     animState.headOffsetY = lerp(animState.headOffsetY, tHeadY, k);
     animState.hindFootActive = lerp(animState.hindFootActive, tHind, k);
+    animState.mouseOffsetX = lerp(animState.mouseOffsetX, 0, dt * 4);
+    animState.mouseOffsetY = lerp(animState.mouseOffsetY, 0, dt * 4);
 
-    Renderer.stepPhysicsExtras(animState, activeSkinForTick, (editingRegionIdx >= 0 || pen || draggingDeco) ? 'idle' : currentPose, dt);
+    Renderer.stepPhysicsExtras(animState, activeSkinForTick, isEditingNow ? 'idle' : effectivePose, dt);
 
     if (!animState.leftPawActive) {
       animState.leftPaw.x = lerp(animState.leftPaw.x, Renderer.LEFT_PAW_REST.x, k);
