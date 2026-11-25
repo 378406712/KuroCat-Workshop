@@ -922,22 +922,33 @@
     let tPitch = playModalPointer.active ? playModalPointer.pitch : 0;
     let tHunt = 0, tPetH = 0, tPetB = 0, tSleep = 0, tEarFold = 0, tHind = 0, tSquash = 1, tHeadY = 0;
 
+    const isDouniPlay = playModalResolved && (playModalResolved.renderStyle === 'douni' || playModalResolved.typingStyle === 'douni');
     if (playModalPose === 'hunt') { tHunt = 1; tSquash = 0.9; tHeadY = 8; tEarFold = 0.45; }
     else if (playModalPose === 'petHead') { tPetH = 1; tEarFold = 0.78; tSquash = 0.95; tHeadY = 3; }
     else if (playModalPose === 'petBody') { tPetB = 0.85; tEarFold = 0.45; tSquash = 0.96; }
     else if (playModalPose === 'sleep') { tSleep = 1; tPitch = 0.35; tHeadY = 6; tEarFold = 0.32; }
-    else if (playModalPose === 'hindFoot') { tHind = 1; st.hindFoot = Renderer.screenQuadPoint(0.28, 0.45); }
+    else if (playModalPose === 'hindFoot') {
+      if (isDouniPlay) {
+        playModalTypingTimer += dt;
+        if (playModalTypingTimer > 0.11) {
+          playModalTypingTimer = 0;
+          Renderer.triggerKeyTap(st, playModalResolved);
+        }
+      } else {
+        tHind = 1; st.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
+      }
+    }
     else if (playModalPose === 'typing') {
       playModalTypingTimer += dt;
-      if (playModalTypingTimer > 0.22) {
+      if (playModalTypingTimer > (isDouniPlay ? 0.17 : 0.22)) {
         playModalTypingTimer = 0;
-        const cap = Renderer.KEYCAPS[Math.floor(Math.random() * Renderer.KEYCAPS.length)];
-        st.keyGlow[cap.id] = 1.0;
-        const pt = Renderer.screenQuadPoint(1 - (cap.xUnits + cap.widthUnits * 0.5), 1 - (cap.row + 0.5) / 5);
-        if (pt.x < 188) { st.leftPaw = pt; st.leftPawActive = true; }
-        else { st.rightPaw = pt; st.rightPawActive = true; }
+        Renderer.triggerKeyTap(st, playModalResolved);
       }
       tPitch = 0.28;
+    } else if (playModalPose === 'drag') {
+      tYaw = 0; tPitch = 0;
+      st.leftPawActive = false;
+      st.rightPawActive = false;
     } else {
       st.leftPawActive = false;
       st.rightPawActive = false;
@@ -956,9 +967,11 @@
     st.petBody = lerp(st.petBody, tPetB);
     st.sleepiness = lerp(st.sleepiness, tSleep);
     st.earFold = lerp(st.earFold, tEarFold);
+    st.earTwitch = lerp(st.earTwitch, 0);
     st.bodySquash = lerp(st.bodySquash, tSquash);
     st.headOffsetY = lerp(st.headOffsetY, tHeadY);
     st.hindFootActive = lerp(st.hindFootActive, tHind);
+    Renderer.stepPhysicsExtras(st, playModalResolved, playModalPose, dt);
     if (!st.leftPawActive) {
       st.leftPaw.x = lerp(st.leftPaw.x, Renderer.LEFT_PAW_REST.x);
       st.leftPaw.y = lerp(st.leftPaw.y, Renderer.LEFT_PAW_REST.y);
@@ -983,6 +996,19 @@
     playModalPointer.gazeY = Spec.clamp((y - 130) / 110, -1, 1);
   });
   playCanvas.addEventListener('pointerleave', () => { playModalPointer.active = false; });
+  playCanvas.addEventListener('pointerdown', (e) => {
+    if (!playModalResolved || !playModalState) return;
+    const rect = playCanvas.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 360;
+    const y = ((e.clientY - rect.top) / rect.height) * 320;
+    if (playModalResolved.renderStyle === 'douni' && x < 120 && y > 100 && y < 195) {
+      playModalState.douniSlapTimer = 0;
+      playModalState.douniMouseTimer = 1.25;
+      playModalState.mousePressLeft = 1.0;
+    } else if (y > 175) {
+      Renderer.triggerKeyTap(playModalState, playModalResolved);
+    }
+  });
 
   document.querySelectorAll('#play-modal-poses .pose-btn').forEach((btn) => {
     btn.addEventListener('click', () => {

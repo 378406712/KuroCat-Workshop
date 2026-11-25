@@ -280,10 +280,10 @@
     });
   });
 
-  document.querySelectorAll('.pose-btn').forEach((btn) => {
+  document.querySelectorAll('.stage-controls .pose-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       currentPose = btn.dataset.pose;
-      document.querySelectorAll('.pose-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.stage-controls .pose-btn').forEach((b) => b.classList.toggle('active', b === btn));
     });
   });
 
@@ -419,8 +419,13 @@
       }
     }
 
-    // Click near keyboard -> fun paw tap!
-    if (pos.y > 225) {
+    // Click near comic mouse (Douni) or keyboard -> fun paw tap!
+    const activeSkinNow = penPreviewSkin || resolvedSkin;
+    if (activeSkinNow && activeSkinNow.renderStyle === 'douni' && pos.x < 120 && pos.y > 100 && pos.y < 195) {
+      animState.douniSlapTimer = 0;
+      animState.douniMouseTimer = 1.25;
+      animState.mousePressLeft = 1.0;
+    } else if (pos.y > 195 || (activeSkinNow && activeSkinNow.renderStyle === 'douni' && pos.y > 170)) {
       triggerRandomKeyTap();
     } else if (pos.y < 165) {
       // Quick head pat ripple
@@ -1091,19 +1096,16 @@
   });
 
   function triggerRandomKeyTap() {
-    const cap = Renderer.KEYCAPS[Math.floor(Math.random() * Renderer.KEYCAPS.length)];
-    animState.keyGlow[cap.id] = 1.0;
-    const su = 1 - (cap.xUnits + cap.widthUnits * 0.5);
-    const sv = 1 - (cap.row + 0.5) / 5;
-    const pt = Renderer.screenQuadPoint(su, sv);
-    if (pt.x < 188) {
-      animState.leftPaw = { x: pt.x, y: pt.y };
-      animState.leftPawActive = true;
-      setTimeout(() => { if (currentPose !== 'typing') animState.leftPawActive = false; }, 220);
-    } else {
-      animState.rightPaw = { x: pt.x, y: pt.y };
-      animState.rightPawActive = true;
-      setTimeout(() => { if (currentPose !== 'typing') animState.rightPawActive = false; }, 220);
+    const activeSkin = penPreviewSkin || resolvedSkin;
+    const isDouniTyping = activeSkin && (activeSkin.typingStyle === 'douni' || activeSkin.renderStyle === 'douni');
+    Renderer.triggerKeyTap(animState, activeSkin);
+    if (!isDouniTyping) {
+      setTimeout(() => {
+        if (currentPose !== 'typing') {
+          animState.leftPawActive = false;
+          animState.rightPawActive = false;
+        }
+      }, 220);
     }
   }
 
@@ -2337,6 +2339,9 @@
     let tGazeY = pointerTarget.active ? pointerTarget.gazeY : 0;
     let tHunt = 0, tPetH = 0, tPetB = 0, tSleep = 0, tEarFold = 0, tHind = 0, tSquash = 1, tHeadY = 0;
 
+    const activeSkinForTick = penPreviewSkin || resolvedSkin;
+    const isDouniTick = activeSkinForTick && (activeSkinForTick.renderStyle === 'douni' || activeSkinForTick.typingStyle === 'douni');
+
     if (editingRegionIdx >= 0 || pen || draggingDeco) {
       // Freeze head straight forward while editing or drawing anchors / dragging a decoration
       tYaw = 0; tPitch = 0; tGazeX = 0; tGazeY = 0;
@@ -2349,15 +2354,27 @@
     } else if (currentPose === 'sleep') {
       tSleep = 1; tPitch = 0.35; tHeadY = 6; tEarFold = 0.32;
     } else if (currentPose === 'hindFoot') {
-      tHind = 1;
-      animState.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
+      if (isDouniTick) {
+        typingTimer += dt;
+        if (typingTimer > 0.11) {
+          typingTimer = 0;
+          triggerRandomKeyTap();
+        }
+      } else {
+        tHind = 1;
+        animState.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
+      }
     } else if (currentPose === 'typing') {
       typingTimer += dt;
-      if (typingTimer > 0.22) {
+      if (typingTimer > (isDouniTick ? 0.17 : 0.22)) {
         typingTimer = 0;
         triggerRandomKeyTap();
       }
       tPitch = 0.28;
+    } else if (currentPose === 'drag') {
+      tYaw = 0; tPitch = 0;
+      animState.leftPawActive = false;
+      animState.rightPawActive = false;
     } else {
       animState.leftPawActive = false;
       animState.rightPawActive = false;
@@ -2379,6 +2396,8 @@
     animState.bodySquash = lerp(animState.bodySquash, tSquash, k);
     animState.headOffsetY = lerp(animState.headOffsetY, tHeadY, k);
     animState.hindFootActive = lerp(animState.hindFootActive, tHind, k);
+
+    Renderer.stepPhysicsExtras(animState, activeSkinForTick, (editingRegionIdx >= 0 || pen || draggingDeco) ? 'idle' : currentPose, dt);
 
     if (!animState.leftPawActive) {
       animState.leftPaw.x = lerp(animState.leftPaw.x, Renderer.LEFT_PAW_REST.x, k);

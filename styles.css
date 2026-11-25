@@ -875,8 +875,8 @@ textarea {
 
 .pose-bar {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
 }
 
 .pose-btn {
