@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KuroCat 皮肤工坊 · 皮肤、饰品与键盘社区广场</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20261125" />
 </head>
 <body>
   <div class="studio-shell">
@@ -994,24 +994,20 @@
     </div>
   </div>
 
-  <!-- Support / Reward QR Enlarged Modal -->
-  <div class="modal-backdrop" id="reward-modal" hidden>
-    <div class="modal-card modal-reward" role="dialog" aria-modal="true" aria-labelledby="reward-modal-title">
-      <div class="modal-head">
-        <div>
-          <h3 id="reward-modal-title">感谢支持 KuroCat 开发 ♥</h3>
-          <span class="muted-note">微信扫一扫下方赞赏码，请作者喝杯咖啡</span>
-        </div>
-        <button type="button" class="icon-btn" id="btn-close-reward-modal" aria-label="关闭">
-          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
-        </button>
+  <!-- Support / Reward Floating Card -->
+  <div class="modal-backdrop reward-backdrop" id="reward-modal" hidden>
+    <div class="reward-floating-card" role="dialog" aria-modal="true" aria-labelledby="reward-modal-title">
+      <button type="button" class="icon-btn reward-close-btn" id="btn-close-reward-modal" aria-label="关闭">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+      </button>
+      <div class="reward-card-head">
+        <span class="reward-card-pill">♥ 微信赞赏</span>
+        <h3 id="reward-modal-title">请作者喝杯咖啡</h3>
       </div>
-      <div class="reward-modal-body">
-        <div class="reward-modal-qr-frame">
-          <img src="assets/reward-qr.jpg" alt="KuroCat 微信赞赏码大图" />
-        </div>
-        <p class="reward-modal-note">每一份支持都会变成更可爱的小猫皮肤、饰品与新功能，感谢陪伴！</p>
+      <div class="reward-modal-qr-frame">
+        <img src="assets/reward-qr.jpg" alt="KuroCat 微信赞赏码" />
       </div>
+      <p class="reward-modal-note">微信扫一扫 · 助力 KuroCat 持续更新</p>
     </div>
   </div>
 
