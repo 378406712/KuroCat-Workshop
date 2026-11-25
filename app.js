@@ -1759,6 +1759,54 @@
   document.getElementById('btn-eyedrop-iris').addEventListener('click', () => toggleEyedropper('iris'));
   document.getElementById('btn-eyedrop-body').addEventListener('click', () => toggleEyedropper('body'));
 
+  function updatePhotoSourceModeUI(mode) {
+    const isDrawing = mode === 'drawing';
+    const dropzone = document.getElementById('photo-dropzone');
+    const iconEl = document.getElementById('photo-drop-icon');
+    const titleEl = document.getElementById('photo-drop-title');
+    const subEl = document.getElementById('photo-drop-sub');
+    const btnEl = document.getElementById('btn-choose-photo');
+    const tagEl = document.getElementById('photo-archetype-tag');
+    const summaryEl = document.getElementById('photo-summary-box');
+
+    if (dropzone) dropzone.dataset.source = mode;
+    if (iconEl) {
+      iconEl.innerHTML = isDrawing
+        ? `<svg viewBox="0 0 48 48" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 38l4.5-1.5L35 16l-3-3L11.5 33.5 10 38z"/>
+            <path d="M29 16l3 3"/>
+            <path d="M22 38h16"/>
+            <circle cx="15" cy="14" r="3"/>
+          </svg>`
+        : `<svg viewBox="0 0 48 48" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="10" width="36" height="28" rx="6"/>
+            <circle cx="18" cy="21" r="3.5"/>
+            <path d="M8 33l10-9 7 6 6-5 9 8"/>
+          </svg>`;
+    }
+    if (titleEl) {
+      titleEl.textContent = isDrawing
+        ? '拖入你的手绘 / 板绘小猫图，或点击上传'
+        : '拖入真实猫咪照片，或点击上传';
+    }
+    if (subEl) {
+      subEl.textContent = isDrawing
+        ? '支持透明底 PNG / 白底插画 / 板绘线稿填色 · 自动抠底裁切，免点鼻尖'
+        : '推荐正面清晰拍到花色与毛色 · 纯本地识别，不上传服务器';
+    }
+    if (btnEl) {
+      btnEl.textContent = isDrawing ? '选择手绘 / 板绘图' : '选择真实猫照片';
+    }
+    if (!photoImg) {
+      if (tagEl) tagEl.textContent = isDrawing ? '绘稿模式 · 待上传' : '照片模式 · 待上传';
+      if (summaryEl) {
+        summaryEl.textContent = isDrawing
+          ? '适合透明底 PNG 或纯色背景的插画/板绘图：上传后自动去底裁切、免点鼻尖，默认「原图直取」与硬边色块提取（关闭自动虎斑），精准还原你画的每一块花纹。'
+          : '上传真实猫咪照片后点一下猫鼻尖对齐头部，系统会自动过滤背景与光影噪点，识别虎斑/重点色并提取为可编辑的贝塞尔曲线分区。';
+      }
+    }
+  }
+
   document.querySelectorAll('#photo-source-pills .pill').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#photo-source-pills .pill').forEach((b) => b.classList.toggle('active', b === btn));
@@ -1775,6 +1823,7 @@
         document.querySelectorAll('#tone-pills .pill').forEach((b) => b.classList.toggle('active', b.dataset.tone === 'balanced'));
         document.querySelectorAll('#tabby-pills .pill').forEach((b) => b.classList.toggle('active', b.dataset.tabby === 'auto'));
       }
+      updatePhotoSourceModeUI(mode);
       if (photoImg) {
         if (mode === 'drawing' && framingStep === 'nose') {
           photoCrop = Analyzer.detectDrawingCrop ? Analyzer.detectDrawingCrop(photoImg) : defaultPhotoCrop(photoImg);
@@ -1785,6 +1834,7 @@
       }
     });
   });
+  updatePhotoSourceModeUI(photoOpts.sourceType || 'photo');
 
   document.querySelectorAll('#color-count-pills .pill').forEach((btn) => {
     btn.addEventListener('click', () => {
