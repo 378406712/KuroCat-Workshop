@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-25T05:30:37.543Z",
-  "count": 10,
+  "generatedAt": "2026-11-25T08:34:20.909Z",
+  "count": 14,
   "skins": [
     {
       "slug": "abyssinian-farmer",
@@ -47,6 +47,32 @@
       "paletteSummary": [
         "#6F695D",
         "#D9AD55"
+      ]
+    },
+    {
+      "slug": "da-miao",
+      "title": "大喵 · 黄斗篷白猫（特殊皮肤）",
+      "author": "Alfie",
+      "authorUrl": "https://github.com/alfieke42-star",
+      "description": "专属原画渲染特殊皮肤！手绘水彩风黄斗篷白猫，配橘色呆毛、红蝴蝶结、三高光暖棕大眼与短八字肉垫后脚，自带粉白 68 键键盘与猫爪鼠标。源自 KuroCat 社区 PR #27 贡献。",
+      "tags": [
+        "专属渲染",
+        "手绘风",
+        "黄斗篷",
+        "社区贡献"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/da-miao/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 629,
+      "paletteSummary": [
+        "#FFF4F0",
+        "#FFF8F5",
+        "#FFD97D",
+        "#9C5536"
       ]
     },
     {
@@ -97,6 +123,78 @@
         "#B8A081",
         "#EFE7D5",
         "#BFB366"
+      ]
+    },
+    {
+      "slug": "mm-snowshoe",
+      "title": "MM小雪鞋",
+      "author": "Melanine",
+      "authorUrl": "https://github.com/Melanine",
+      "description": "家养雪鞋小精灵",
+      "tags": [
+        "MM",
+        "Melanine",
+        "雪鞋猫",
+        "重点色"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/mm-snowshoe/skin.kurocat",
+      "previewPath": "./community/mm-snowshoe/preview.png",
+      "previewType": "png",
+      "decorationCount": 0,
+      "regionCount": 3,
+      "sizeBytes": 71694,
+      "paletteSummary": [
+        "#8B817194",
+        "#F8F7F7",
+        "#0075FF"
+      ]
+    },
+    {
+      "slug": "nai-mi",
+      "title": "奶咪 · 绿眼金黄圆猫（特殊皮肤）",
+      "author": "Alfie",
+      "authorUrl": "https://github.com/alfieke42-star",
+      "description": "专属原画渲染特殊皮肤！圆滚滚 3D 质感金黄小猫，配清透绿眼与治愈微笑，无后腿软萌体态，自带黄绿配色 68 键键盘与抹茶绿鼠标。源自 KuroCat 社区 PR #27 贡献。",
+      "tags": [
+        "专属渲染",
+        "3D质感",
+        "绿眼圆猫",
+        "社区贡献"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/nai-mi/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 628,
+      "paletteSummary": [
+        "#FCC359",
+        "#FFD175",
+        "#88A852"
+      ]
+    },
+    {
+      "slug": "shanzhu-dami",
+      "title": "山竹家的大咪",
+      "author": "山竹",
+      "authorUrl": "",
+      "description": "大肥咪",
+      "tags": [
+        "橘白猫",
+        "原创皮肤",
+        "大肥咪"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/shanzhu-dami/skin.kurocat",
+      "previewPath": "./community/shanzhu-dami/preview.png",
+      "previewType": "png",
+      "decorationCount": 0,
+      "regionCount": 1,
+      "sizeBytes": 55193,
+      "paletteSummary": [
+        "#F7F4EF"
       ]
     },
     {

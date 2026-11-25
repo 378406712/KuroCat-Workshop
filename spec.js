@@ -448,7 +448,7 @@
       palette: pal,
       shape,
       headSurface: raw.headSurface === 'plane' ? 'plane' : 'dome',
-      renderStyle: raw.renderStyle === 'douni' ? 'douni' : (raw.renderStyle === 'dazed' ? 'dazed' : 'standard'),
+      renderStyle: (raw.renderStyle === 'douni' || raw.renderStyle === 'dazed' || raw.renderStyle === 'damiao' || raw.renderStyle === 'naimi') ? raw.renderStyle : 'standard',
       typingStyle: raw.typingStyle === 'douni' ? 'douni' : 'standard',
       // "legs" (default): sitting front legs tinted with palette.legs; "chest": built-in coat look
       idleLegsTinted: raw.idleLegs !== 'chest',
@@ -492,7 +492,7 @@
     }
     clean.shape = shape;
     clean.headSurface = raw.headSurface === 'plane' ? 'plane' : 'dome';
-    if (raw.renderStyle === 'douni' || raw.renderStyle === 'dazed') clean.renderStyle = raw.renderStyle;
+    if (raw.renderStyle === 'douni' || raw.renderStyle === 'dazed' || raw.renderStyle === 'damiao' || raw.renderStyle === 'naimi') clean.renderStyle = raw.renderStyle;
     if (raw.typingStyle === 'douni') clean.typingStyle = 'douni';
     if (raw.idleLegs === 'chest') clean.idleLegs = 'chest';
 

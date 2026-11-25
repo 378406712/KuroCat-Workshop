@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "name": "大喵 · 黄斗篷白猫",
+  "author": "Alfie",
+  "renderStyle": "damiao",
+  "palette": {
+    "body": "#FFF4F0",
+    "bodyShade": "#F7DFD7",
+    "belly": "#FFF8F5",
+    "legs": "#FFF2EE",
+    "paws": "#FFF4F0",
+    "pawPads": "#F59898",
+    "earOuter": "#FFD97D",
+    "earInner": "#F8C360",
+    "nose": "#8F4A36",
+    "mouth": "#8F4A36",
+    "iris": "#9C5536",
+    "tail": "#FFF2EE",
+    "outline": "#8F4A36",
+    "whiskers": "#8F4A36",
+    "points": "#FFD97D"
+  },
+  "shape": {
+    "build": "standard",
+    "pawStagger": 0
+  },
+  "headSurface": "dome",
+  "idleLegs": "chest",
+  "marks": []
+}

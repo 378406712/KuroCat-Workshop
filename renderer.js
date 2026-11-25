@@ -4776,6 +4776,25 @@
       return chosen;
     }
 
+    if (skin && (skin.renderStyle === 'damiao' || skin.renderStyle === 'naimi')) {
+      const su = 1 - (chosen.xUnits + chosen.widthUnits * 0.5);
+      const sv = 1 - (chosen.row + 0.5) / 5;
+      const kp = alfieKeyboardPoint(su, sv, ALFIE_PROFILES[skin.renderStyle]);
+      const useLeft = su < 0.52;
+      if (useLeft) {
+        state.alfieLeftTarget = kp;
+        state.alfieLeftTimer = 0.28;
+        state.alfieMouseTimer = 0;
+      } else {
+        state.alfieRightTarget = kp;
+        state.alfieRightTimer = 0.28;
+      }
+      state.earTwitch = (useLeft ? -1.1 : 1.1);
+      const stg = alfieStageRect(skin.renderStyle);
+      spawnBadge(state, badgeLabel, stg.x + kp.x * stg.w, stg.y + kp.y * stg.h - 10);
+      return chosen;
+    }
+
     const su = 1 - (chosen.xUnits + chosen.widthUnits * 0.5);
     const sv = 1 - (chosen.row + 0.5) / 5;
     const pt = screenQuadPoint(su, sv);
@@ -4800,6 +4819,12 @@
       state.douniSlapTimer = 0;
       state.douniMouseTimer = 1.25;
       spawnBadge(state, label, 82, 150);
+    } else if (skin && (skin.renderStyle === 'damiao' || skin.renderStyle === 'naimi')) {
+      state.alfieMouseTimer = 0.65;
+      state.alfieLeftTimer = 0;
+      const f = ALFIE_PROFILES[skin.renderStyle];
+      const stg = alfieStageRect(skin.renderStyle);
+      spawnBadge(state, label, stg.x + f.mouse.x * stg.w, stg.y + f.mouse.y * stg.h - 14);
     } else {
       state.leftPaw = { x: MOUSE_BASE.x + (state.mouseOffsetX || 0), y: MOUSE_BASE.y + (state.mouseOffsetY || 0) - 2 };
       state.leftPawActive = true;
@@ -5277,6 +5302,645 @@
       state.douniLoafBlend = 0; state.douniLoafBlendVel = 0;
       state.douniMouseBlend = 0; state.douniMouseBlendVel = 0;
     }
+
+    if (skin && (skin.renderStyle === 'damiao' || skin.renderStyle === 'naimi')) {
+      state.alfieLeftTimer = Math.max(0, (state.alfieLeftTimer || 0) - dt);
+      state.alfieRightTimer = Math.max(0, (state.alfieRightTimer || 0) - dt);
+      state.alfieMouseTimer = Math.max(0, (state.alfieMouseTimer || 0) - dt);
+      const wantL = (!wantDrag && state.dizzyIntensity < 0.35 && state.lieIntensity < 0.45 && (state.alfieLeftTimer > 0 || state.alfieMouseTimer > 0)) ? 1 : 0;
+      const wantR = (!wantDrag && state.dizzyIntensity < 0.35 && state.lieIntensity < 0.45 && state.alfieRightTimer > 0) ? 1 : 0;
+      const [lpV, lpVel] = stepSpring(state.alfieLeftProg || 0, state.alfieLeftProgVel || 0, wantL, dt, 340, 24);
+      const [rpV, rpVel] = stepSpring(state.alfieRightProg || 0, state.alfieRightProgVel || 0, wantR, dt, 340, 24);
+      state.alfieLeftProg = clamp(lpV, 0, 1.06); state.alfieLeftProgVel = lpVel;
+      state.alfieRightProg = clamp(rpV, 0, 1.06); state.alfieRightProgVel = rpVel;
+    }
+  }
+
+  // =========================================================================
+  // Alfie Artwork Special Renderer (大喵 / 奶咪 — PR #27 port to Canvas 2D)
+  // =========================================================================
+  const ALFIE_PROFILES = {
+    damiao: {
+      style: 'damiao',
+      hasLegs: true,
+      aspect: 1085 / 1450,
+      head: { x: 0.47, y: 0.35 },
+      leftEye: { x: 0.284, y: 0.312, w: 0.137, h: 0.110 },
+      rightEye: { x: 0.526, y: 0.312, w: 0.137, h: 0.110 },
+      faceSample: { x: 0.445, y: 0.462, w: 0.05, h: 0.025 },
+      mouth: { x: 0.418, y: 0.402, w: 0.113, h: 0.032 },
+      leftWrist: { x: 0.36, y: 0.707 },
+      rightWrist: { x: 0.565, y: 0.707 },
+      keyboard: { x: 0.178, y: 0.714, w: 0.599, h: 0.140 },
+      mouse: { x: 0.083, y: 0.792 },
+      tail: { x: 0.83, y: 0.55 },
+      ink: 'rgb(143, 74, 54)',
+      armFill: 'rgb(255, 242, 240)'
+    },
+    naimi: {
+      style: 'naimi',
+      hasLegs: false,
+      aspect: 1086 / 1448,
+      head: { x: 0.485, y: 0.26 },
+      leftEye: { x: 0.299, y: 0.191, w: 0.118, h: 0.086 },
+      rightEye: { x: 0.553, y: 0.191, w: 0.118, h: 0.086 },
+      faceSample: { x: 0.46, y: 0.348, w: 0.06, h: 0.028 },
+      mouth: { x: 0.394, y: 0.298, w: 0.187, h: 0.030 },
+      leftWrist: { x: 0.23, y: 0.577 },
+      rightWrist: { x: 0.735, y: 0.577 },
+      keyboard: { x: 0.195, y: 0.820, w: 0.684, h: 0.135 },
+      mouse: { x: 0.10, y: 0.90 },
+      tail: { x: 0.87, y: 0.72 },
+      ink: 'rgb(89, 74, 26)',
+      armFill: 'rgb(252, 195, 89)'
+    }
+  };
+
+  const alfieAssetCache = {};
+
+  function alfieStageRect(style) {
+    const f = ALFIE_PROFILES[style] || ALFIE_PROFILES.damiao;
+    const h = 278;
+    const w = h * f.aspect;
+    return { x: (360 - w) / 2, y: 18, w, h };
+  }
+
+  function alfieKeyboardPoint(u, v, f) {
+    const left = f.hasLegs ? 0.190 - 0.030 * v : 0.205 - 0.024 * v;
+    const right = f.hasLegs ? 0.768 + 0.039 * v : 0.865 + 0.038 * v;
+    return { x: left + (right - left) * u, y: f.keyboard.y + f.keyboard.h * v };
+  }
+
+  function ensureAlfieAssets(style, onLoad) {
+    if (alfieAssetCache[style]) {
+      const cached = alfieAssetCache[style];
+      if (onLoad) {
+        if (cached.mainReady && cached.bodyReady) onLoad();
+        else cached.callbacks.push(onLoad);
+      }
+      return cached;
+    }
+    const entry = {
+      main: new Image(),
+      body: new Image(),
+      mainReady: false,
+      bodyReady: false,
+      rigCanvas: null,
+      patches: {},
+      callbacks: onLoad ? [onLoad] : []
+    };
+    const flushCallbacks = () => {
+      const cbs = entry.callbacks.slice();
+      entry.callbacks.length = 0;
+      for (const cb of cbs) {
+        try { cb(); } catch (_) {}
+      }
+    };
+    const buildRig = () => {
+      if (!entry.mainReady || !entry.bodyReady) return;
+      const w = entry.main.naturalWidth || 576;
+      const h = entry.main.naturalHeight || 768;
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const g = c.getContext('2d');
+      g.drawImage(entry.body, 0, 0, w, h);
+      const f = ALFIE_PROFILES[style];
+      g.save();
+      g.beginPath();
+      g.rect(0, 0, w, (f.hasLegs ? 0.60 : 0.36) * h);
+      g.clip();
+      g.drawImage(entry.main, 0, 0, w, h);
+      g.restore();
+      entry.rigCanvas = c;
+      flushCallbacks();
+    };
+    entry.main.onload = () => { entry.mainReady = true; buildRig(); };
+    entry.body.onload = () => { entry.bodyReady = true; buildRig(); };
+    entry.main.src = `./assets/special/${style}.png`;
+    entry.body.src = `./assets/special/${style}-body.png`;
+    alfieAssetCache[style] = entry;
+    return entry;
+  }
+
+  function preloadSpecialAssets(renderStyle, onLoad) {
+    if (renderStyle === 'damiao' || renderStyle === 'naimi') {
+      ensureAlfieAssets(renderStyle, onLoad);
+    }
+  }
+
+  function getAlfiePatch(entry, key, srcRect, f) {
+    if (entry.patches[key]) return entry.patches[key];
+    if (!entry.mainReady) return null;
+    const w = entry.main.naturalWidth;
+    const h = entry.main.naturalHeight;
+    const tmp = document.createElement('canvas');
+    tmp.width = w; tmp.height = h;
+    const tg = tmp.getContext('2d');
+    tg.drawImage(entry.main, 0, 0);
+    const samples = [];
+    const midX = srcRect.x + srcRect.w * 0.5;
+    const midY = srcRect.y + srcRect.h * 0.5;
+    for (let i = 0; i < 32; i++) {
+      const a = (i * Math.PI) / 16;
+      const sx = clamp(Math.round((midX + Math.cos(a) * srcRect.w * 0.53) * w), 0, w - 1);
+      const sy = clamp(Math.round((midY + Math.sin(a) * srcRect.h * 0.53) * h), 0, h - 1);
+      const px = tg.getImageData(sx, sy, 1, 1).data;
+      if (px[0] < 180 || px[1] < 130) continue;
+      if (f.hasLegs && px[2] < 180) continue;
+      samples.push([Math.cos(a), Math.sin(a), px[0], px[1], px[2]]);
+    }
+    const size = 64;
+    const out = document.createElement('canvas');
+    out.width = size; out.height = size;
+    const og = out.getContext('2d');
+    const imgData = og.createImageData(size, size);
+    const d = imgData.data;
+    const fallback = f.hasLegs ? [252, 240, 238] : [253, 198, 92];
+    for (let py = 0; py < size; py++) {
+      for (let px = 0; px < size; px++) {
+        const nx = ((px + 0.5) / size) * 2 - 1;
+        const ny = ((py + 0.5) / size) * 2 - 1;
+        const r = Math.hypot(nx, ny);
+        const alpha = 1 - smoothstep(0.84, 1.0, r);
+        let rC = fallback[0], gC = fallback[1], bC = fallback[2];
+        if (samples.length > 0) {
+          let tot = 0, rr = 0, gg = 0, bb = 0;
+          for (let k = 0; k < samples.length; k++) {
+            const s = samples[k];
+            const dist = Math.max(0.04, Math.hypot(nx - s[0], ny - s[1]));
+            const wt = 1 / (dist * dist * dist);
+            tot += wt;
+            rr += s[2] * wt; gg += s[3] * wt; bb += s[4] * wt;
+          }
+          rC = rr / tot; gC = gg / tot; bC = bb / tot;
+        }
+        const idx = (py * size + px) * 4;
+        d[idx] = clamp(Math.round(rC), 0, 255);
+        d[idx + 1] = clamp(Math.round(gC), 0, 255);
+        d[idx + 2] = clamp(Math.round(bC), 0, 255);
+        d[idx + 3] = clamp(Math.round(alpha * 255), 0, 255);
+      }
+    }
+    og.putImageData(imgData, 0, 0);
+    entry.patches[key] = out;
+    return out;
+  }
+
+  function alfieBump(px, py, cx, cy, r) {
+    const dx = px - cx, dy = py - cy;
+    return Math.exp(-(dx * dx + dy * dy) / (r * r));
+  }
+
+  function alfieDeform(orig, state, f) {
+    let qx = orig.x, qy = orig.y;
+    if (f.hasLegs) {
+      const compact = smoothstep(0.60, 0.74, qy) * (1 - smoothstep(0.73, 0.82, qx));
+      qx = 0.47 + (qx - 0.47) * (1 - 0.16 * compact);
+      qy = 0.60 + (qy - 0.60) * (1 - 0.17 * compact);
+    }
+    const scruff = clamp(state.scruffDrag || 0, 0, 1);
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const dizzy = clamp(state.dizzyIntensity || 0, 0, 1);
+    const breath = Math.sin((state.time || 0) * 2.1) * 1.6;
+
+    const headW = f.hasLegs ? 1 - smoothstep(0.51, 0.60, qy) : alfieBump(qx, qy, f.head.x, f.head.y, 0.30);
+    const bodyW = 1 - smoothstep(0.98, 1.0, qy);
+    const footW = (f.hasLegs && qy > 0.875 && qx > 0.23 && qx < 0.69) ? 1 : 0;
+    const weight = Math.max(bodyW, footW);
+
+    const seatX = 0.48;
+    const seatY = (f.hasLegs ? 0.72 : 0.80) * (1 - scruff) + (f.hasLegs ? 0.54 : 0.38) * scruff;
+    const roll = clamp(state.headTilt || 0, -0.12, 0.12) * (f.hasLegs ? 0.30 : 0.15) * headW
+      + clamp(state.scruffSwing || 0, -0.20, 0.20) * scruff * 0.24 * weight
+      + Math.sin(state.dizzyPhase || 0) * dizzy * 0.035 * weight
+      + lie * 0.045 * weight;
+
+    const cx = qx - seatX, cy = qy - seatY;
+    const cosR = Math.cos(roll), sinR = Math.sin(roll);
+    let vx = seatX + cx * cosR - cy * sinR;
+    let vy = seatY + cx * sinR + cy * cosR;
+
+    vx += clamp(state.bodyShiftX || 0, -16, 16) * 0.0005 * weight;
+    vx += clamp(state.headYaw || 0, -1, 1) * (f.hasLegs ? 0.009 : 0.004) * headW;
+    vy += breath * 0.00065 * weight;
+    vy += clamp(state.headOffsetY || 0, -20, 20) * (0.0007 * (1 - scruff) + 0.00035 * scruff) * headW;
+    vy += (lie * 0.032 - scruff * 0.04) * weight;
+    vy += (qy - seatY) * clamp((state.bodySquash || 1) - 1, -0.045, 0.045) * weight;
+
+    const earW = (1 - smoothstep(0.21, 0.29, qy)) * smoothstep(0.08, 0.17, Math.abs(qx - f.head.x));
+    vy += clamp(state.earFold || 0, 0, 1) * 0.009 * earW;
+    vx += (state.earTwitch || 0) * 0.0008 * earW;
+
+    const gazeX = clamp(state.headYaw || 0, -1, 1) * 1.4;
+    const gazeY = clamp(state.headPitch || 0, -1, 1) * 1.4;
+    const eyesW = alfieBump(qx, qy, f.leftEye.x + f.leftEye.w * 0.5, f.leftEye.y + f.leftEye.h * 0.5, 0.07)
+      + alfieBump(qx, qy, f.rightEye.x + f.rightEye.w * 0.5, f.rightEye.y + f.rightEye.h * 0.5, 0.07);
+    vx += gazeX * 0.002 * eyesW;
+    vy += gazeY * 0.0015 * eyesW;
+
+    const tailW = smoothstep(0.72, 0.85, qx) * alfieBump(qx, qy, f.tail.x, f.tail.y, 0.22);
+    const tp = state.tailPhase || 0;
+    vx += (Math.sin(tp) * 0.012 + clamp(state.tailFlickX || 0, -36, 36) * 0.0004) * tailW;
+    vy += (Math.cos(tp * 1.3) * 0.006 + scruff * 0.020) * tailW;
+
+    if (f.hasLegs) {
+      vx += (0.47 - vx) * 0.10 * scruff * smoothstep(0.80, 0.87, qy);
+    }
+    return { x: vx, y: vy };
+  }
+
+  function drawAlfieTriangle(ctx, img, s0, s1, s2, d0, d1, d2) {
+    const ux = s1.x - s0.x, uy = s1.y - s0.y;
+    const vx = s2.x - s0.x, vy = s2.y - s0.y;
+    const det = ux * vy - uy * vx;
+    if (Math.abs(det) < 1e-7) return;
+    const dx = d1.x - d0.x, dy = d1.y - d0.y;
+    const ex = d2.x - d0.x, ey = d2.y - d0.y;
+    const a = (dx * vy - ex * uy) / det;
+    const c = (ex * ux - dx * vx) / det;
+    const b = (dy * vy - ey * uy) / det;
+    const d = (ey * ux - dy * vx) / det;
+    const tx = d0.x - a * s0.x - c * s0.y;
+    const ty = d0.y - b * s0.x - d * s0.y;
+
+    // Slightly expand destination clip around centroid to avoid sub-pixel hairlines
+    const cx = (d0.x + d1.x + d2.x) / 3;
+    const cy = (d0.y + d1.y + d2.y) / 3;
+    const pad = 0.0022;
+    const exp = (p) => {
+      const rx = p.x - cx, ry = p.y - cy;
+      const len = Math.hypot(rx, ry) || 1;
+      return { x: p.x + (rx / len) * pad, y: p.y + (ry / len) * pad };
+    };
+    const e0 = exp(d0), e1 = exp(d1), e2 = exp(d2);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(e0.x, e0.y);
+    ctx.lineTo(e1.x, e1.y);
+    ctx.lineTo(e2.x, e2.y);
+    ctx.closePath();
+    ctx.clip();
+    ctx.transform(a, b, c, d, tx, ty);
+    ctx.drawImage(img, 0, 0, 1, 1);
+    ctx.restore();
+  }
+
+  function drawAlfieArtworkScene(ctx, skin, state, style) {
+    const f = ALFIE_PROFILES[style] || ALFIE_PROFILES.damiao;
+    const entry = ensureAlfieAssets(style);
+    const rect = alfieStageRect(style);
+    const scruff = clamp(state.scruffDrag || 0, 0, 1);
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const dizzy = clamp(state.dizzyIntensity || 0, 0, 1);
+
+    const headDef = alfieDeform(f.head, state, f);
+    const headCenter = { x: rect.x + headDef.x * rect.w, y: rect.y + headDef.y * rect.h };
+    const seatX = rect.x + 0.48 * rect.w;
+    const seatY = rect.y + (f.hasLegs ? 0.72 : 0.80) * rect.h;
+    const decoAnchors = {
+      headTop: { x: headCenter.x, y: headCenter.y - (f.hasLegs ? 52 : 38), rot: (state.headTilt || 0) * 0.4, scale: 1 },
+      face: { x: headCenter.x, y: headCenter.y + 4, rot: (state.headTilt || 0) * 0.35, scale: 1 },
+      neck: { x: seatX, y: headCenter.y + (f.hasLegs ? 42 : 34), rot: 0, scale: 1 },
+      tailTip: { x: rect.x + f.tail.x * rect.w, y: rect.y + f.tail.y * rect.h, rot: 0, scale: 1 }
+    };
+
+    if (!entry.mainReady) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(120,110,100,0.22)';
+      ctx.beginPath();
+      ctx.roundRect(rect.x + 24, rect.y + 40, rect.w - 48, rect.h - 60, 24);
+      ctx.fill();
+      ctx.restore();
+      return { seatX, seatY, headCenter, decoAnchors };
+    }
+
+    const equipAlpha = clamp(1 - scruff * 2.6, 0, 1);
+    const rigImg = entry.rigCanvas || entry.main;
+
+    ctx.save();
+    ctx.translate(rect.x, rect.y);
+    ctx.scale(rect.w, rect.h);
+
+    // 1. Hardware layer from immutable reference (mouse + keyboard base)
+    if (equipAlpha > 0.01) {
+      ctx.save();
+      ctx.globalAlpha *= equipAlpha;
+      ctx.beginPath();
+      ctx.rect(0, f.keyboard.y - 0.024, 1, 1 - (f.keyboard.y - 0.024));
+      if (f.hasLegs) {
+        // Even-odd exclude bottom feet so animated feet show cleanly
+        ctx.rect(0.23, 0.88, 0.46, 0.12);
+        ctx.clip('evenodd');
+      } else {
+        ctx.clip();
+      }
+      ctx.drawImage(entry.main, 0, 0, 1, 1);
+      ctx.restore();
+    }
+
+    // 2. Deformed character body via 8x14 triangle mesh
+    const cols = 8, rows = 14;
+    const grid = [];
+    for (let j = 0; j <= rows; j++) {
+      const row = [];
+      const y = j / rows;
+      for (let i = 0; i <= cols; i++) {
+        const x = i / cols;
+        row.push({ s: { x, y }, d: alfieDeform({ x, y }, state, f) });
+      }
+      grid.push(row);
+    }
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i < cols; i++) {
+        const a = grid[j][i], b = grid[j][i + 1], c = grid[j + 1][i + 1], d = grid[j + 1][i];
+        drawAlfieTriangle(ctx, rigImg, a.s, b.s, c.s, a.d, b.d, c.d);
+        drawAlfieTriangle(ctx, rigImg, a.s, c.s, d.s, a.d, c.d, d.d);
+      }
+    }
+
+    // 3. Dynamic eyes (blink / pet / sleep / dizzy)
+    const closure = clamp(Math.max(state.blinkProgress || 0, (state.petHead || 0) * 0.96, lie * 0.98), 0, 1);
+    if (closure > 0.015 || dizzy > 0.35) {
+      const eyeList = [
+        { key: 'leftEye', r: f.leftEye },
+        { key: 'rightEye', r: f.rightEye }
+      ];
+      for (const item of eyeList) {
+        const e = item.r;
+        const center = alfieDeform({ x: e.x + e.w * 0.5, y: e.y + e.h * 0.5 }, state, f);
+        const rx = center.x - e.w * 0.5, ry = center.y - e.h * 0.5;
+        const pRect = { x: e.x - 0.016, y: e.y - 0.014, w: e.w + 0.032, h: e.h + 0.028 };
+        const patch = getAlfiePatch(entry, item.key, pRect, f);
+        if (patch) {
+          ctx.drawImage(patch, rx - 0.016, ry - 0.014, e.w + 0.032, e.h + 0.028);
+        }
+        if (dizzy > 0.35) {
+          ctx.save();
+          ctx.strokeStyle = f.ink;
+          ctx.lineWidth = 0.0032;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          for (let k = 0; k <= 64; k++) {
+            const t = k / 64;
+            const ang = t * Math.PI * 5 + (state.dizzyPhase || 0);
+            const px = center.x + Math.cos(ang) * e.w * 0.4 * t;
+            const py = center.y + Math.sin(ang) * e.h * 0.4 * t;
+            if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+          ctx.restore();
+        } else if (closure > 0.88) {
+          ctx.save();
+          ctx.strokeStyle = f.ink;
+          ctx.lineWidth = 0.003;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(rx + 0.01, center.y);
+          ctx.quadraticCurveTo(center.x, center.y + (state.petHead > 0.3 ? -0.014 : 0.015), rx + e.w - 0.01, center.y);
+          ctx.stroke();
+          ctx.restore();
+        } else {
+          const nw = entry.main.naturalWidth, nh = entry.main.naturalHeight;
+          const drawH = e.h * Math.max(0.04, 1 - closure);
+          ctx.drawImage(
+            entry.main,
+            e.x * nw, e.y * nh, e.w * nw, e.h * nh,
+            rx, center.y - drawH * 0.5, e.w, drawH
+          );
+        }
+      }
+    }
+
+    // 4. Dynamic yawn mouth
+    const yawn = clamp(state.yawnAmount || 0, 0, 1);
+    if (yawn > 0.02) {
+      const m = f.mouth;
+      const c = alfieDeform({ x: m.x + m.w * 0.5, y: m.y + m.h * 0.5 }, state, f);
+      const pRect = { x: m.x - 0.01, y: m.y - 0.01, w: m.w + 0.02, h: m.h + 0.02 };
+      const patch = getAlfiePatch(entry, 'mouth', pRect, f);
+      if (patch) {
+        ctx.drawImage(patch, c.x - m.w * 0.5 - 0.01, c.y - m.h * 0.5 - 0.01, m.w + 0.02, m.h + 0.02);
+      }
+      const mr = { cx: c.x, cy: c.y + 0.025 * yawn, rx: 0.026, ry: 0.029 * yawn };
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(mr.cx, mr.cy, mr.rx, Math.max(0.002, mr.ry), 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgb(158, 66, 61)';
+      ctx.fill();
+      if (yawn > 0.25) {
+        ctx.save();
+        ctx.clip();
+        ctx.fillStyle = 'rgb(237, 148, 156)';
+        ctx.beginPath();
+        ctx.ellipse(mr.cx, mr.cy + mr.ry * 0.65, mr.rx * 0.78, mr.ry * 0.75, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.strokeStyle = f.ink;
+      ctx.lineWidth = 0.0022;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 5. Arm state & idle original arms
+    const armMoving = (isLeft) => {
+      if (scruff > 0.15) return true;
+      if (dizzy >= 0.35 || lie >= 0.45) return false;
+      const prog = isLeft ? (state.alfieLeftProg || 0) : (state.alfieRightProg || 0);
+      return prog > 0.04;
+    };
+
+    for (const isLeft of [true, false]) {
+      if (armMoving(isLeft)) continue;
+      const base = isLeft ? f.leftWrist : f.rightWrist;
+      const to = alfieDeform(base, state, f);
+      ctx.save();
+      ctx.translate(to.x - base.x, to.y - base.y);
+      ctx.beginPath();
+      if (f.hasLegs) {
+        const pts = isLeft
+          ? [[0.31, 0.599], [0.355, 0.605], [0.395, 0.65], [0.417, 0.705], [0.402, 0.735], [0.321, 0.735], [0.285, 0.676], [0.273, 0.625]]
+          : [[0.630, 0.599], [0.584, 0.605], [0.545, 0.65], [0.523, 0.705], [0.538, 0.735], [0.619, 0.735], [0.655, 0.676], [0.667, 0.625]];
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for (let k = 1; k < pts.length; k++) ctx.lineTo(pts[k][0], pts[k][1]);
+        ctx.closePath();
+      } else {
+        ctx.ellipse(isLeft ? 0.22 : 0.77, 0.545, 0.09, 0.085, 0, 0, Math.PI * 2);
+      }
+      ctx.clip();
+      ctx.drawImage(entry.main, 0, 0, 1, 1);
+      ctx.restore();
+    }
+
+    // 6. Foreground keyboard bezel occlusion & Da Miao's splayed feet
+    if (equipAlpha > 0.01) {
+      ctx.save();
+      ctx.globalAlpha *= equipAlpha;
+      ctx.beginPath();
+      ctx.rect(f.keyboard.x - 0.025, f.keyboard.y - 0.008, f.keyboard.w + 0.055, f.keyboard.h + 0.028);
+      ctx.clip();
+      ctx.drawImage(entry.main, 0, 0, 1, 1);
+      ctx.restore();
+
+      if (f.hasLegs) {
+        ctx.save();
+        ctx.globalAlpha *= equipAlpha;
+        for (const ft of [{ x: 0.327, y: 0.912, rx: 0.078, ry: 0.038 }, { x: 0.597, y: 0.912, rx: 0.078, ry: 0.038 }]) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.ellipse(ft.x, ft.y, ft.rx, ft.ry, 0, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(entry.main, 0, 0, 1, 1);
+          ctx.restore();
+        }
+        ctx.restore();
+      }
+    }
+
+    // 7. Resting palms on top of keyboard edge (Da Miao)
+    if (f.hasLegs) {
+      const nw = entry.main.naturalWidth, nh = entry.main.naturalHeight;
+      for (const isLeft of [true, false]) {
+        if (armMoving(isLeft)) continue;
+        const center = isLeft ? f.leftWrist : f.rightWrist;
+        const to = alfieDeform(center, state, f);
+        const rx = center.x - 0.051, ry = center.y - 0.026, rw = 0.102, rh = 0.052;
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(to.x, to.y, rw * 0.5, rh * 0.5, 0, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(entry.main, rx * nw, ry * nh, rw * nw, rh * nh, to.x - rw * 0.5, to.y - rh * 0.5, rw, rh);
+        ctx.restore();
+      }
+    }
+
+    // 8. Dynamic moving arms (typing / mouse / scruff drag)
+    for (const isLeft of [true, false]) {
+      if (!armMoving(isLeft)) continue;
+      const shoulder = alfieDeform(
+        { x: f.hasLegs ? (isLeft ? 0.315 : 0.628) : (isLeft ? 0.195 : 0.785), y: f.hasLegs ? 0.612 : 0.505 },
+        state, f
+      );
+      const rest = alfieDeform(isLeft ? f.leftWrist : f.rightWrist, state, f);
+      let end = rest;
+      if (scruff > 0.15) {
+        const hang = alfieDeform(
+          { x: f.hasLegs ? (isLeft ? 0.415 : 0.545) : (isLeft ? 0.32 : 0.65), y: f.hasLegs ? 0.795 : 0.695 },
+          state, f
+        );
+        const t = smoothstep(0.15, 0.8, scruff);
+        end = { x: rest.x + (hang.x - rest.x) * t, y: rest.y + (hang.y - rest.y) * t };
+      } else {
+        const prog = isLeft ? (state.alfieLeftProg || 0) : (state.alfieRightProg || 0);
+        let target = rest;
+        if (isLeft && (state.alfieMouseTimer || 0) > 0) {
+          target = { x: f.mouse.x + (state.mouseOffsetX || 0) / 360, y: f.mouse.y + (state.mouseOffsetY || 0) / 320 - 0.008 };
+        } else if (isLeft && state.alfieLeftTarget) {
+          target = state.alfieLeftTarget;
+        } else if (!isLeft && state.alfieRightTarget) {
+          target = state.alfieRightTarget;
+        }
+        end = { x: rest.x + (target.x - rest.x) * prog, y: rest.y + (target.y - rest.y) * prog };
+      }
+
+      const mid = { x: (shoulder.x + end.x) * 0.5 + (isLeft ? -0.025 : 0.025), y: (shoulder.y + end.y) * 0.5 - 0.015 };
+      const edgeA = [], edgeB = [];
+      for (let i = 0; i <= 14; i++) {
+        const t = i / 14, u = 1 - t;
+        const cx = u * u * shoulder.x + 2 * u * t * mid.x + t * t * end.x;
+        const cy = u * u * shoulder.y + 2 * u * t * mid.y + t * t * end.y;
+        const dx = 2 * u * (mid.x - shoulder.x) + 2 * t * (end.x - mid.x);
+        const dy = 2 * u * (mid.y - shoulder.y) + 2 * t * (end.y - mid.y);
+        const len = Math.max(0.0001, Math.hypot(dx, dy));
+        const half = (0.085 + (0.052 - 0.085) * t) * 0.5;
+        edgeA.push({ x: cx - (dy / len) * half, y: cy + (dx / len) * half });
+        edgeB.push({ x: cx + (dy / len) * half, y: cy - (dx / len) * half });
+      }
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(edgeA[0].x, edgeA[0].y);
+      for (let i = 1; i < edgeA.length; i++) ctx.lineTo(edgeA[i].x, edgeA[i].y);
+      ctx.quadraticCurveTo(end.x + (end.x - mid.x) * 0.10, end.y + (end.y - mid.y) * 0.10, edgeB[edgeB.length - 1].x, edgeB[edgeB.length - 1].y);
+      for (let i = edgeB.length - 2; i >= 0; i--) ctx.lineTo(edgeB[i].x, edgeB[i].y);
+      ctx.quadraticCurveTo(shoulder.x + (shoulder.x - mid.x) * 0.12, shoulder.y + (shoulder.y - mid.y) * 0.12, edgeA[0].x, edgeA[0].y);
+      ctx.closePath();
+      ctx.fillStyle = f.armFill;
+      ctx.fill();
+      if (!f.hasLegs) {
+        ctx.save();
+        ctx.clip();
+        const adx = end.x - shoulder.x, ady = end.y - shoulder.y, alen = Math.max(0.001, Math.hypot(adx, ady));
+        const nx = (-ady / alen) * 0.04, ny = (adx / alen) * 0.04;
+        const grad = ctx.createLinearGradient(mid.x - nx, mid.y - ny, mid.x + nx, mid.y + ny);
+        grad.addColorStop(0, 'rgba(0,0,0,0.10)');
+        grad.addColorStop(0.5, 'rgba(0,0,0,0)');
+        grad.addColorStop(1, 'rgba(255,255,255,0.08)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1, 1);
+        ctx.restore();
+      }
+      ctx.strokeStyle = f.ink;
+      ctx.lineWidth = f.hasLegs ? 0.0022 : 0.0010;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(edgeA[3].x, edgeA[3].y);
+      for (let i = 4; i < edgeA.length; i++) ctx.lineTo(edgeA[i].x, edgeA[i].y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(edgeB[3].x, edgeB[3].y);
+      for (let i = 4; i < edgeB.length; i++) ctx.lineTo(edgeB[i].x, edgeB[i].y);
+      ctx.stroke();
+      ctx.restore();
+
+      if (f.hasLegs) {
+        const nw = entry.main.naturalWidth, nh = entry.main.naturalHeight;
+        const base = isLeft ? f.leftWrist : f.rightWrist;
+        const rx = base.x - 0.051, ry = base.y - 0.026, rw = 0.102, rh = 0.052;
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(end.x, end.y, rw * 0.5, rh * 0.5, 0, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(entry.main, rx * nw, ry * nh, rw * nw, rh * nh, end.x - rw * 0.5, end.y - rh * 0.5, rw, rh);
+        ctx.restore();
+      } else {
+        ctx.save();
+        ctx.fillStyle = f.armFill;
+        ctx.beginPath();
+        ctx.ellipse(end.x, end.y, 0.032, 0.022, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // 9. Key glow & mouse press glow
+    if (equipAlpha > 0.01 && state.keyGlow) {
+      for (const cap of KEYCAPS) {
+        const g = state.keyGlow[cap.id];
+        if (!g || g <= 0.02) continue;
+        const su = 1 - (cap.xUnits + cap.widthUnits * 0.5);
+        const sv = 1 - (cap.row + 0.5) / 5;
+        const pt = alfieKeyboardPoint(su, sv, f);
+        ctx.fillStyle = `rgba(255, 224, 122, ${(clamp(g, 0, 1) * 0.42 * equipAlpha).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.ellipse(pt.x, pt.y, 0.012, 0.007, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    const mPress = Math.max(state.mousePressLeft || 0, state.mousePressRight || 0, state.mousePress || 0);
+    if (mPress > 0.02 && equipAlpha > 0.01) {
+      ctx.fillStyle = `rgba(255, 196, 92, ${(clamp(mPress, 0, 1) * 0.42 * equipAlpha).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.ellipse(f.mouse.x, f.mouse.y + 0.025, 0.019, 0.013, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    if (skin.decorations && skin.decorations.length > 0) {
+      drawDecorations(ctx, seatX, seatY, headCenter, state, skin, { decoAnchors });
+    }
+    return { seatX, seatY, headCenter, decoAnchors };
   }
 
   function drawScene(ctx, skin, state, options) {
@@ -5302,6 +5966,19 @@
       ctx.restore();
       return xforms;
     }
+
+    if (skin.renderStyle === 'damiao' || skin.renderStyle === 'naimi') {
+      const xforms = drawAlfieArtworkScene(ctx, skin, state, skin.renderStyle);
+      drawSparkles(ctx, state);
+      drawFloatingBadges(ctx, state);
+      if (typeof opts.editDecorationIndex === 'number' && opts.editDecorationIndex >= 0 &&
+          skin.decorations && skin.decorations[opts.editDecorationIndex]) {
+        drawDecorationOverlay(ctx, skin.decorations[opts.editDecorationIndex], skin, xforms.seatX, xforms.seatY, xforms.headCenter, state, xforms.decoAnchors);
+      }
+      ctx.restore();
+      return xforms;
+    }
+
 
     const scruff = clamp(state.scruffDrag || 0, 0, 1);
     if (scruff > 0.005) {
@@ -6244,6 +6921,7 @@
     mapCanvasToSpace,
     mapCanvasToTail,
     preloadDecorations,
+    preloadSpecialAssets,
     getDecorationTransform,
     getDecorationOverlayGeometry,
     renderPreviewBase64,

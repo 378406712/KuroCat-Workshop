@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-25T00:11:23.316Z",
-  "count": 5,
+  "generatedAt": "2026-11-25T08:34:20.909Z",
+  "count": 7,
   "keyboards": [
     {
       "slug": "douni-retro",
@@ -28,6 +28,62 @@
         "darkText": true
       },
       "sizeBytes": 402
+    },
+    {
+      "slug": "sea-salt-blue",
+      "title": "海盐蓝白 65%",
+      "author": "白酱WhItE",
+      "authorUrl": "",
+      "description": "水蓝色主体配纯白键帽，海盐般清透的蓝白配色，淡蓝键帽描边与点缀键呼应，冷光呼吸灯下更像退潮后的海面。",
+      "tags": [
+        "海盐蓝",
+        "蓝白",
+        "水蓝色",
+        "清爽",
+        "浅色键盘"
+      ],
+      "createdAt": "2026-11-25",
+      "keyboardPath": "./community-keyboards/sea-salt-blue/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#4F9FD0",
+        "mouseBorder": "#2F6E96",
+        "wheel": "#BFE3F5",
+        "base": "#24506B",
+        "deck": "#EDF7FC",
+        "key": "#FDFEFF",
+        "keyBorder": "#C3E0F0",
+        "accent": "#3E8CC0",
+        "darkText": true
+      },
+      "sizeBytes": 325
+    },
+    {
+      "slug": "zhongfen-gray-rainbow",
+      "title": "灰白彩虹 65%",
+      "author": "蛋黄酱",
+      "authorUrl": "",
+      "description": "灰白机身配彩虹高光，白色键帽暗字，配小黑猫安静又亮眼。",
+      "tags": [
+        "灰白键盘",
+        "彩虹光效",
+        "极简"
+      ],
+      "createdAt": "2026-11-25",
+      "keyboardPath": "./community-keyboards/zhongfen-gray-rainbow/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#F2F3F5",
+        "mouseBorder": "#C4C8CE",
+        "wheel": "#9AE6FF",
+        "base": "#4A4E56",
+        "deck": "#7C828B",
+        "key": "#FFFFFF",
+        "keyBorder": "#D6DAE0",
+        "accent": "#FF6FB5",
+        "darkText": true
+      },
+      "sizeBytes": 323
     },
     {
       "slug": "sakura-milk",

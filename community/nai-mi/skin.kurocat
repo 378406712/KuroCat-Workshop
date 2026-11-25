@@ -1,0 +1,30 @@
+{
+  "formatVersion": 1,
+  "name": "奶咪 · 绿眼金黄圆猫",
+  "author": "Alfie",
+  "renderStyle": "naimi",
+  "palette": {
+    "body": "#FCC359",
+    "bodyShade": "#E59E35",
+    "belly": "#FFD175",
+    "legs": "#FCC359",
+    "paws": "#FCC359",
+    "earOuter": "#F8B646",
+    "earInner": "#DF952C",
+    "nose": "#594A1A",
+    "mouth": "#594A1A",
+    "iris": "#88A852",
+    "tail": "#FCC359",
+    "outline": "#594A1A",
+    "whiskers": "#594A1A",
+    "points": "#88A852"
+  },
+  "shape": {
+    "build": "standard",
+    "bodyWidth": 1.25,
+    "pawStagger": 0
+  },
+  "headSurface": "dome",
+  "idleLegs": "chest",
+  "marks": []
+}

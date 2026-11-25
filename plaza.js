@@ -480,6 +480,9 @@
     fetchSkinSpec(item.skinPath).then((raw) => {
       resolved = Spec.resolveSkin(raw);
       Renderer.preloadDecorations(resolved.decorations);
+      if (Renderer.preloadSpecialAssets) {
+        Renderer.preloadSpecialAssets(resolved.renderStyle, drawOnce);
+      }
       drawOnce();
       if (resolved.decorations && resolved.decorations.length) {
         setTimeout(drawOnce, 180);
@@ -511,31 +514,17 @@
     const media = document.createElement('div');
     media.className = 'plaza-card-media';
 
-    if (item.previewPath) {
-      const img = document.createElement('img');
-      img.src = resolveAssetUrl(item.previewPath);
-      img.alt = item.title;
-      img.loading = 'lazy';
-      media.appendChild(img);
+    const canvas = document.createElement('canvas');
+    canvas.width = 360;
+    canvas.height = 320;
+    canvas.className = 'plaza-live-canvas';
+    media.appendChild(canvas);
 
-      const isGif = /\.gif$/i.test(item.previewPath);
-      const badge = document.createElement('span');
-      badge.className = 'media-badge' + (isGif ? ' gif' : '');
-      badge.textContent = isGif ? 'GIF 动图' : '预览图';
-      media.appendChild(badge);
-    } else {
-      const canvas = document.createElement('canvas');
-      canvas.width = 360;
-      canvas.height = 320;
-      canvas.className = 'plaza-live-canvas';
-      media.appendChild(canvas);
-
-      const badge = document.createElement('span');
-      badge.className = 'media-badge live';
-      badge.textContent = '2.5D 互动';
-      media.appendChild(badge);
-      attachLiveCardCanvas(canvas, item);
-    }
+    const badge = document.createElement('span');
+    badge.className = 'media-badge live';
+    badge.textContent = '2.5D 互动';
+    media.appendChild(badge);
+    attachLiveCardCanvas(canvas, item);
 
     const isEaster = (item.tags || []).includes('彩蛋限定');
     if (isEaster) {
