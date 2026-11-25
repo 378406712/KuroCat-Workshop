@@ -7,30 +7,30 @@
   <meta name="description" content="KuroCat 官方皮肤工坊与社区广场：在线把自家猫咪做成 2.5D 桌面萌猫，支持照片取色、贝塞尔花纹分区、贴纸配饰与自定义键盘皮肤，免费下载小豆泥、怪猎呆猫、狸花猫等社区作品。" />
   <meta name="keywords" content="KuroCat皮肤工坊,桌面宠物皮肤,自定义桌宠,kurocat,kurokb,小豆泥皮肤,怪猎呆猫,Bongo Cat皮肤" />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://chanke17.github.io/KuroCat-Workshop/" />
+  <link rel="canonical" href="https://workshop.kurocat.cc/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="KuroCat Workshop" />
   <meta property="og:title" content="KuroCat 皮肤工坊 · 2.5D 捏猫编辑器与社区广场" />
   <meta property="og:description" content="在线定制你的专属 2.5D 桌面萌猫与键盘配色，免费下载小豆泥、怪猎艾露猫、狸花猫等社区皮肤，一键拖入 KuroCat 桌宠生效。" />
-  <meta property="og:url" content="https://chanke17.github.io/KuroCat-Workshop/" />
-  <meta property="og:image" content="https://chanke17.github.io/KuroCat-Workshop/assets/og-cover.png" />
+  <meta property="og:url" content="https://workshop.kurocat.cc/" />
+  <meta property="og:image" content="https://workshop.kurocat.cc/assets/og-cover.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="KuroCat Skin Workshop & Community Plaza" />
   <meta name="twitter:description" content="Browser 2.5D custom cat skin & keyboard editor for KuroCat desktop pet, plus community plaza." />
-  <meta name="twitter:image" content="https://chanke17.github.io/KuroCat-Workshop/assets/og-cover.png" />
+  <meta name="twitter:image" content="https://workshop.kurocat.cc/assets/og-cover.png" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "name": "KuroCat 皮肤工坊 (KuroCat Workshop)",
-    "url": "https://chanke17.github.io/KuroCat-Workshop/",
+    "url": "https://workshop.kurocat.cc/",
     "applicationCategory": "DesignApplication",
     "operatingSystem": "Web Browser",
     "isAccessibleForFree": true,
     "description": "KuroCat 官方在线 2.5D 桌宠皮肤、饰品与键盘编辑器及社区作品广场，支持导出 .kurocat 与 .kurokb 文件供 macOS、Windows 与 Linux 三端桌宠使用。"
   }
   </script>
-  <link rel="stylesheet" href="styles.css?v=20261125b" />
+  <link rel="stylesheet" href="styles.css?v=20261125g" />
 </head>
 <body>
   <div class="studio-shell">
@@ -65,6 +65,15 @@
               <path d="M14.5 3.5a2.12 2.12 0 0 1 3 3L8 16l-4 1 1-4 9.5-9.5Z"/>
             </svg>
             <span class="nav-label">皮肤工坊</span>
+          </button>
+          <button type="button" class="nav-item" data-nav="paint">
+            <svg class="nav-icon" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10 3a7 7 0 1 0 0 14h1.2a2.3 2.3 0 0 0 1.6-3.9 1.6 1.6 0 0 1 1.1-2.7H15a2 2 0 0 0 2-2A5.4 5.4 0 0 0 10 3Z"/>
+              <circle cx="7" cy="8.5" r="0.9" fill="currentColor" stroke="none"/>
+              <circle cx="10.5" cy="6.8" r="0.9" fill="currentColor" stroke="none"/>
+              <circle cx="6.8" cy="12" r="0.9" fill="currentColor" stroke="none"/>
+            </svg>
+            <span class="nav-label">组件画板</span>
           </button>
         </div>
 
@@ -519,6 +528,8 @@
                     <button type="button" class="pill" data-space="skull">头顶</button>
                     <button type="button" class="pill" data-space="body">身体</button>
                     <button type="button" class="pill" data-space="tail">尾巴</button>
+                    <button type="button" class="pill" data-space="leftArm">左胳膊</button>
+                    <button type="button" class="pill" data-space="rightArm">右胳膊</button>
                   </div>
                 </div>
                 <div class="pen-row">
@@ -564,6 +575,46 @@
                   <button type="button" class="mini-btn" data-add-preset="earTips">+ 深色耳尖</button>
                   <button type="button" class="mini-btn" data-add-preset="tabbyForehead">+ 额头 M 纹</button>
                   <button type="button" class="mini-btn" data-add-preset="tailRings">+ 尾巴环纹</button>
+                  <button type="button" class="mini-btn" data-add-preset="armRings">+ 胳膊条纹</button>
+                </div>
+              </div>
+
+              <div class="card-section">
+                <div class="section-head">
+                  <h2>胳膊条纹自定义</h2>
+                  <span class="muted-note">静坐与伸手打字实时跟随弯曲</span>
+                </div>
+                <div class="pen-row">
+                  <span class="pen-label">部位</span>
+                  <div class="pill-grid" id="arm-stripe-sides" role="group" aria-label="胳膊条纹部位">
+                    <button type="button" class="pill active" data-arm-side="both">双臂对称</button>
+                    <button type="button" class="pill" data-arm-side="leftArm">仅左臂</button>
+                    <button type="button" class="pill" data-arm-side="rightArm">仅右臂</button>
+                  </div>
+                </div>
+                <div class="pen-row">
+                  <span class="pen-label">颜色</span>
+                  <input type="color" id="arm-stripe-color" value="#6E4C32" aria-label="胳膊条纹颜色" />
+                  <span class="muted-note" id="arm-stripe-color-hex">#6E4C32</span>
+                </div>
+                <div class="pen-row">
+                  <span class="pen-label">条数</span>
+                  <input type="range" id="arm-stripe-count" min="1" max="6" step="1" value="3" aria-label="胳膊条纹条数" />
+                  <span class="muted-note tabular" id="arm-stripe-count-val">3 条</span>
+                </div>
+                <div class="pen-row">
+                  <span class="pen-label">粗细</span>
+                  <input type="range" id="arm-stripe-width" min="1.2" max="6.0" step="0.2" value="2.8" aria-label="胳膊条纹粗细" />
+                  <span class="muted-note tabular" id="arm-stripe-width-val">2.8</span>
+                </div>
+                <div class="pen-row">
+                  <span class="pen-label">透明</span>
+                  <input type="range" id="arm-stripe-alpha" min="0.2" max="1.0" step="0.05" value="0.78" aria-label="胳膊条纹透明度" />
+                  <span class="muted-note tabular" id="arm-stripe-alpha-val">78%</span>
+                </div>
+                <div class="action-row" style="display:flex;gap:8px;margin-top:8px;">
+                  <button type="button" class="btn btn-primary" id="btn-apply-arm-stripes" style="flex:1;">应用胳膊条纹</button>
+                  <button type="button" class="mini-btn danger" id="btn-clear-arm-stripes">清除</button>
                 </div>
               </div>
 
@@ -697,6 +748,105 @@
             </section>
           </div>
         </aside>
+      </main>
+
+      <!-- VIEW 1.5: Component Drawing Board (MS-Paint style + Tablet Pressure + Live 2.5D Preview) -->
+      <main class="paint-shell" id="paint-view" hidden>
+        <div class="paint-ribbon">
+          <div class="paint-ribbon-group">
+            <span class="paint-group-title">选择组件</span>
+            <div class="paint-part-tabs" id="paint-part-tabs" role="tablist">
+              <button type="button" class="paint-part-btn active" data-part="head">脸部</button>
+              <button type="button" class="paint-part-btn" data-part="skull">头顶</button>
+              <button type="button" class="paint-part-btn" data-part="body">身体</button>
+              <button type="button" class="paint-part-btn" data-part="leftEar">左耳</button>
+              <button type="button" class="paint-part-btn" data-part="rightEar">右耳</button>
+              <button type="button" class="paint-part-btn" data-part="leftArm">左胳膊</button>
+              <button type="button" class="paint-part-btn" data-part="rightArm">右胳膊</button>
+              <button type="button" class="paint-part-btn" data-part="tail">尾巴</button>
+            </div>
+          </div>
+
+          <div class="paint-ribbon-group">
+            <span class="paint-group-title">绘图工具</span>
+            <div class="paint-tool-grid" id="paint-tool-grid">
+              <button type="button" class="paint-tool-btn active" data-tool="brush" title="自由画笔 (支持数位板压感)">✏️ 画笔</button>
+              <button type="button" class="paint-tool-btn" data-tool="fillBrush" title="自由圈画闭合色块">🖌️ 色块笔</button>
+              <button type="button" class="paint-tool-btn" data-tool="line" title="直线条纹">📏 直线</button>
+              <button type="button" class="paint-tool-btn" data-tool="ellipse" title="椭圆/斑点">⭕ 椭圆</button>
+              <button type="button" class="paint-tool-btn" data-tool="rect" title="矩形色块">▭ 矩形</button>
+              <button type="button" class="paint-tool-btn" data-tool="bucket" title="油漆桶：修改当前组件底色">🪣 油漆桶</button>
+              <button type="button" class="paint-tool-btn" data-tool="eraser" title="橡皮擦：擦除经过的笔画或色块">🧽 橡皮擦</button>
+              <button type="button" class="paint-tool-btn" data-tool="eyedropper" title="吸管：从画板吸取颜色">💉 吸管</button>
+            </div>
+          </div>
+
+          <div class="paint-ribbon-group paint-props-group">
+            <span class="paint-group-title">笔刷与辅助</span>
+            <div class="paint-props-row">
+              <label class="paint-mini-ctrl">
+                <span>粗细</span>
+                <input type="range" id="paint-size" min="1" max="12" step="0.5" value="3.5" />
+                <span class="tabular" id="paint-size-val">3.5</span>
+              </label>
+              <label class="paint-mini-ctrl">
+                <span>透明</span>
+                <input type="range" id="paint-alpha" min="0.2" max="1" step="0.05" value="1" />
+                <span class="tabular" id="paint-alpha-val">100%</span>
+              </label>
+              <label class="paint-check-pill"><input type="checkbox" id="paint-mirror" checked /> 左右对称</label>
+              <label class="paint-check-pill"><input type="checkbox" id="paint-pressure" checked /> 数位板压感</label>
+              <label class="paint-check-pill"><input type="checkbox" id="paint-grid" checked /> 辅助网格</label>
+            </div>
+          </div>
+
+          <div class="paint-ribbon-group paint-color-group">
+            <span class="paint-group-title">调色板</span>
+            <div class="paint-palette-row">
+              <input type="color" id="paint-color" value="#3B2E28" title="自定义当前画笔颜色" />
+              <div class="paint-swatches" id="paint-swatches"></div>
+            </div>
+          </div>
+
+          <div class="paint-ribbon-actions">
+            <button type="button" class="mini-btn" id="paint-btn-undo" title="撤销 (Ctrl/Cmd+Z)">↩ 撤销</button>
+            <button type="button" class="mini-btn danger" id="paint-btn-clear-part" title="清空当前组件上的所有画作">清空当前组件</button>
+          </div>
+        </div>
+
+        <div class="paint-workspace">
+          <section class="paint-board-card">
+            <div class="paint-board-head">
+              <div>
+                <strong id="paint-part-title">脸部 (head)</strong>
+                <span class="muted-note" id="paint-part-hint">在虚线轮廓内绘制，超出轮廓部分会自动裁剪；支持鼠标与数位板压感</span>
+              </div>
+              <span class="paint-tablet-badge" id="paint-tablet-badge">鼠标 / 数位板就绪</span>
+            </div>
+            <div class="paint-canvas-wrap">
+              <canvas id="paint-canvas" width="560" height="480"></canvas>
+            </div>
+          </section>
+
+          <aside class="paint-preview-card">
+            <div class="paint-preview-head">
+              <strong>实时成品预览 (2.5D)</strong>
+              <span class="muted-note">左边每画一笔，右边即时同步</span>
+            </div>
+            <div class="paint-preview-stage">
+              <canvas id="paint-preview-canvas" width="360" height="320"></canvas>
+            </div>
+            <div class="paint-preview-poses" id="paint-preview-poses">
+              <button type="button" class="pose-pill active" data-paint-pose="idle">静坐</button>
+              <button type="button" class="pose-pill" data-paint-pose="typing">抬手打字</button>
+              <button type="button" class="pose-pill" data-paint-pose="sleep">趴卧</button>
+              <button type="button" class="pose-pill" data-paint-pose="drag">拎起</button>
+            </div>
+            <div class="paint-preview-tip">
+              切到「抬手打字」可实时查看左/右胳膊条纹随手臂弯折的效果；画完直接点右上角「导出 .kurocat」即可拖入客户端。
+            </div>
+          </aside>
+        </div>
       </main>
 
       <!-- VIEW 2: Community Plaza (Skins / Accessories / Keyboards) -->
@@ -1061,11 +1211,12 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="spec.js?v=20261125f"></script>
-  <script src="renderer.js?v=20261125f"></script>
+  <script src="spec.js?v=20261125g"></script>
+  <script src="renderer.js?v=20261125h"></script>
   <script src="decorations.js?v=20261125b"></script>
   <script src="photo-analyzer.js?v=20261125b"></script>
-  <script src="app.js?v=20261125b"></script>
-  <script src="plaza.js?v=20261125c"></script>
+  <script src="app.js?v=20261125g"></script>
+  <script src="paint-studio.js?v=20261125g"></script>
+  <script src="plaza.js?v=20261125g"></script>
 </body>
 </html>

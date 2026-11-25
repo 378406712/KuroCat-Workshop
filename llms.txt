@@ -3,8 +3,8 @@
 > Official web editor and community gallery for KuroCat desktop pet skins (`.kurocat`), 2.5D sticker accessories, and custom keyboard skins (`.kurokb`).
 
 ## Links
-- Skin Workshop & Plaza: https://chanke17.github.io/KuroCat-Workshop/
-- KuroCat Official Homepage: https://chanke17.github.io/KuroCat/
+- Skin Workshop & Plaza: https://workshop.kurocat.cc/
+- KuroCat Official Homepage: https://kurocat.cc/
 - Fast Direct Download Mirror: https://kurocat-download.app.workbuddy.host/?sharecode=JVAABIVZ7L
 - KuroCat Source Repository: https://github.com/chanke17/KuroCat
 - Workshop Source & PR Submissions: https://github.com/chanke17/KuroCat-Workshop
