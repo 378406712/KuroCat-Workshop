@@ -831,8 +831,13 @@
     const gy = clamp(state.gazeY || 0, -1.0, 1.0) * (1.1 - hunt * 0.55);
     const radius = 8.5 + hunt * 1.0;
     const pupilRadius = 6.25 + hunt * 1.35;
-    const themeCol = (EYE_THEMES[eyeThemeName] || EYE_THEMES.neonChartreuse).primary;
-    const irisCol = blendRgba({ r: 1.0, g: 248 / 255, b: 229 / 255, a: 1 }, themeCol, 0.20);
+    const ep = (EYE_THEMES[eyeThemeName] || EYE_THEMES.neonChartreuse).primary;
+    const irisCol = {
+      r: (255 * 0.80 + ep[0] * 0.20) / 255,
+      g: (248 * 0.80 + ep[1] * 0.20) / 255,
+      b: (229 * 0.80 + ep[2] * 0.20) / 255,
+      a: 1
+    };
 
     for (const x of [-11.8, 11.8]) {
       ctx.save();
