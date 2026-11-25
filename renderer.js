@@ -1836,12 +1836,12 @@
         offsetScaleY: 1.1
       },
       headTop: {
-        origin: { x: headCX - 10, y: headTopY },
+        origin: { x: headCX - 10, y: headTopY - 18 },
         rot: 0,
-        kx: 1.25,
-        ky: 1.20,
-        offsetScaleX: 1.25,
-        offsetScaleY: 1.20
+        kx: 1.28,
+        ky: 1.22,
+        offsetScaleX: 1.28,
+        offsetScaleY: 1.22
       },
       face: {
         origin: {
@@ -1849,10 +1849,10 @@
           y: (leftEyePos.y + rightEyePos.y) * 0.5 + 6 * dragSpacePerCanvas
         },
         rot: 0,
-        kx: 1.48,
-        ky: 1.24,
-        offsetScaleX: 1.4,
-        offsetScaleY: 1.2
+        kx: 1.80,
+        ky: 1.48,
+        offsetScaleX: 1.6,
+        offsetScaleY: 1.35
       }
     };
 
@@ -3005,46 +3005,64 @@
     }
   }
 
-  function drawDouniV2InSpace(ctx, state, skin, kbThemeName, eyeThemeName) {
+  function drawDouniV2InSpace(ctx, state, skin, kbThemeName, eyeThemeName, loafMorph) {
     const ink = skin.palette.outline || DOUNI_INK;
     const cream = skin.palette.body || DOUNI_CREAM;
     const taupe = skin.palette.points || skin.palette.paws || DOUNI_TAUPE;
     const catLW = 10.8;
     const kbLW = 12.6;
+    const morph = clamp(loafMorph || 0, 0, 1);
 
-    const lUp = clamp(state.douniLeftRaise || 0, 0, 1.05);
-    const rUp = clamp(state.douniRightRaise || 0, 0, 1.05);
-    const leftPose = clamp(lUp - rUp, -1.0, 1.05);
-    const rightPose = clamp(rUp - lUp, -1.0, 1.05);
+    // Direct independent signed arm poses: -1 = slam on keycap, 0 = ready, +1 = flung high
+    const leftPose = clamp(state.douniLeftRaise || 0, -1.08, 1.08);
+    const rightPose = clamp(state.douniRightRaise || 0, -1.08, 1.08);
     const mouseBlend = clamp(state.douniMouseBlend || 0, 0, 1);
 
-    const impY = clamp(state.kbImpactY || 0, -0.4, 1.2);
-    const impT = clamp(state.kbImpactTilt || 0, -0.8, 0.8);
+    const hunt = clamp(state.huntIntensity || 0, 0, 1);
+    const dizzy = clamp(state.dizzyIntensity || 0, 0, 1);
+    const anger = clamp(state.angerIntensity || 0, 0, 1);
+    const isTablet = !!state.isTabletActive;
+
+    const impY = clamp(state.kbImpactY || 0, -0.4, 1.3);
+    const impT = clamp(state.kbImpactTilt || 0, -0.9, 0.9);
     const breath = Math.sin(state.time * 2.1) * 1.6;
-    const headTiltRad = -rightPose * 0.010 + leftPose * 0.012 + state.headTilt * 0.08 + impT * 0.014;
-    const headBobY = Math.abs(leftPose - rightPose) * 2.5 + breath * 1.4 + impY * 5.0;
-    const headSquashY = 1.0 - Math.max(0, impY) * 0.028;
-    const headSquashX = 1.0 + Math.max(0, impY) * 0.014;
-    const earLagX = clamp((state.earTwitch || 0) * 2.8, -8, 8);
+    const dizzyWobble = Math.sin(state.time * 9.5) * 0.14 * dizzy;
+    const angerShakeX = anger > 0.08 ? Math.sin(state.time * 42.0) * 3.2 * anger : 0;
+    const headTiltRad = -rightPose * 0.010 + leftPose * 0.012 + state.headTilt * 0.08 + impT * 0.014 + dizzyWobble;
+    const headBobY = Math.abs(leftPose - rightPose) * 2.5 + breath * 1.4 + impY * 5.2 +
+      hunt * 16.0 + anger * 5.0 + Math.abs(Math.sin(state.time * 4.8)) * 9.0 * dizzy;
+    const headSquashY = 1.0 - Math.max(0, impY) * 0.028 - hunt * 0.062 - anger * 0.022;
+    const headSquashX = 1.0 + Math.max(0, impY) * 0.014 + hunt * 0.045 + anger * 0.018;
+    const earLagX = clamp((state.earTwitch || 0) * 2.8, -9, 9);
+    const earFlare = hunt * 9.0 - anger * 10.0;
 
     const useDefaultRetroGrey = !kbThemeName || kbThemeName === 'classicMilk';
     const th = KB_THEMES[kbThemeName] || KB_THEMES.classicMilk;
     const eye = EYE_THEMES[eyeThemeName] || EYE_THEMES.neonChartreuse;
+    const eyePrimary = { r: eye.primary[0] / 255, g: eye.primary[1] / 255, b: eye.primary[2] / 255, a: 1 };
     const kbDeckColor = useDefaultRetroGrey ? { r: 0.725, g: 0.733, b: 0.733, a: 1 } : cssColorToRgba(th.deck);
     const kbBevelColor = useDefaultRetroGrey ? { r: 0.608, g: 0.616, b: 0.612, a: 1 } : cssColorToRgba(th.base);
     const kbKeyColor = useDefaultRetroGrey ? { r: 0.698, g: 0.706, b: 0.702, a: 1 } : cssColorToRgba(th.key);
     const kbAccentColor = useDefaultRetroGrey ? { r: 0.658, g: 0.666, b: 0.662, a: 1 } : cssColorToRgba(th.accent);
     const mouseBodyColor = useDefaultRetroGrey ? { r: 0.745, g: 0.753, b: 0.753, a: 1 } : cssColorToRgba(th.mouseBody);
     const mouseWheelColor = useDefaultRetroGrey ? { r: 0.36, g: 0.35, b: 0.34, a: 1 } : cssColorToRgba(th.wheel);
-    const glowBaseColor = useDefaultRetroGrey
+    const baseGlow = useDefaultRetroGrey
       ? { r: 1.0, g: 0.84, b: 0.24, a: 1 }
       : { r: eye.glow[0] / 255, g: eye.glow[1] / 255, b: eye.glow[2] / 255, a: 1 };
+    const glowBaseColor = anger > 0.05
+      ? blendRgba(baseGlow, { r: 1.0, g: 0.34, b: 0.14, a: 1 }, Math.min(0.88, anger * 0.88))
+      : baseGlow;
 
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    // Choreographed Disney Pop-Squish Morph (zero muddy double ghosting)
+    const gearAlpha = 1.0 - smoothstep(0.0, 0.42, morph);
+    const gearDropY = smoothstep(0.0, 0.46, morph) * 86.0;
+    const catAlpha = 1.0 - smoothstep(0.36, 0.56, morph);
+    const catGlide = smoothstep(0.0, 0.54, morph);
+    const catMorphX = -catGlide * 185.0;
+    const catMorphY = catGlide * 145.0;
+    const catMorphSX = 1.0 + catGlide * 0.22;
+    const catMorphSY = 1.0 - catGlide * 0.28;
 
-    // 1. Companion hand-drawn comic mouse on upper-left (168, 286)
     const mouseCenter = {
       x: 168 + (state.mouseOffsetX || 0) * 5.2,
       y: 286 + (state.mouseOffsetY || 0) * 4.5
@@ -3052,102 +3070,199 @@
     const pressL = Math.max(state.mousePressLeft || 0, state.mousePress || 0);
     const pressR = state.mousePressRight || 0;
     const mousePress = Math.max(pressL, pressR);
-    drawDouniComicMouse(ctx, mouseCenter, pressL, pressR, mouseBodyColor, kbBevelColor, mouseWheelColor, glowBaseColor, ink, catLW);
+    const nibUV = douniTabletUV(state.tabletNib || { x: 56, y: 260 });
+    const v2Nib = v2TabletPoint(nibUV.u, nibUV.v);
+    const tabletPress = clamp(state.tabletPenPress || 0, 0, 1);
 
     const v2SpacePerCanvas = 1 / 0.405;
     const v2SpaceAnchors = {
       tailTip: { origin: { x: 758, y: 408 }, rot: 0, kx: 1.0, ky: 1.0, offsetScaleX: 1, offsetScaleY: 1 },
       neck: { origin: { x: 582, y: 374 }, rot: 0.05, kx: 1.26, ky: 1.12, offsetScaleX: 1.2, offsetScaleY: 1.1 },
-      headTop: { origin: { x: 597, y: 176 }, rot: 0.06, kx: 1.18, ky: 1.15, offsetScaleX: 1.18, offsetScaleY: 1.15 },
-      face: { origin: { x: 585, y: 266 + 6 * v2SpacePerCanvas }, rot: 0.089, kx: 1.38, ky: 1.24, offsetScaleX: 1.3, offsetScaleY: 1.2 }
+      headTop: { origin: { x: 597, y: 164 }, rot: 0.06, kx: 1.18, ky: 1.15, offsetScaleX: 1.18, offsetScaleY: 1.15 },
+      face: { origin: { x: 585, y: 268 + 6 * v2SpacePerCanvas }, rot: 0.089, kx: 1.38, ky: 1.24, offsetScaleX: 1.3, offsetScaleY: 1.2 }
     };
 
-    // 2. Cat torso, unified head+ears, and boba eyes behind angled keyboard
     ctx.save();
-    ctx.translate(582, 340 + headBobY);
-    ctx.rotate(headTiltRad);
-    ctx.scale(headSquashX, headSquashY);
-    ctx.translate(-582, -340);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
-    // 2a0. Tail-tip decorations tucked behind shoulder/back
-    drawDecorationsInSpace(ctx, skin, ['tailTip'], v2SpaceAnchors, v2SpacePerCanvas);
+    // 1. Companion hand-drawn comic Mouse OR Graphics Tablet
+    if (gearAlpha > 0.01) {
+      ctx.save();
+      if (morph > 0.005) {
+        ctx.globalAlpha *= gearAlpha;
+        ctx.translate(0, gearDropY);
+      }
+      if (isTablet) {
+        drawDouniComicTablet(
+          ctx, state, kbDeckColor, kbBevelColor, kbKeyColor, kbAccentColor,
+          glowBaseColor, eyePrimary, ink, catLW, mouseBlend < 0.18
+        );
+      } else {
+        drawDouniComicMouse(ctx, mouseCenter, pressL, pressR, mouseBodyColor, kbBevelColor, mouseWheelColor, glowBaseColor, ink, catLW);
+      }
+      ctx.restore();
+    }
 
-    // 2a. Right shoulder / back
-    ctx.beginPath();
-    ctx.moveTo(416, 316);
-    ctx.lineTo(718, 326);
-    ctx.bezierCurveTo(742, 358, 758, 402, 762, 444);
-    ctx.lineTo(416, 422);
-    ctx.closePath();
-    ctx.fillStyle = rgbaToCss(cream);
-    ctx.fill();
-    ctx.strokeStyle = rgbaToCss(ink);
-    ctx.lineWidth = catLW;
-    ctx.beginPath();
-    ctx.moveTo(716, 326);
-    ctx.bezierCurveTo(742, 356, 758, 400, 762, 444);
-    ctx.stroke();
+    // 2. Cat torso, soft rounded unified head+ears, expressive boba eyes & comic emotion accents
+    if (catAlpha > 0.01) {
+      ctx.save();
+      if (morph > 0.005) {
+        ctx.globalAlpha *= catAlpha;
+        ctx.translate(582 + catMorphX, 340 + catMorphY);
+        ctx.scale(catMorphSX, catMorphSY);
+        ctx.translate(-582, -340);
+      }
+      ctx.translate(582 + angerShakeX, 340 + headBobY);
+      ctx.rotate(headTiltRad);
+      ctx.scale(headSquashX, headSquashY);
+      ctx.translate(-582, -340);
 
-    // 2a2. Neck decorations over shoulder/chest, behind head, keyboard & arms
-    drawDecorationsInSpace(ctx, skin, ['neck'], v2SpaceAnchors, v2SpacePerCanvas);
+      // 2a0. Tail-tip decorations tucked behind shoulder/back
+      drawDecorationsInSpace(ctx, skin, ['tailTip'], v2SpaceAnchors, v2SpacePerCanvas);
 
-    // 2b. Whiskers
-    ctx.strokeStyle = rgbaToCss(ink);
-    ctx.lineWidth = catLW * 0.90;
-    ctx.beginPath();
-    ctx.moveTo(426, 174); ctx.lineTo(448, 196);
-    ctx.moveTo(444, 152); ctx.lineTo(462, 180);
-    ctx.moveTo(718, 190); ctx.lineTo(746, 160);
-    ctx.moveTo(734, 212); ctx.lineTo(766, 194);
-    ctx.stroke();
+      // 2a. Right shoulder / back
+      ctx.beginPath();
+      ctx.moveTo(416, 316);
+      ctx.lineTo(718, 326);
+      ctx.bezierCurveTo(742, 358, 758, 402, 762, 444);
+      ctx.lineTo(416, 422);
+      ctx.closePath();
+      ctx.fillStyle = rgbaToCss(cream);
+      ctx.fill();
+      ctx.strokeStyle = rgbaToCss(ink);
+      ctx.lineWidth = catLW;
+      ctx.beginPath();
+      ctx.moveTo(716, 326);
+      ctx.bezierCurveTo(742, 356, 758, 400, 762, 444);
+      ctx.stroke();
 
-    // 2c. Unified head + ears
-    drawV2UnifiedHeadAndEars(ctx, earLagX, cream, taupe, ink, catLW);
+      // 2a2. Neck decorations over shoulder/chest, behind head, keyboard & arms
+      drawDecorationsInSpace(ctx, skin, ['neck'], v2SpaceAnchors, v2SpacePerCanvas);
 
-    // 2d. Boba eyes with off-white sclera crescent & live gaze
-    drawV2BobaEye(ctx, { x: 518, y: 260 }, 47.5, state.eyeGazeX || 0, state.eyeGazeY || 0, state.blinkProgress || 0, state.huntIntensity || 0, ink, catLW);
-    drawV2BobaEye(ctx, { x: 652, y: 272 }, 46.5, state.eyeGazeX || 0, state.eyeGazeY || 0, state.blinkProgress || 0, state.huntIntensity || 0, ink, catLW);
+      // 2b. Whiskers hugging the soft oval temples
+      const wTwitch = hunt > 0.15 ? Math.sin(state.time * 30.0) * 3.5 * hunt : 0;
+      ctx.strokeStyle = rgbaToCss(ink);
+      ctx.lineWidth = catLW * 0.90;
+      ctx.beginPath();
+      ctx.moveTo(424, 184 + wTwitch); ctx.lineTo(446, 204);
+      ctx.moveTo(444, 162 - wTwitch); ctx.lineTo(462, 188);
+      ctx.moveTo(714, 198); ctx.lineTo(742, 168 + wTwitch);
+      ctx.moveTo(730, 218); ctx.lineTo(762, 200 - wTwitch);
+      ctx.stroke();
 
-    // 2e. Face & head-top decorations above head & boba eyes, behind keyboard & flailing arms
-    drawDecorationsInSpace(ctx, skin, ['face', 'headTop'], v2SpaceAnchors, v2SpacePerCanvas);
+      // 2c. Soft round mochi unified head + ears
+      drawV2UnifiedHeadAndEars(ctx, earLagX, earFlare, cream, taupe, ink, catLW, anger);
 
-    ctx.restore();
+      // 2d. Expressive boba eyes (normal / hunting starry dilated / dizzy spirals / angry slanted V-brows)
+      const gazeX = state.eyeGazeX || 0;
+      const gazeY = state.eyeGazeY || 0;
+      const blink = Math.max(state.blinkProgress || 0, smoothstep(0.04, 0.44, morph));
+      const dzPhase = state.dizzyPhase || (state.time * 7.5);
+      drawV2BobaEye(ctx, { x: 518, y: 262 }, 47.5, true, gazeX, gazeY, blink, hunt, dizzy, dzPhase, anger, cream, ink, catLW);
+      drawV2BobaEye(ctx, { x: 652, y: 274 }, 46.5, false, gazeX, gazeY, blink, hunt, dizzy, dzPhase, anger, cream, ink, catLW);
+
+      // 2e. Comic emotion accents: pulsing red anger vein (💢), alert hunter ticks, orbiting dizzy stars
+      if (anger > 0.14) {
+        const aAlpha = smoothstep(0.14, 0.55, anger);
+        const pulse = (1.0 + Math.sin(state.time * 16.0) * 0.12) * 0.90;
+        drawDouniAngerVein(ctx, { x: 682, y: 198 }, pulse, aAlpha);
+      }
+      if (hunt > 0.35 && dizzy < 0.15) {
+        const hAlpha = smoothstep(0.35, 0.78, hunt);
+        ctx.save();
+        ctx.globalAlpha *= hAlpha;
+        ctx.strokeStyle = rgbaToCss(ink);
+        ctx.lineWidth = catLW * 0.68;
+        ctx.beginPath();
+        ctx.moveTo(472, 112); ctx.lineTo(454, 92);
+        ctx.moveTo(454, 138); ctx.lineTo(432, 130);
+        ctx.stroke();
+        ctx.restore();
+      }
+      if (dizzy > 0.08) {
+        drawDouniDizzyStars(ctx, { x: 590, y: 74 }, dzPhase, dizzy, ink);
+      }
+
+      // 2f. Face & head-top decorations above head & boba eyes, behind keyboard & flailing arms
+      drawDecorationsInSpace(ctx, skin, ['face', 'headTop'], v2SpaceAnchors, v2SpacePerCanvas);
+
+      ctx.restore();
+    }
 
     // 3. Angled hand-drawn wired keyboard with glow, blooms, sparks & recoil
-    drawDouniV2Keyboard(ctx, state, kbDeckColor, kbBevelColor, kbKeyColor, kbAccentColor, glowBaseColor, ink, kbLW, impY, impT);
+    if (gearAlpha > 0.01) {
+      ctx.save();
+      if (morph > 0.005) {
+        ctx.globalAlpha *= gearAlpha;
+        ctx.translate(0, gearDropY);
+      }
+      drawDouniV2Keyboard(ctx, state, kbDeckColor, kbBevelColor, kbKeyColor, kbAccentColor, glowBaseColor, ink, kbLW, impY, impT);
+      ctx.restore();
+    }
 
-    // 4. Left arm (slams dead-center onto exact left-half key or glides onto comic mouse)
-    const lTarget = state.douniLeftKeyTarget
-      ? { x: state.douniLeftKeyTarget.x + impT * 10.0, y: state.douniLeftKeyTarget.y + impY * 8.5 }
-      : null;
-    drawV2LeftArm(
-      ctx, leftPose, mouseBlend,
-      { x: mouseCenter.x + 8, y: mouseCenter.y - 2 + mousePress * 8 },
-      lTarget, cream, taupe, ink, catLW, state.douniLeftRaiseVel || 0
-    );
+    // 4-5. Chubby milk-tea arms (+ held comic stylus in tablet mode!)
+    if (catAlpha > 0.01) {
+      ctx.save();
+      if (morph > 0.005) {
+        ctx.globalAlpha *= catAlpha;
+        ctx.translate(582 + catMorphX, 340 + catMorphY);
+        ctx.scale(catMorphSX, catMorphSY);
+        ctx.translate(-582, -340);
+      }
 
-    // 5. Right arm (slams dead-center onto exact right-half/spacebar key or flings high across face)
-    const rTarget = state.douniRightKeyTarget
-      ? { x: state.douniRightKeyTarget.x + impT * 10.0, y: state.douniRightKeyTarget.y + impY * 8.5 }
-      : null;
-    drawV2RightArm(ctx, rightPose, rTarget, cream, taupe, ink, catLW, state.douniRightRaiseVel || 0);
+      const huntTremble = (hunt > 0.18 && Math.abs(leftPose) < 0.25 && Math.abs(rightPose) < 0.25)
+        ? Math.sin(state.time * 32.0) * 0.08 * hunt : 0;
+      const effectiveLeftPose = leftPose * (1.0 - morph * 0.85) + huntTremble;
+      const effectiveRightPose = rightPose * (1.0 - morph * 0.85) - huntTremble;
+      const effectiveMouseBlend = mouseBlend * (1.0 - morph);
+
+      const lTarget = state.douniLeftKeyTarget
+        ? { x: state.douniLeftKeyTarget.x + impT * 10.0, y: state.douniLeftKeyTarget.y + impY * 8.5 }
+        : null;
+      const leftToolTarget = isTablet
+        ? { x: v2Nib.x + 14, y: v2Nib.y - 12 + tabletPress * 5.0 }
+        : { x: mouseCenter.x + 8, y: mouseCenter.y - 2 + mousePress * 8 };
+
+      drawV2LeftArm(
+        ctx, effectiveLeftPose, effectiveMouseBlend, leftToolTarget,
+        lTarget, cream, taupe, ink, catLW, state.douniLeftRaiseVel || 0
+      );
+
+      if (isTablet && effectiveMouseBlend > 0.18) {
+        const penAlpha = smoothstep(0.18, 0.42, effectiveMouseBlend);
+        ctx.save();
+        ctx.globalAlpha *= penAlpha;
+        ctx.translate(v2Nib.x, v2Nib.y + tabletPress * 4.0);
+        ctx.rotate(-2.14 + (state.tabletPenTilt || 0));
+        drawDouniComicStylus(ctx, 124.0, glowBaseColor, eyePrimary, ink, catLW, tabletPress);
+        ctx.restore();
+      }
+
+      const rTarget = state.douniRightKeyTarget
+        ? { x: state.douniRightKeyTarget.x + impT * 10.0, y: state.douniRightKeyTarget.y + impY * 8.5 }
+        : null;
+      drawV2RightArm(ctx, effectiveRightPose, rTarget, cream, taupe, ink, catLW, state.douniRightRaiseVel || 0);
+
+      ctx.restore();
+    }
 
     ctx.restore();
-    return { v2SpaceAnchors, headBobY, headTiltRad, headSquashX, headSquashY };
+    return { v2SpaceAnchors, headBobY, headTiltRad, headSquashX, headSquashY, angerShakeX };
   }
 
-  function drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName) {
+  function drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName, loafMorph) {
     ctx.save();
     ctx.translate(14.0 + state.bodyShiftX, 22.0);
     ctx.scale(0.405, 0.405);
-    const meta = drawDouniV2InSpace(ctx, state, skin, kbThemeName, eyeThemeName);
+    const meta = drawDouniV2InSpace(ctx, state, skin, kbThemeName, eyeThemeName, loafMorph || 0);
     ctx.restore();
 
     const c = Math.cos(meta.headTiltRad), s = Math.sin(meta.headTiltRad);
     const toCanvas = (px, py) => {
       const dx = (px - 582) * meta.headSquashX;
       const dy = (py - 340) * meta.headSquashY;
-      const vx = 582 + dx * c - dy * s;
+      const vx = 582 + (meta.angerShakeX || 0) + dx * c - dy * s;
       const vy = 340 + meta.headBobY + dx * s + dy * c;
       return { x: 14.0 + state.bodyShiftX + vx * 0.405, y: 22.0 + vy * 0.405 };
     };
@@ -3163,24 +3278,36 @@
         offsetScaleY: sp.offsetScaleY * meta.headSquashY
       };
     }
-    return { headCenter: toCanvas(582, 269), decoAnchors };
+    return { headCenter: toCanvas(582, 272), decoAnchors };
   }
 
   function drawDouniScene(ctx, skin, state, kbThemeName, eyeThemeName) {
     const scruff = clamp(state.scruffDrag || 0, 0, 1);
+    const scruffS = smoothstep(0, 1, scruff);
     const wantsLoafFallback = (state.petHead > 0.15 || state.petBody > 0.25 || state.sleepiness > 0.42) ? 1 : 0;
     const loafRaw = clamp(state.douniLoafAnimated ? (state.douniLoafBlend || 0) : wantsLoafFallback, 0, 1);
     const loafS = smoothstep(0, 1, loafRaw);
 
-    if (scruff > 0.04) {
-      const kbFade = clamp(1.0 - scruff * 2.5, 0, 1);
-      if (kbFade > 0.01 && loafS < 0.85) {
+    if (scruff > 0.02) {
+      const deskFade = 1.0 - smoothstep(0.0, 0.48, scruffS);
+      if (deskFade > 0.01 && loafS < 0.85) {
         ctx.save();
-        ctx.globalAlpha *= kbFade * (1 - loafS);
-        drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName);
+        ctx.globalAlpha *= deskFade * (1 - loafS);
+        ctx.translate(0, scruffS * 28.0);
+        drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName, 0);
         ctx.restore();
       }
+      if (deskFade > 0.01 && loafS > 0.02) {
+        ctx.save();
+        ctx.globalAlpha *= deskFade * loafS;
+        ctx.translate(0, scruffS * 20.0);
+        drawDouniV1LoafInCanvas(ctx, state, skin, 1.0);
+        ctx.restore();
+      }
+      ctx.save();
+      ctx.translate((1.0 - scruffS) * 40.0 * (1.0 - loafS), (1.0 - scruffS) * 30.0);
       const dragMeta = drawDouniV1DragInCanvas(ctx, state, skin, scruff);
+      ctx.restore();
       return {
         seatX: 184 + state.bodyShiftX,
         seatY: 226,
@@ -3191,21 +3318,15 @@
 
     let v2Meta = null;
     if (loafS < 0.99) {
-      ctx.save();
-      ctx.globalAlpha *= (1 - smoothstep(0.18, 0.72, loafS));
-      v2Meta = drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName);
-      ctx.restore();
+      v2Meta = drawDouniV2InCanvas(ctx, state, skin, kbThemeName, eyeThemeName, loafS);
     }
 
     let loafAnchors = null;
     if (loafS > 0.01) {
-      ctx.save();
-      ctx.globalAlpha *= smoothstep(0.10, 0.65, loafS);
-      loafAnchors = drawDouniV1LoafInCanvas(ctx, state, skin);
-      ctx.restore();
+      loafAnchors = drawDouniV1LoafInCanvas(ctx, state, skin, loafS);
     }
 
-    const v2Head = (v2Meta && v2Meta.headCenter) || { x: 14 + state.bodyShiftX + 582 * 0.405, y: 22 + 269 * 0.405 };
+    const v2Head = (v2Meta && v2Meta.headCenter) || { x: 14 + state.bodyShiftX + 582 * 0.405, y: 22 + 272 * 0.405 };
     const v1Head = { x: 20 + state.bodyShiftX + 380 * 0.345, y: 46 + 472 * 0.345 };
     const activeAnchors = (loafS >= 0.5 && loafAnchors) ? loafAnchors : (v2Meta ? v2Meta.decoAnchors : loafAnchors);
     return {
@@ -3913,7 +4034,26 @@
     state.angerIntensity = clamp(angV, 0, 1);
     state.angerIntensityVel = angVel;
 
-    const dizzyTarget = pose === 'dizzy' ? 1.0 : 0.0;
+    if (wantDrag) {
+      state._dizzyTimer = 0;
+      state._fastMouseDuration = 0;
+    } else if ((state._dizzyTimer || 0) <= 0 && (state.huntIntensity || 0) > 0.42 && pose !== 'hunt') {
+      state._fastMouseDuration = (state._fastMouseDuration || 0) + dt;
+      if (state._fastMouseDuration >= 10.0) {
+        state._dizzyTimer = 6.0;
+        state._fastMouseDuration = 0;
+      }
+    } else if ((state._dizzyTimer || 0) <= 0) {
+      state._fastMouseDuration = Math.max(0, (state._fastMouseDuration || 0) - dt * 1.5);
+    }
+    let autoDizzy = 0;
+    if ((state._dizzyTimer || 0) > 0) {
+      state._dizzyTimer = Math.max(0, state._dizzyTimer - dt);
+      autoDizzy = 1.0;
+    } else if ((state._fastMouseDuration || 0) > 6.8) {
+      autoDizzy = clamp((state._fastMouseDuration - 6.8) / 3.2, 0, 1) * 0.48;
+    }
+    const dizzyTarget = pose === 'dizzy' ? 1.0 : autoDizzy;
     const [dzV, dzVel] = stepSpring(state.dizzyIntensity || 0, state.dizzyIntensityVel || 0, dizzyTarget, dt, 75, 14);
     state.dizzyIntensity = clamp(dzV, 0, 1);
     state.dizzyIntensityVel = dzVel;
@@ -3921,7 +4061,21 @@
       state.dizzyPhase = (state.dizzyPhase || 0) + dt * 7.5;
     }
 
-    if (pose === 'tablet') state.isTabletActive = true;
+    if (pose === 'tablet') {
+      state.isTabletActive = true;
+      state._poseTablet = true;
+      const tu = 0.50 + Math.sin(nowT * 2.4) * 0.34;
+      const tv = 0.50 + Math.sin(nowT * 4.8) * 0.28;
+      state.tabletNib = { x: 18 + tu * 74, y: 235 + tv * 52 };
+      state.tabletPenPress = 0.72 + Math.sin(nowT * 3.1) * 0.22;
+      state.tabletPenTilt = Math.cos(nowT * 2.4) * 0.14;
+      if (!state.tabletTrail) state.tabletTrail = [];
+      state.tabletTrail.push({ x: state.tabletNib.x, y: state.tabletNib.y, age: 0, pressure: state.tabletPenPress });
+      if (state.tabletTrail.length > 48) state.tabletTrail.splice(0, state.tabletTrail.length - 48);
+    } else if (state._poseTablet) {
+      state.isTabletActive = false;
+      state._poseTablet = false;
+    }
     if (state.tabletTrail && state.tabletTrail.length) {
       for (let i = state.tabletTrail.length - 1; i >= 0; i--) {
         state.tabletTrail[i].age += dt;

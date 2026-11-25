@@ -606,12 +606,16 @@
     if (draggingDeco && selectedDecoIdx >= 0 && rawSkin.decorations[selectedDecoIdx]) {
       const rawD = rawSkin.decorations[selectedDecoIdx];
       if (draggingDeco.mode === 'move') {
-        const hs = (rawD.anchor === 'headTop' || rawD.anchor === 'face') ? resolvedSkin.shape.headScale : 1;
-        const bw = rawD.anchor === 'neck' ? resolvedSkin.shape.bodyWidth : 1;
-        const dx = (pos.x - draggingDeco.startPos.x) / (rawD.anchor === 'neck' ? bw : hs);
-        const dy = (pos.y - draggingDeco.startPos.y) / hs;
-        rawD.offsetX = Spec.round2(Spec.clamp(draggingDeco.origOffsetX + dx, -120, 120));
-        rawD.offsetY = Spec.round2(Spec.clamp(draggingDeco.origOffsetY + dy, -120, 120));
+        const sdx = pos.x - draggingDeco.startPos.x;
+        const sdy = pos.y - draggingDeco.startPos.y;
+        const c = Math.cos(-(draggingDeco.baseRot || 0));
+        const s = Math.sin(-(draggingDeco.baseRot || 0));
+        const ldx = sdx * c - sdy * s;
+        const ldy = sdx * s + sdy * c;
+        const osx = Math.max(0.2, draggingDeco.offsetScaleX || 1);
+        const osy = Math.max(0.2, draggingDeco.offsetScaleY || 1);
+        rawD.offsetX = Spec.round2(Spec.clamp(draggingDeco.origOffsetX + ldx / osx, -120, 120));
+        rawD.offsetY = Spec.round2(Spec.clamp(draggingDeco.origOffsetY + ldy / osy, -120, 120));
       } else if (draggingDeco.mode === 'scale') {
         const curDist = Math.max(4, Math.hypot(pos.x - draggingDeco.center.x, pos.y - draggingDeco.center.y));
         rawD.scale = Spec.round2(Spec.clamp(draggingDeco.origScale * (curDist / draggingDeco.startDist), 0.15, 3.0));
@@ -2362,7 +2366,7 @@
             upBtn.type = 'button';
             upBtn.className = 'mini-btn';
             upBtn.textContent = '↑';
-            upBtn.title = '下移一层';
+            upBtn.title = '往底层移';
             upBtn.addEventListener('click', () => {
               const tmp = decos[idx - 1];
               decos[idx - 1] = decos[idx];
@@ -2372,6 +2376,23 @@
               syncSkin(true);
             });
             acts.appendChild(upBtn);
+          }
+
+          if (idx < decos.length - 1) {
+            const downBtn = document.createElement('button');
+            downBtn.type = 'button';
+            downBtn.className = 'mini-btn';
+            downBtn.textContent = '↓';
+            downBtn.title = '往顶层移';
+            downBtn.addEventListener('click', () => {
+              const tmp = decos[idx + 1];
+              decos[idx + 1] = decos[idx];
+              decos[idx] = tmp;
+              if (selectedDecoIdx === idx) selectedDecoIdx = idx + 1;
+              else if (selectedDecoIdx === idx + 1) selectedDecoIdx = idx;
+              syncSkin(true);
+            });
+            acts.appendChild(downBtn);
           }
 
           const editBtn = document.createElement('button');
@@ -2753,7 +2774,8 @@
     animState.mouseOffsetX = lerp(animState.mouseOffsetX, 0, dt * 4);
     animState.mouseOffsetY = lerp(animState.mouseOffsetY, 0, dt * 4);
 
-    Renderer.stepPhysicsExtras(animState, activeSkinForTick, isEditingNow ? 'idle' : effectivePose, dt);
+    const freezeForRegion = editingRegionIdx >= 0 || !!pen;
+    Renderer.stepPhysicsExtras(animState, activeSkinForTick, freezeForRegion ? 'idle' : (effectivePose === 'idle' && currentPose !== 'idle' ? currentPose : effectivePose), dt);
 
     if (!animState.leftPawActive) {
       animState.leftPaw.x = lerp(animState.leftPaw.x, Renderer.LEFT_PAW_REST.x, k);
