@@ -164,7 +164,7 @@
   function fetchSkinSpec(skinPath) {
     const url = resolveAssetUrl(skinPath);
     if (!skinSpecCache.has(url)) {
-      const p = fetch(url)
+      const p = fetch(url, { cache: 'no-cache' })
         .then((res) => {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return res.json();
@@ -311,10 +311,11 @@
   async function loadPlazaData() {
     dataLoaded = true;
     try {
+      const bust = `?v=${Date.now()}`;
       const [skinsRes, accRes, kbRes] = await Promise.all([
-        fetch('./community/index.json').then((r) => (r.ok ? r.json() : { skins: [] })),
-        fetch('./community-accessories/index.json').then((r) => (r.ok ? r.json() : { accessories: [] })),
-        fetch('./community-keyboards/index.json').then((r) => (r.ok ? r.json() : { keyboards: [] }))
+        fetch(`./community/index.json${bust}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : { skins: [] })),
+        fetch(`./community-accessories/index.json${bust}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : { accessories: [] })),
+        fetch(`./community-keyboards/index.json${bust}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : { keyboards: [] }))
       ]);
       skinsData = Array.isArray(skinsRes.skins) ? skinsRes.skins : [];
       accessoriesData = Array.isArray(accRes.accessories) ? accRes.accessories : [];
@@ -589,7 +590,7 @@
 
   async function downloadPlazaSkin(item) {
     try {
-      const res = await fetch(resolveAssetUrl(item.skinPath));
+      const res = await fetch(resolveAssetUrl(item.skinPath), { cache: 'no-cache' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const safeName = (item.title || item.slug).replace(/[\\/:*?"<>|]/g, '_');
