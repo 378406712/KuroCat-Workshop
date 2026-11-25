@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "海盐蓝白 65%",
+  "author": "白酱WhItE",
+  "colors": {
+    "mouseBody": "#4F9FD0",
+    "mouseBorder": "#2F6E96",
+    "wheel": "#BFE3F5",
+    "base": "#24506B",
+    "deck": "#EDF7FC",
+    "key": "#FDFEFF",
+    "keyBorder": "#C3E0F0",
+    "accent": "#3E8CC0",
+    "darkText": true
+  }
+}
