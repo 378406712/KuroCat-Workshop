@@ -1952,6 +1952,91 @@
     }
   ];
 
+  function sameHexRgb(a, b) {
+    if (!a || !b) return false;
+    return String(a).trim().slice(0, 7).toUpperCase() === String(b).trim().slice(0, 7).toUpperCase();
+  }
+
+  function applyPaletteChange(key, nextHex) {
+    const prevHex = rawSkin.palette[key] || null;
+    if (nextHex) rawSkin.palette[key] = nextHex;
+    else delete rawSkin.palette[key];
+
+    if (key === 'belly') {
+      rawSkin.regions = rawSkin.regions || [];
+      rawSkin.marks = rawSkin.marks || [];
+      const isBellyRegion = (r) => r && r.space === 'body' && (
+        r._fromBelly ||
+        (r._label && /肚皮|胸腹/.test(r._label)) ||
+        (prevHex && sameHexRgb(r.fill, prevHex) && !sameHexRgb(r.fill, rawSkin.palette.body))
+      );
+      const isBellyMark = (m) => m && m.space === 'body' && m.kind === 'polygon' && (
+        m._fromBelly ||
+        (prevHex && sameHexRgb(m.color, prevHex) && !sameHexRgb(m.color, rawSkin.palette.body))
+      );
+
+      if (nextHex) {
+        let updated = false;
+        for (const r of rawSkin.regions) {
+          if (isBellyRegion(r)) {
+            r.fill = nextHex;
+            r._fromBelly = true;
+            updated = true;
+          }
+        }
+        for (const m of rawSkin.marks) {
+          if (isBellyMark(m)) {
+            m.color = nextHex;
+            m._fromBelly = true;
+            updated = true;
+          }
+        }
+        if (!updated && !sameHexRgb(nextHex, rawSkin.palette.body)) {
+          const bellyReg = Spec.makePresetRegion('whiteBelly', nextHex);
+          bellyReg._label = '胸腹底色';
+          bellyReg._fromBelly = true;
+          // Insert after any full-width base body coat region, but before side patches/spots
+          let insertAt = 0;
+          for (let i = 0; i < rawSkin.regions.length; i++) {
+            const r = rawSkin.regions[i];
+            if (r && r.space === 'body' && r.anchors && r.anchors.length) {
+              let minX = Infinity, maxX = -Infinity;
+              for (const a of r.anchors) {
+                if (a.x < minX) minX = a.x;
+                if (a.x > maxX) maxX = a.x;
+              }
+              if (minX < -25 && maxX > 25 && (maxX - minX) > 80) insertAt = i + 1;
+            }
+          }
+          rawSkin.regions.splice(insertAt, 0, bellyReg);
+          if (editingRegionIdx >= insertAt) editingRegionIdx++;
+        }
+      } else {
+        for (let i = rawSkin.regions.length - 1; i >= 0; i--) {
+          if (isBellyRegion(rawSkin.regions[i])) {
+            rawSkin.regions.splice(i, 1);
+            if (editingRegionIdx === i) { editingRegionIdx = -1; editModeBanner.hidden = true; }
+            else if (editingRegionIdx > i) editingRegionIdx--;
+          }
+        }
+        for (let i = rawSkin.marks.length - 1; i >= 0; i--) {
+          if (isBellyMark(rawSkin.marks[i])) rawSkin.marks.splice(i, 1);
+        }
+      }
+    }
+
+    if (key === 'stripes' && nextHex && prevHex && rawSkin.marks && rawSkin.marks.length) {
+      for (const m of rawSkin.marks) {
+        if (m && (m._fromStripes || sameHexRgb(m.color, prevHex))) {
+          m.color = nextHex;
+          m._fromStripes = true;
+        }
+      }
+    }
+
+    syncSkin(true);
+  }
+
   function renderPaletteUI() {
     const root = document.getElementById('palette-editor');
     root.innerHTML = '';
@@ -1977,15 +2062,15 @@
           chk.addEventListener('change', () => {
             if (chk.checked) {
               const fallbackMap = {
+                belly: '#FAF4EA',
                 iris: '#D9B252', nose: '#E58D99', mouth: '#9B7F73', pawPads: '#EAA1A7',
                 earInner: '#EBB6B0', tailTip: '#35261F', points: '#35261F', pointsMid: '#6A5041',
                 outline: '#B8A69266', bodyShade: '#E8DFD1'
               };
-              rawSkin.palette[key] = fallbackMap[key] || rawSkin.palette.body || '#FAF5EC';
+              applyPaletteChange(key, fallbackMap[key] || rawSkin.palette.body || '#FAF5EC');
             } else {
-              delete rawSkin.palette[key];
+              applyPaletteChange(key, null);
             }
-            syncSkin(true);
           });
           left.appendChild(chk);
         }
@@ -2001,9 +2086,9 @@
         picker.type = 'color';
         picker.value = Spec.isValidHex(displayHex) ? displayHex : '#D8C7B4';
         picker.addEventListener('input', () => {
-          const alphaSuffix = active && val.length === 9 ? val.slice(7, 9) : '';
-          rawSkin.palette[key] = picker.value.toUpperCase() + alphaSuffix;
-          syncSkin(true);
+          const curVal = rawSkin.palette[key];
+          const alphaSuffix = curVal && curVal.length === 9 ? curVal.slice(7, 9) : '';
+          applyPaletteChange(key, picker.value.toUpperCase() + alphaSuffix);
         });
 
         const hexIn = document.createElement('input');
@@ -2014,11 +2099,9 @@
         hexIn.addEventListener('change', () => {
           const v = hexIn.value.trim();
           if (!v && !required) {
-            delete rawSkin.palette[key];
-            syncSkin(true);
+            applyPaletteChange(key, null);
           } else if (Spec.isValidHex(v)) {
-            rawSkin.palette[key] = v.toUpperCase();
-            syncSkin(true);
+            applyPaletteChange(key, v.toUpperCase());
           } else {
             showToast('颜色必须是 #RRGGBB 或 #RRGGBBAA');
             hexIn.value = active ? val.toUpperCase() : '';
