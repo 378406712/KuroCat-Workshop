@@ -4512,3 +4512,15 @@ textarea {
     max-width: 260px;
   }
 }
+
+/* Language Toggle Pill */
+.lang-toggle-btn {
+  min-width: 42px;
+  padding: 0 10px;
+  height: 32px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  margin-left: 4px;
+}

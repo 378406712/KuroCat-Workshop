@@ -1177,8 +1177,9 @@
       ctx.font = '500 11.5px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
       ctx.fillStyle = 'rgba(115, 98, 84, 0.78)';
       ctx.textAlign = 'left';
-      ctx.fillText('← 肩部（根部）', CW * 0.5 + 88, 66);
-      ctx.fillText('← 小爪子', CW * 0.5 + 88, CH - 64);
+      const _tr = window.t || ((s) => s);
+      ctx.fillText(_tr('← 肩部（根部）'), CW * 0.5 + 88, 66);
+      ctx.fillText(_tr('← 小爪子'), CW * 0.5 + 88, CH - 64);
       ctx.restore();
     } else if (partId === 'hindLeg') {
       drawSingleUnit('hindLeg', pal.hindLeg || pal.legs);
@@ -1186,17 +1187,19 @@
       ctx.font = '500 11.5px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
       ctx.fillStyle = 'rgba(115, 98, 84, 0.78)';
       ctx.textAlign = 'left';
-      ctx.fillText('← 腿根（臀部）', CW * 0.5 + 84, 66);
-      ctx.fillText('← 后爪子（三键踩键）', CW * 0.5 + 84, CH - 64);
+      const _tr = window.t || ((s) => s);
+      ctx.fillText(_tr('← 腿根（臀部）'), CW * 0.5 + 84, 66);
+      ctx.fillText(_tr('← 后爪子（三键踩键）'), CW * 0.5 + 84, CH - 64);
       ctx.restore();
     } else if (partId === 'tail') {
       drawSingleUnit('tail', pal.tail);
       ctx.save();
       ctx.font = '500 11px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
       ctx.fillStyle = 'rgba(115, 98, 84, 0.72)';
-      ctx.fillText('尾根', 42, CH * 0.5 + 96);
+      const _tr = window.t || ((s) => s);
+      ctx.fillText(_tr('尾根'), 42, CH * 0.5 + 96);
       ctx.textAlign = 'right';
-      ctx.fillText('尾尖', CW - 42, CH * 0.5 + 96);
+      ctx.fillText(_tr('尾尖'), CW - 42, CH * 0.5 + 96);
       ctx.restore();
     }
 

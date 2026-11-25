@@ -7321,16 +7321,17 @@
     ctx.font = '600 7.5px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
     ctx.fillStyle = 'rgba(130, 82, 48, 0.78)';
     ctx.textAlign = 'center';
-    ctx.fillText('KuroCat 手绘参考底图 (720×640) · 新建图层绘制，导出前隐藏本参考层', 180, 18);
+    const _tr = window.t || ((s) => s);
+    ctx.fillText(_tr('KuroCat 手绘参考底图 (720×640) · 新建图层绘制，导出前隐藏本参考层'), 180, 18);
 
     ctx.font = '500 6.8px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillStyle = 'rgba(164, 100, 56, 0.72)';
-    ctx.fillText('← 头部/躯干分界', seatX + 67, neckY + 2.5);
-    ctx.fillText('动态尾巴区(可留空)', seatX + 62, seatY - 38);
+    ctx.fillText(_tr('← 头部/躯干分界'), seatX + 67, neckY + 2.5);
+    ctx.fillText(_tr('动态尾巴区(可留空)'), seatX + 62, seatY - 38);
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(120, 110, 102, 0.68)';
-    ctx.fillText('键盘与打字爪区（猫身画在此线上方）', 194, 306);
+    ctx.fillText(_tr('键盘与打字爪区（猫身画在此线上方）'), 194, 306);
     ctx.restore();
 
     ctx.restore();
