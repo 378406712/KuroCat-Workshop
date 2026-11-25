@@ -4353,7 +4353,8 @@ textarea {
   }
 
   .workbench.mode-editing .exploded-canvas-wrap {
-    height: 290px;
+    height: auto;
+    min-height: 260px;
     flex: 0 0 auto;
   }
 
