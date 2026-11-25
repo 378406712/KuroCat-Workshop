@@ -4566,40 +4566,41 @@
       return { root, tip, startW: startW * limbWScale, endW: endW * limbWScale, bendX: dynBendX, armSpace, isBehindBody: !!isBehindBody };
     };
 
-    const shoulderY = headCenter.y + 39.0 * hs;
-    const shoulderOutX = Math.max(neckHalfW + 0.5, waistHalfW * 0.82) + (isSleek ? 0.5 : 1.5);
-    const armLen = 58.0;
+    const shoulderY = headCenter.y + 42.0 * hs;
+    // Tuck front-arm roots cleanly INSIDE the torso silhouette so shoulders NEVER bulge outside the body!
+    const shoulderInX = Math.max(12.0 * hs, Math.min(neckHalfW * 0.72, waistHalfW * 0.56));
+    const armLen = 56.0;
     const frontLeftLimb = makeLimb(
-      { x: headCenter.x - shoulderOutX + hipLagX * 0.14, y: shoulderY },
-      { x: headCenter.x - shoulderOutX + 3.5 + hipLagX * 0.28, y: shoulderY + armLen },
-      { x: headCenter.x - shoulderOutX + hipLagX * 0.10, y: shoulderY + 3.0 },
-      { x: headCenter.x - shoulderOutX - 7.0 + hipLagX * 0.20, y: shoulderY + armLen * 0.82 },
-      17.5, 13.8, -4.5, 0.56, -0.85, 'leftArm', false
+      { x: headCenter.x - shoulderInX + hipLagX * 0.16, y: shoulderY },
+      { x: headCenter.x - shoulderInX + 1.5 + hipLagX * 0.30, y: shoulderY + armLen },
+      { x: headCenter.x - shoulderInX + hipLagX * 0.12, y: shoulderY + 3.0 },
+      { x: headCenter.x - shoulderInX - 4.0 + hipLagX * 0.22, y: shoulderY + armLen * 0.84 },
+      13.6, 12.4, -1.5, 0.42, -0.65, 'leftArm', false
     );
     const frontRightLimb = makeLimb(
-      { x: headCenter.x + shoulderOutX + hipLagX * 0.14, y: shoulderY },
-      { x: headCenter.x + shoulderOutX - 3.5 + hipLagX * 0.28, y: shoulderY + armLen },
-      { x: headCenter.x + shoulderOutX + hipLagX * 0.10, y: shoulderY + 3.0 },
-      { x: headCenter.x + shoulderOutX + 7.0 + hipLagX * 0.20, y: shoulderY + armLen * 0.82 },
-      17.5, 13.8, 4.5, 0.56, 0.85, 'rightArm', false
+      { x: headCenter.x + shoulderInX + hipLagX * 0.16, y: shoulderY },
+      { x: headCenter.x + shoulderInX - 1.5 + hipLagX * 0.30, y: shoulderY + armLen },
+      { x: headCenter.x + shoulderInX + hipLagX * 0.12, y: shoulderY + 3.0 },
+      { x: headCenter.x + shoulderInX + 4.0 + hipLagX * 0.22, y: shoulderY + armLen * 0.84 },
+      13.6, 12.4, 1.5, 0.42, 0.65, 'rightArm', false
     );
 
-    const hindRootX = Math.max(15.0, hipHalfW * 0.45);
-    const hindRootY = torsoBottomY + bottomDip * 0.28 - 8.0;
+    const hindRootX = Math.max(13.0, hipHalfW * 0.42);
+    const hindRootY = torsoBottomY + bottomDip * 0.20 - 12.0;
     const hindLen = 46.0;
     const backLeftLimb = makeLimb(
       { x: rumpCenterX - hindRootX, y: hindRootY },
-      { x: rumpCenterX - hindRootX - 4.5, y: hindRootY + hindLen },
-      { x: rumpCenterX - hindRootX - 1.5, y: hindRootY - 3.0 },
-      { x: rumpCenterX - hindRootX - 11.0, y: hindRootY + hindLen * 0.78 },
-      18.2, 14.2, -2.5, 0.78, -0.80, null, true
+      { x: rumpCenterX - hindRootX - 2.5, y: hindRootY + hindLen },
+      { x: rumpCenterX - hindRootX - 1.0, y: hindRootY - 3.0 },
+      { x: rumpCenterX - hindRootX - 7.5, y: hindRootY + hindLen * 0.80 },
+      15.2, 12.8, -1.5, 0.68, -0.65, null, true
     );
     const backRightLimb = makeLimb(
       { x: rumpCenterX + hindRootX, y: hindRootY },
-      { x: rumpCenterX + hindRootX + 4.5, y: hindRootY + hindLen },
-      { x: rumpCenterX + hindRootX + 1.5, y: hindRootY - 3.0 },
-      { x: rumpCenterX + hindRootX + 11.0, y: hindRootY + hindLen * 0.78 },
-      18.2, 14.2, 2.5, 0.78, 0.80, null, true
+      { x: rumpCenterX + hindRootX + 2.5, y: hindRootY + hindLen },
+      { x: rumpCenterX + hindRootX + 1.0, y: hindRootY - 3.0 },
+      { x: rumpCenterX + hindRootX + 7.5, y: hindRootY + hindLen * 0.80 },
+      15.2, 12.8, 1.5, 0.68, 0.65, null, true
     );
 
     const limbGeo = (limb) => {
@@ -5023,8 +5024,8 @@
       ctx.restore();
     }
 
-    // 5. Native KuroCat face features (brief half-lidded startle -> wide pleading eyes, nose, mouth, whiskers)
-    drawHeadFeatures(ctx, headCenter, state, eyeThemeName, skin, startle, 1 - startle);
+    // 5. Native KuroCat face features (normal authentic almond eyes — no round bug-eyes!)
+    drawHeadFeatures(ctx, headCenter, state, eyeThemeName, skin, 0, 0);
 
     // 6. Dangling front arms hanging along the outer shoulder slopes (leaving central chest/belly 100% unobstructed!)
     drawDragLimb(frontLeftLimb);
