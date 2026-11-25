@@ -1493,9 +1493,31 @@
     toast('已下载 preview.png');
   });
 
+  // --- Reward QR Modal ---
+  const rewardModal = document.getElementById('reward-modal');
+  const openRewardBtn = document.getElementById('btn-open-reward');
+  const closeRewardBtn = document.getElementById('btn-close-reward-modal');
+  function openRewardModal() {
+    if (!rewardModal) return;
+    rewardModal.hidden = false;
+    setSidebarOpen(false);
+  }
+  function closeRewardModal() {
+    if (!rewardModal) return;
+    rewardModal.hidden = true;
+  }
+  if (openRewardBtn) openRewardBtn.addEventListener('click', openRewardModal);
+  if (closeRewardBtn) closeRewardBtn.addEventListener('click', closeRewardModal);
+  if (rewardModal) {
+    rewardModal.addEventListener('click', (e) => {
+      if (e.target === rewardModal) closeRewardModal();
+    });
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (!playModal.hidden) closePlayModal();
+      if (rewardModal && !rewardModal.hidden) closeRewardModal();
+      else if (!playModal.hidden) closePlayModal();
       else if (!submitModal.hidden) closeSubmitModal();
       else setSidebarOpen(false);
     }

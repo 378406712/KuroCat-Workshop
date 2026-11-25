@@ -80,6 +80,26 @@
             <span class="nav-label">投稿指南</span>
           </button>
         </div>
+
+        <!-- Support / Reward QR Card -->
+        <button type="button" class="sidebar-reward-card" id="btn-open-reward" aria-label="赞赏作者，点击查看大图">
+          <div class="sidebar-reward-head">
+            <span class="sidebar-reward-badge">
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
+                <path d="M8 14s-5.5-3.4-5.5-7.4A3.1 3.1 0 0 1 8 4.4a3.1 3.1 0 0 1 5.5 2.2C13.5 10.6 8 14 8 14Z"/>
+              </svg>
+              <span>赞赏作者</span>
+            </span>
+            <span class="sidebar-reward-zoom">放大 ↗</span>
+          </div>
+          <div class="sidebar-reward-qr">
+            <img src="assets/reward-qr.jpg" alt="KuroCat 微信赞赏码" loading="lazy" />
+          </div>
+          <div class="sidebar-reward-caption">
+            <strong>请作者喝杯咖啡 ☕</strong>
+            <span>微信扫码助力持续更新</span>
+          </div>
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -974,6 +994,27 @@
           <button type="button" class="mini-btn" id="btn-submit-goto-guide">查看 AI Agent 自动投稿提示词</button>
           <a class="mini-btn" id="btn-submit-issue-link" href="https://github.com/chanke17/KuroCat-Workshop/issues/new?template=submit-skin.yml" target="_blank" rel="noopener">不会 Git？直接提 Issue 投稿</a>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Support / Reward QR Enlarged Modal -->
+  <div class="modal-backdrop" id="reward-modal" hidden>
+    <div class="modal-card modal-reward" role="dialog" aria-modal="true" aria-labelledby="reward-modal-title">
+      <div class="modal-head">
+        <div>
+          <h3 id="reward-modal-title">感谢支持 KuroCat 开发 ♥</h3>
+          <span class="muted-note">微信扫一扫下方赞赏码，请作者喝杯咖啡</span>
+        </div>
+        <button type="button" class="icon-btn" id="btn-close-reward-modal" aria-label="关闭">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+        </button>
+      </div>
+      <div class="reward-modal-body">
+        <div class="reward-modal-qr-frame">
+          <img src="assets/reward-qr.jpg" alt="KuroCat 微信赞赏码大图" />
+        </div>
+        <p class="reward-modal-note">每一份支持都会变成更可爱的小猫皮肤、饰品与新功能，感谢陪伴！</p>
       </div>
     </div>
   </div>
