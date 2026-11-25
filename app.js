@@ -1522,13 +1522,30 @@
     photoCanvas._layout = { ox, oy, dw, dh, rx, ry, rw, rh };
   }
 
+  const drawingOpts = {
+    renderMode: 'original', // 'original' | 'vector'
+    eyeMode: 'keep',        // 'keep' | 'live'
+    removeBg: true,
+    hideBase: true,
+    userAdjustedCrop: false
+  };
+
   function runPhotoAnalysis(silent) {
     if (!photoImg) return;
     const baseName = photoFilename ? photoFilename.replace(/\.[^.]+$/, '').slice(0, 24) : '照片小猫';
-    const result = Analyzer.analyzeCatPhoto(photoImg, photoCrop, {
-      ...photoOpts,
-      name: `${baseName}`
-    });
+    const useOriginalDrawing = photoOpts.sourceType === 'drawing' && drawingOpts.renderMode === 'original' && Analyzer.buildOriginalDrawingSkin;
+    const result = useOriginalDrawing
+      ? Analyzer.buildOriginalDrawingSkin(photoImg, photoCrop, {
+          removeBg: drawingOpts.removeBg,
+          eyeMode: drawingOpts.eyeMode,
+          hideBase: drawingOpts.hideBase,
+          useCustomCrop: drawingOpts.userAdjustedCrop,
+          name: baseName
+        })
+      : Analyzer.analyzeCatPhoto(photoImg, photoCrop, {
+          ...photoOpts,
+          name: `${baseName}`
+        });
 
     rawSkin = result.spec;
     if (!rawSkin.decorations) rawSkin.decorations = [];
@@ -1539,10 +1556,15 @@
 
     const tag = document.getElementById('photo-archetype-tag');
     tag.textContent = result.modeLabel;
-    stageCoatBadge.textContent = `照片色块生成 · ${result.modeLabel}`;
+    stageCoatBadge.textContent = useOriginalDrawing
+      ? `手绘原图直用 · ${result.modeLabel}`
+      : `照片色块生成 · ${result.modeLabel}`;
 
     const summary = document.getElementById('photo-summary-box');
-    summary.innerHTML = `${result.reason}${result.diagnostics.irisDetected ? '，并自动提取了照片瞳色。' : '。'}`;
+    const irisNote = !useOriginalDrawing && result.diagnostics && result.diagnostics.irisDetected
+      ? '，并自动提取了照片瞳色。'
+      : (useOriginalDrawing ? '' : '。');
+    summary.innerHTML = `${result.reason}${irisNote}`;
 
     const segImg = document.getElementById('photo-seg-img');
     if (segImg && result.segDataUrl) segImg.src = result.segDataUrl;
@@ -1556,9 +1578,15 @@
       </div>
     `).join('');
 
+    const vecCtrl = document.getElementById('photo-vector-controls');
+    if (vecCtrl) vecCtrl.hidden = useOriginalDrawing;
     document.getElementById('photo-controls').hidden = false;
     syncSkin();
-    if (!silent) showToast(`已从照片直接提取色块生成「${baseName}」`);
+    if (!silent) {
+      showToast(useOriginalDrawing
+        ? `已直接保留手绘原图生成「${baseName}」，可在「配饰装扮」微调位置`
+        : `已从图片提取色块生成「${baseName}」`);
+    }
   }
 
   function handlePhotoFile(file) {
@@ -1572,6 +1600,7 @@
       const img = new Image();
       img.onload = () => {
         photoImg = img;
+        drawingOpts.userAdjustedCrop = false;
         document.getElementById('dropzone-empty').hidden = true;
         document.getElementById('photo-workspace').hidden = false;
         if (photoOpts.sourceType === 'drawing') {
@@ -1704,6 +1733,7 @@
     }
     if (photoDragging) {
       photoDragging = false;
+      drawingOpts.userAdjustedCrop = true;
       runPhotoAnalysis(true);
     }
   });
@@ -1761,6 +1791,7 @@
 
   function updatePhotoSourceModeUI(mode) {
     const isDrawing = mode === 'drawing';
+    const isOriginal = isDrawing && drawingOpts.renderMode === 'original';
     const dropzone = document.getElementById('photo-dropzone');
     const iconEl = document.getElementById('photo-drop-icon');
     const titleEl = document.getElementById('photo-drop-title');
@@ -1768,8 +1799,17 @@
     const btnEl = document.getElementById('btn-choose-photo');
     const tagEl = document.getElementById('photo-archetype-tag');
     const summaryEl = document.getElementById('photo-summary-box');
+    const drawPanel = document.getElementById('drawing-mode-panel');
+    const origOpts = document.getElementById('drawing-original-opts');
+    const resTitle = document.getElementById('photo-result-title');
+    const vecCtrl = document.getElementById('photo-vector-controls');
 
     if (dropzone) dropzone.dataset.source = mode;
+    if (drawPanel) drawPanel.hidden = !isDrawing;
+    if (origOpts) origOpts.hidden = !isOriginal;
+    if (resTitle) resTitle.textContent = isOriginal ? '手绘原图直用' : '色块向量化提取';
+    if (vecCtrl && photoImg) vecCtrl.hidden = isOriginal;
+
     if (iconEl) {
       iconEl.innerHTML = isDrawing
         ? `<svg viewBox="0 0 48 48" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1791,20 +1831,81 @@
     }
     if (subEl) {
       subEl.textContent = isDrawing
-        ? '支持透明底 PNG / 白底插画 / 板绘线稿填色 · 自动抠底裁切，免点鼻尖'
+        ? (isOriginal
+            ? '支持透明底 PNG / 白底手绘图 · 直接保留原画笔触，按底图画可精准 1:1 对齐'
+            : '支持透明底 PNG / 白底插画 · 自动抠底裁切并转为可编辑贝塞尔色块')
         : '推荐正面清晰拍到花色与毛色 · 纯本地识别，不上传服务器';
     }
     if (btnEl) {
       btnEl.textContent = isDrawing ? '选择手绘 / 板绘图' : '选择真实猫照片';
     }
     if (!photoImg) {
-      if (tagEl) tagEl.textContent = isDrawing ? '绘稿模式 · 待上传' : '照片模式 · 待上传';
+      if (tagEl) {
+        tagEl.textContent = isDrawing
+          ? (isOriginal ? '原图直用 · 待上传' : '绘稿向量化 · 待上传')
+          : '照片模式 · 待上传';
+      }
       if (summaryEl) {
         summaryEl.textContent = isDrawing
-          ? '适合透明底 PNG 或纯色背景的插画/板绘图：上传后自动去底裁切、免点鼻尖，默认「原图直取」与硬边色块提取（关闭自动虎斑），精准还原你画的每一块花纹。'
+          ? (isOriginal
+              ? '可直接下载上方 720×640 原版手绘底图垫底绘制，也可直接拖入已有画作：系统会完整保留你的原画笔触（自动拆分为 2.5D 跟随头部 + 躯干两层），并自动匹配打字手与摇尾颜色，导出 .kurocat 即可在桌面端使用。'
+              : '将你的手绘/板绘图按像素硬边提取为可编辑的贝塞尔曲线色块分区（免点鼻尖、原图直取、关闭自动虎斑），适合后续在「手绘花纹」里继续微调。')
           : '上传真实猫咪照片后点一下猫鼻尖对齐头部，系统会自动过滤背景与光影噪点，识别虎斑/重点色并提取为可编辑的贝塞尔曲线分区。';
       }
     }
+  }
+
+  const btnDownloadTemplate = document.getElementById('btn-download-template');
+  if (btnDownloadTemplate) {
+    btnDownloadTemplate.addEventListener('click', () => {
+      if (!Renderer.generateHandDrawTemplateDataUrl) return;
+      const dataUrl = Renderer.generateHandDrawTemplateDataUrl(resolvedSkin);
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'kurocat-handdraw-template-720x640.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('已下载 720×640 原版手绘底图 PNG，在画图软件中新建图层垫底绘制即可！');
+    });
+  }
+
+  document.querySelectorAll('#drawing-render-pills .pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#drawing-render-pills .pill').forEach((b) => b.classList.toggle('active', b === btn));
+      drawingOpts.renderMode = btn.dataset.dmode || 'original';
+      updatePhotoSourceModeUI(photoOpts.sourceType);
+      if (photoImg && framingStep === 'framed') runPhotoAnalysis(true);
+    });
+  });
+
+  document.querySelectorAll('#drawing-eye-pills .pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#drawing-eye-pills .pill').forEach((b) => b.classList.toggle('active', b === btn));
+      drawingOpts.eyeMode = btn.dataset.deye || 'keep';
+      if (photoImg && photoOpts.sourceType === 'drawing' && drawingOpts.renderMode === 'original') {
+        runPhotoAnalysis(true);
+      }
+    });
+  });
+
+  const chkDrawBg = document.getElementById('drawing-opt-remove-bg');
+  if (chkDrawBg) {
+    chkDrawBg.addEventListener('change', () => {
+      drawingOpts.removeBg = chkDrawBg.checked;
+      if (photoImg && photoOpts.sourceType === 'drawing' && drawingOpts.renderMode === 'original') {
+        runPhotoAnalysis(true);
+      }
+    });
+  }
+  const chkDrawBase = document.getElementById('drawing-opt-hide-base');
+  if (chkDrawBase) {
+    chkDrawBase.addEventListener('change', () => {
+      drawingOpts.hideBase = chkDrawBase.checked;
+      if (photoImg && photoOpts.sourceType === 'drawing' && drawingOpts.renderMode === 'original') {
+        runPhotoAnalysis(true);
+      }
+    });
   }
 
   document.querySelectorAll('#photo-source-pills .pill').forEach((btn) => {

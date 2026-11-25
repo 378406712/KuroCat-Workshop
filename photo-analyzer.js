@@ -1258,8 +1258,377 @@
     };
   }
 
+  // Edge flood-fill solid/paper background remover for opaque hand-drawn illustrations
+  function stripDrawingPaperBackground(imgData, tol) {
+    const { data, width, height } = imgData;
+    const totalBorder = (width + height) * 2;
+    let opaqueBorder = 0;
+    const borderSamples = [];
+    const samplePx = (x, y) => {
+      const idx = (y * width + x) * 4;
+      if (data[idx + 3] > 240) {
+        opaqueBorder++;
+        borderSamples.push([data[idx], data[idx + 1], data[idx + 2]]);
+      }
+    };
+    for (let x = 0; x < width; x++) { samplePx(x, 0); samplePx(x, height - 1); }
+    for (let y = 1; y < height - 1; y++) { samplePx(0, y); samplePx(width - 1, y); }
+    // Already transparent PNG -> preserve artist's original alpha!
+    if (opaqueBorder < totalBorder * 0.80 || borderSamples.length === 0) return false;
+
+    borderSamples.sort((a, b) => (a[0] + a[1] + a[2]) - (b[0] + b[1] + b[2]));
+    const bg = borderSamples[Math.floor(borderSamples.length * 0.5)];
+    const t = tol || 38;
+    const t2 = t * t * 3;
+    const soft2 = (t + 18) * (t + 18) * 3;
+    const visited = new Uint8Array(width * height);
+    const queue = new Int32Array(width * height);
+    let head = 0, tail = 0;
+
+    const tryPush = (x, y) => {
+      const p = y * width + x;
+      if (visited[p]) return;
+      const i = p * 4;
+      const dr = data[i] - bg[0], dg = data[i + 1] - bg[1], db = data[i + 2] - bg[2];
+      if (data[i + 3] < 20 || (dr * dr + dg * dg + db * db) <= t2) {
+        visited[p] = 1;
+        queue[tail++] = p;
+      }
+    };
+    for (let x = 0; x < width; x++) { tryPush(x, 0); tryPush(x, height - 1); }
+    for (let y = 1; y < height - 1; y++) { tryPush(0, y); tryPush(width - 1, y); }
+
+    while (head < tail) {
+      const p = queue[head++];
+      data[p * 4 + 3] = 0;
+      const x = p % width;
+      const y = (p - x) / width;
+      if (x > 0) tryPush(x - 1, y);
+      if (x + 1 < width) tryPush(x + 1, y);
+      if (y > 0) tryPush(x, y - 1);
+      if (y + 1 < height) tryPush(x, y + 1);
+    }
+
+    // Soft 1px anti-alias feather on pixels directly touching removed background
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const p = y * width + x;
+        if (visited[p]) continue;
+        if (visited[p - 1] || visited[p + 1] || visited[p - width] || visited[p + width]) {
+          const i = p * 4;
+          const dr = data[i] - bg[0], dg = data[i + 1] - bg[1], db = data[i + 2] - bg[2];
+          const d2 = dr * dr + dg * dg + db * db;
+          if (d2 < soft2) {
+            const k = clamp((Math.sqrt(d2 / 3) - t * 0.65) / 26, 0, 1);
+            data[i + 3] = Math.round(data[i + 3] * k);
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  function trimCanvasRegion(srcCanvas, yStart, yEnd, featherTop, featherBottom) {
+    const w = srcCanvas.width;
+    const h = Math.max(1, yEnd - yStart);
+    const slice = document.createElement('canvas');
+    slice.width = w;
+    slice.height = h;
+    const sctx = slice.getContext('2d');
+    sctx.drawImage(srcCanvas, 0, yStart, w, h, 0, 0, w, h);
+    const id = sctx.getImageData(0, 0, w, h);
+    const d = id.data;
+
+    if (featherTop > 0) {
+      for (let y = 0; y < Math.min(featherTop, h); y++) {
+        const k = (y + 0.5) / featherTop;
+        for (let x = 0; x < w; x++) {
+          const idx = (y * w + x) * 4 + 3;
+          d[idx] = Math.round(d[idx] * k);
+        }
+      }
+    }
+    if (featherBottom > 0) {
+      for (let y = Math.max(0, h - featherBottom); y < h; y++) {
+        const k = (h - y - 0.5) / featherBottom;
+        for (let x = 0; x < w; x++) {
+          const idx = (y * w + x) * 4 + 3;
+          d[idx] = Math.round(d[idx] * k);
+        }
+      }
+    }
+    sctx.putImageData(id, 0, 0);
+
+    let minX = w, minY = h, maxX = -1, maxY = -1;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (d[(y * w + x) * 4 + 3] > 10) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX < minX || maxY < minY) return null;
+
+    const pad = 2;
+    const x0 = Math.max(0, minX - pad);
+    const y0 = Math.max(0, minY - pad);
+    const cw = Math.min(w - x0, maxX - minX + 1 + pad * 2);
+    const ch = Math.min(h - y0, maxY - minY + 1 + pad * 2);
+    const out = document.createElement('canvas');
+    out.width = cw;
+    out.height = ch;
+    out.getContext('2d').drawImage(slice, x0, y0, cw, ch, 0, 0, cw, ch);
+    const png = out.toDataURL('image/png').replace(/^data:image\/png;base64,/, '');
+    return {
+      png,
+      width: cw,
+      height: ch,
+      canvasCenterX: (x0 + cw * 0.5) * 0.5,
+      canvasCenterY: (yStart + y0 + ch * 0.5) * 0.5
+    };
+  }
+
+  /**
+   * Build a 100% .kurocat v1 skin directly preserving the artist's ORIGINAL hand-drawn PNG artwork
+   * sliced cleanly into 2x anchored `face` (2.5D head) and `neck` (body) PNG layers, with matched
+   * animated paws and optional live wagging tail & dynamic blinking eye cutouts.
+   */
+  function buildOriginalDrawingSkin(imgSource, cropBox, options) {
+    const opts = Object.assign({
+      removeBg: true,
+      eyeMode: 'keep',      // 'keep' | 'live'
+      hideBase: true,
+      name: '手绘原画小猫'
+    }, options || {});
+
+    const natW = imgSource.naturalWidth || imgSource.width || 720;
+    const natH = imgSource.naturalHeight || imgSource.height || 640;
+
+    // 1. Render source image & optionally strip solid/paper background
+    const maxSrc = 1024;
+    const srcScale = Math.min(1, maxSrc / Math.max(natW, natH));
+    const sw = Math.max(16, Math.round(natW * srcScale));
+    const sh = Math.max(16, Math.round(natH * srcScale));
+    const srcCanvas = document.createElement('canvas');
+    srcCanvas.width = sw;
+    srcCanvas.height = sh;
+    const srcCtx = srcCanvas.getContext('2d');
+    srcCtx.drawImage(imgSource, 0, 0, sw, sh);
+
+    let bgStripped = false;
+    if (opts.removeBg) {
+      const id = srcCtx.getImageData(0, 0, sw, sh);
+      bgStripped = stripDrawingPaperBackground(id, 38);
+      if (bgStripped) srcCtx.putImageData(id, 0, 0);
+    }
+
+    // 2. Detect whether the artwork was painted on our 720x640 (9:8) template
+    const isTemplateRatio = Math.abs((natW / natH) - (360 / 320)) < 0.03;
+    const work = document.createElement('canvas');
+    work.width = 720;
+    work.height = 640;
+    const wctx = work.getContext('2d');
+    wctx.imageSmoothingEnabled = true;
+    wctx.imageSmoothingQuality = 'high';
+
+    let alignedToTemplate = false;
+    const srcData = srcCtx.getImageData(0, 0, sw, sh).data;
+    let minX = sw, minY = sh, maxX = -1, maxY = -1;
+    for (let y = 0; y < sh; y++) {
+      for (let x = 0; x < sw; x++) {
+        if (srcData[(y * sw + x) * 4 + 3] > 20) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+
+    if (isTemplateRatio && !opts.useCustomCrop && maxX > minX && maxY > minY) {
+      // Check if content sits inside template's cat area (not tightly cropped to 0..1 edges)
+      const relMinY = minY / sh;
+      const relMaxY = maxY / sh;
+      const relMinX = minX / sw;
+      const relMaxX = maxX / sw;
+      if (relMinY > 0.08 && relMaxY < 0.94 && relMinX > 0.08 && relMaxX < 0.94) {
+        alignedToTemplate = true;
+        wctx.drawImage(srcCanvas, 0, 0, sw, sh, 0, 0, 720, 640);
+      }
+    }
+
+    if (!alignedToTemplate) {
+      // Fit cropped cat cleanly onto KuroCat's 2x sitting silhouette box (centered x=368, y=144..468)
+      let cx0 = minX, cy0 = minY, cw = Math.max(1, maxX - minX + 1), ch = Math.max(1, maxY - minY + 1);
+      if (cropBox && opts.useCustomCrop) {
+        const isNorm = cropBox.w <= 1.01 && cropBox.h <= 1.01;
+        cx0 = Math.max(0, Math.round(isNorm ? cropBox.x * sw : cropBox.x * srcScale));
+        cy0 = Math.max(0, Math.round(isNorm ? cropBox.y * sh : cropBox.y * srcScale));
+        cw = Math.max(16, Math.round(isNorm ? cropBox.w * sw : cropBox.w * srcScale));
+        ch = Math.max(16, Math.round(isNorm ? cropBox.h * sh : cropBox.h * srcScale));
+      } else if (maxX < minX) {
+        cx0 = 0; cy0 = 0; cw = sw; ch = sh;
+      }
+      const targetMaxW = 308;
+      const targetMaxH = 330;
+      const fitScale = Math.min(targetMaxW / cw, targetMaxH / ch);
+      const dw = cw * fitScale;
+      const dh = ch * fitScale;
+      const dx = 368 - dw * 0.5;
+      const dy = 468 - dh; // bottom rests cleanly right above keyboard edge (y=234)
+      wctx.drawImage(srcCanvas, cx0, cy0, cw, ch, dx, dy, dw, dh);
+    }
+
+    // 3. Sample dominant artwork fur colors (for matching animated paws & wagging tail) + detect hand-drawn tail
+    const wData = wctx.getImageData(0, 0, 720, 640).data;
+    const furBuckets = new Map();
+    let lowerR = 0, lowerG = 0, lowerB = 0, lowerN = 0;
+    let tailDrawnPx = 0;
+    for (let y = 130; y < 500; y += 3) {
+      for (let x = 140; x < 630; x += 3) {
+        const idx = (y * 720 + x) * 4;
+        const a = wData[idx + 3];
+        if (a < 180) continue;
+        const r = wData[idx], g = wData[idx + 1], b = wData[idx + 2];
+        if (x > 468 && y > 330 && y < 485) tailDrawnPx++;
+        // Skip very dark ink outlines when sampling base coat color
+        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        if (lum > 38) {
+          const qr = (r >> 4) << 4, qg = (g >> 4) << 4, qb = (b >> 4) << 4;
+          const k = (qr << 16) | (qg << 8) | qb;
+          const bkt = furBuckets.get(k) || { r: 0, g: 0, b: 0, n: 0 };
+          bkt.r += r; bkt.g += g; bkt.b += b; bkt.n++;
+          furBuckets.set(k, bkt);
+        }
+        if (y > 380 && y < 475 && x > 280 && x < 456) {
+          lowerR += r; lowerG += g; lowerB += b; lowerN++;
+        }
+      }
+    }
+    let bestBkt = null;
+    for (const bkt of furBuckets.values()) {
+      if (!bestBkt || bkt.n > bestBkt.n) bestBkt = bkt;
+    }
+    const baseHex = bestBkt
+      ? rgbToHex(bestBkt.r / bestBkt.n, bestBkt.g / bestBkt.n, bestBkt.b / bestBkt.n)
+      : '#F5EFE6';
+    const pawHex = lowerN > 10
+      ? rgbToHex(lowerR / lowerN, lowerG / lowerN, lowerB / lowerN)
+      : baseHex;
+    const hasDrawnTail = tailDrawnPx > 45;
+
+    // 4. Optional feathered eye-window cutout so KuroCat's live blinking & gaze-tracking eyes shine through
+    if (opts.eyeMode === 'live') {
+      wctx.save();
+      wctx.globalCompositeOperation = 'destination-out';
+      for (const sign of [-1, 1]) {
+        const ex = 368 + sign * 34.4;
+        const ey = 248;
+        const rx = 17.5, ry = 18.5;
+        wctx.save();
+        wctx.translate(ex, ey);
+        wctx.scale(rx, ry);
+        const grad = wctx.createRadialGradient(0, 0, 0.65, 0, 0, 1.0);
+        grad.addColorStop(0, 'rgba(0,0,0,1)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        wctx.fillStyle = grad;
+        wctx.beginPath();
+        wctx.arc(0, 0, 1.05, 0, Math.PI * 2);
+        wctx.fill();
+        wctx.restore();
+      }
+      wctx.restore();
+    }
+
+    // 5. Slice into crisp 2x `face` (head + ears) and `neck` (body) decorations
+    const splitY = 316; // y = 158 in 360x320 canvas
+    const headSlice = trimCanvasRegion(work, 0, splitY + 8, 0, 8);
+    const bodySlice = trimCanvasRegion(work, splitY - 4, 515, 4, 0);
+
+    const decorations = [];
+    if (bodySlice) {
+      decorations.push({
+        _label: '手绘躯干原图',
+        png: bodySlice.png,
+        anchor: 'neck',
+        offsetX: round2(clamp(bodySlice.canvasCenterX - 184, -120, 120)),
+        offsetY: round2(clamp(bodySlice.canvasCenterY - 162, -120, 120)),
+        scale: 1.0,
+        rotation: 0
+      });
+    }
+    if (headSlice) {
+      decorations.push({
+        _label: '手绘头部原图',
+        png: headSlice.png,
+        anchor: 'face',
+        offsetX: round2(clamp(headSlice.canvasCenterX - 184, -120, 120)),
+        offsetY: round2(clamp(headSlice.canvasCenterY - 130, -120, 120)),
+        scale: 1.0,
+        rotation: 0
+      });
+    }
+
+    const palette = {
+      body: opts.hideBase ? `${baseHex}00` : baseHex,
+      earOuter: opts.hideBase ? `${baseHex}00` : baseHex,
+      legs: baseHex,
+      paws: pawHex,
+      tail: hasDrawnTail ? `${baseHex}00` : baseHex,
+      whiskers: '#00000000',
+      crease: '#5A4A3E44'
+    };
+
+    const rawSpec = {
+      formatVersion: 1,
+      name: opts.name || '手绘原画小猫',
+      author: 'KuroCat 皮肤工坊',
+      palette,
+      shape: {
+        build: 'standard',
+        bodyWidth: 1.0,
+        headScale: 1.0,
+        cheekFullness: 1.0,
+        earSize: 1.0,
+        earPointiness: 1.0,
+        tailLength: 1.0,
+        tailThickness: 1.0,
+        pawStagger: 0
+      },
+      headSurface: 'dome',
+      regions: [],
+      marks: [],
+      decorations
+    };
+
+    // Thumbnail preview for summary bar
+    const thumb = document.createElement('canvas');
+    thumb.width = 96;
+    thumb.height = 86;
+    thumb.getContext('2d').drawImage(work, 80, 70, 560, 480, 0, 0, 96, 86);
+
+    const swatches = [
+      { label: '打字爪色', hex: pawHex },
+      { label: hasDrawnTail ? '原画尾巴' : '动态尾巴', hex: baseHex }
+    ];
+
+    return {
+      spec: rawSpec,
+      modeLabel: alignedToTemplate ? '原图直用 · 模板精准对齐' : '原图直用 · 保留原画笔触',
+      reason: `已直接保留你的手绘原图（分为「头部 2.5D 跟随」与「躯干呼吸」两层高清 2× PNG），${opts.eyeMode === 'live' ? '已自动挖空眼部启用动态眨眼，' : '完整保留你画的五官与画风，'}${hasDrawnTail ? '检测到原画已自带尾巴（已隐藏默认尾巴）。' : '已自动匹配毛色生成动态摇摆尾巴与打字手。'}导出 .kurocat 即可直接拖进桌面端使用！`,
+      swatches,
+      segDataUrl: thumb.toDataURL('image/png'),
+      alignedToTemplate,
+      bgStripped
+    };
+  }
+
   global.KuroPhotoAnalyzer = {
     analyzeCatPhoto,
-    detectDrawingCrop
+    detectDrawingCrop,
+    buildOriginalDrawingSkin
   };
 })(window);

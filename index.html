@@ -266,6 +266,38 @@
                 </div>
               </div>
 
+              <div class="drawing-mode-panel" id="drawing-mode-panel" hidden>
+                <div class="drawing-template-card">
+                  <div class="drawing-template-copy">
+                    <strong>下载原版手绘底图素材 (720×640 PNG)</strong>
+                    <span>导入 Procreate / PS / CSP 垫底上色，导出前隐藏参考层，拖回即可精准对齐</span>
+                  </div>
+                  <button type="button" class="mini-btn active" id="btn-download-template">下载底图</button>
+                </div>
+
+                <div class="drawing-mode-row">
+                  <span class="source-mode-label">导入方式</span>
+                  <div class="pill-grid" id="drawing-render-pills">
+                    <button type="button" class="pill active" data-dmode="original">原图直用（保留原画）</button>
+                    <button type="button" class="pill" data-dmode="vector">色块向量化</button>
+                  </div>
+                </div>
+
+                <div class="drawing-original-opts" id="drawing-original-opts">
+                  <div class="drawing-mode-row">
+                    <span class="source-mode-label">五官显示</span>
+                    <div class="pill-grid" id="drawing-eye-pills">
+                      <button type="button" class="pill active" data-deye="keep">保留原画五官</button>
+                      <button type="button" class="pill" data-deye="live">挖空启用动态眨眼</button>
+                    </div>
+                  </div>
+                  <div class="checkbox-row drawing-checks">
+                    <label><input type="checkbox" id="drawing-opt-remove-bg" checked /> 自动去白底 / 纯色背景</label>
+                    <label><input type="checkbox" id="drawing-opt-hide-base" checked /> 隐藏默认轮廓（纯显原画）</label>
+                  </div>
+                </div>
+              </div>
+
               <div class="photo-dropzone" id="photo-dropzone">
                 <input id="photo-file-input" type="file" accept="image/*" hidden />
                 <div class="dropzone-empty" id="dropzone-empty">
@@ -298,7 +330,7 @@
 
               <div class="card-section" id="photo-result-card">
                 <div class="section-head">
-                  <h2>色块向量化提取</h2>
+                  <h2 id="photo-result-title">色块向量化提取</h2>
                   <span class="status-tag" id="photo-archetype-tag">等待上传图片</span>
                 </div>
 
@@ -312,6 +344,7 @@
                     <div class="swatch-row" id="photo-swatches"></div>
                   </div>
 
+                  <div id="photo-vector-controls">
                   <div class="control-block">
                     <div class="control-label">提取毛色数量</div>
                     <div class="pill-grid" id="color-count-pills">
@@ -356,6 +389,7 @@
                   <button type="button" class="btn btn-primary btn-full" id="btn-regenerate-photo">
                     重新提取色块并生成皮肤
                   </button>
+                  </div>
                 </div>
               </div>
             </section>

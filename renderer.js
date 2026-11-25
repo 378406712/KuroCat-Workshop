@@ -1306,63 +1306,65 @@
     return { x: pivot.x + dx * c - dy * s, y: pivot.y + dx * s + dy * c };
   }
 
+  // ONE continuous closed path pixel-traced directly from Video 1's original head + ears contour (maxErr ~ 1.2px on 1000x750)
   function traceV1UnifiedHeadWithEars(ctx, headCX, headCY, headRX, headRY, earTipY, shiftX) {
     const headTopY = headCY - headRY;
-    // Place outer ear roots right on the true soft oval contour (y = headTopY + 0.22 * headRY)
-    // so the temples flow seamlessly with ZERO boxy upper-left/upper-right corners!
-    const earRootDrop = headRY * 0.22;
-    const leftEarOut = { x: 176 + shiftX, y: headTopY + earRootDrop };
-    const leftEarTip = { x: 278 + shiftX, y: earTipY };
-    const leftEarIn = { x: 342 + shiftX, y: headTopY + 2 };
-    const rightEarIn = { x: 398 + shiftX, y: headTopY + 2 };
-    const rightEarTip = { x: 455 + shiftX, y: earTipY + 1 };
-    const rightEarOut = { x: 564 + shiftX, y: headTopY + earRootDrop };
-    const cheekY = headCY + headRY * 0.06;
-    const rightCheek = { x: headCX + headRX, y: cheekY };
-    const chin = { x: headCX, y: headCY + headRY };
-    const leftCheek = { x: headCX - headRX, y: cheekY };
+    const leftEarOut = { x: headCX - headRX * 0.709, y: headCY - headRY * 0.903 };
+    const leftEarTip = { x: 284 + shiftX, y: earTipY };
+    const leftEarIn = { x: 339 + shiftX, y: headTopY };
+    const rightEarIn = { x: 399 + shiftX, y: headTopY };
+    const rightEarTip = { x: 460 + shiftX, y: earTipY };
+    const rightEarOut = { x: headCX + headRX * 0.640, y: headCY - headRY * 0.945 };
+    const cheekY = headCY - headRY * 0.021;
+    const rightCheek = { x: headCX + headRX * 1.000, y: cheekY };
+    const chin = { x: headCX, y: headCY + headRY * 1.007 };
+    const leftCheek = { x: headCX - headRX * 1.002, y: cheekY };
 
     ctx.beginPath();
     ctx.moveTo(leftEarOut.x, leftEarOut.y);
+    // Left ear outer -> tip -> inner (directly traced to v1_01 ink centerline)
     ctx.bezierCurveTo(
-      206 + shiftX, lerpNum(leftEarOut.y, earTipY, 0.56),
-      242 + shiftX, earTipY,
+      202 + shiftX, lerpNum(leftEarOut.y, earTipY, 0.345),
+      214 + shiftX, lerpNum(leftEarOut.y, earTipY, 0.853),
       leftEarTip.x, leftEarTip.y
     );
     ctx.bezierCurveTo(
-      318 + shiftX, earTipY,
-      338 + shiftX, lerpNum(leftEarIn.y, earTipY, 0.48),
+      350 + shiftX, lerpNum(leftEarIn.y, earTipY, 0.897),
+      329 + shiftX, lerpNum(leftEarIn.y, earTipY, 0.320),
       leftEarIn.x, leftEarIn.y
     );
-    ctx.quadraticCurveTo(370 + shiftX, headTopY, rightEarIn.x, rightEarIn.y);
+    // Smooth crown bridge between ears
+    ctx.quadraticCurveTo(369 + shiftX, headTopY - 1, rightEarIn.x, rightEarIn.y);
+    // Right ear inner -> tip -> outer
     ctx.bezierCurveTo(
-      402 + shiftX, lerpNum(rightEarIn.y, earTipY + 1, 0.48),
-      420 + shiftX, earTipY + 1,
+      416 + shiftX, lerpNum(rightEarIn.y, earTipY, 0.308),
+      403 + shiftX, lerpNum(rightEarIn.y, earTipY, 0.856),
       rightEarTip.x, rightEarTip.y
     );
     ctx.bezierCurveTo(
-      496 + shiftX, earTipY + 1,
-      534 + shiftX, lerpNum(rightEarOut.y, earTipY + 1, 0.56),
+      529 + shiftX, lerpNum(rightEarOut.y, earTipY, 0.876),
+      539 + shiftX, lerpNum(rightEarOut.y, earTipY, 0.344),
       rightEarOut.x, rightEarOut.y
     );
+    // Full soft plump mochi cheeks directly traced from Video 1 ink centerline
     ctx.bezierCurveTo(
-      628 + shiftX, headTopY + headRY * 0.44,
-      headCX + headRX, cheekY - headRY * 0.34,
+      headCX + headRX * 0.838, headCY - headRY * 0.818,
+      headCX + headRX * 1.020, headCY - headRY * 0.470,
       rightCheek.x, rightCheek.y
     );
     ctx.bezierCurveTo(
-      headCX + headRX, cheekY + headRY * 0.52,
-      headCX + headRX * 0.54, headCY + headRY,
+      headCX + headRX * 0.976, headCY + headRY * 0.924,
+      headCX + headRX * 0.352, headCY + headRY * 1.054,
       chin.x, chin.y
     );
     ctx.bezierCurveTo(
-      headCX - headRX * 0.54, headCY + headRY,
-      headCX - headRX, cheekY + headRY * 0.52,
+      headCX - headRX * 0.346, headCY + headRY * 1.009,
+      headCX - headRX * 0.972, headCY + headRY * 0.927,
       leftCheek.x, leftCheek.y
     );
     ctx.bezierCurveTo(
-      headCX - headRX, cheekY - headRY * 0.34,
-      112 + shiftX, headTopY + headRY * 0.44,
+      headCX - headRX * 1.014, headCY - headRY * 0.419,
+      headCX - headRX * 0.866, headCY - headRY * 0.720,
       leftEarOut.x, leftEarOut.y
     );
     ctx.closePath();
@@ -2067,51 +2069,56 @@
     ctx.lineCap = 'round';
     ctx.beginPath();
     if (isLeft) {
-      ctx.moveTo(540, 178); ctx.lineTo(536, 160);
-      ctx.moveTo(554, 178); ctx.lineTo(550, 148);
-      ctx.moveTo(568, 177); ctx.lineTo(562, 134);
+      ctx.moveTo(550, 176); ctx.lineTo(544, 158);
+      ctx.moveTo(564, 176); ctx.lineTo(558, 146);
+      ctx.moveTo(578, 175); ctx.lineTo(572, 134);
     } else {
-      ctx.moveTo(624, 184); ctx.lineTo(634, 144);
-      ctx.moveTo(638, 186); ctx.lineTo(650, 158);
-      ctx.moveTo(652, 188); ctx.lineTo(666, 172);
+      ctx.moveTo(632, 182); ctx.lineTo(644, 144);
+      ctx.moveTo(646, 184); ctx.lineTo(660, 158);
+      ctx.moveTo(660, 186); ctx.lineTo(674, 172);
     }
     ctx.stroke();
     ctx.restore();
   }
 
-  function drawV2UnifiedHeadAndEars(ctx, earLagX, earFlare, cream, taupe, ink, lw, angerBlush) {
+  // Unified outer contour pixel-traced directly from Video 2's original head + ears (maxErr ~ 0.8px on 832x720)
+  function traceV2UnifiedHeadStroke(ctx, earLagX, earFlare) {
     const flare = earFlare || 0;
-    const blush = angerBlush || 0;
-    const headCX = 582, headCY = 272, rx = 172, ry = 95;
-    const cheekY = 278;
-    const leftEarOut = { x: 472, y: 196 };
-    const leftEarTip = { x: 568 + earLagX - flare, y: 63 + Math.max(0, -flare) * 0.9 };
-    const leftEarIn = { x: 584, y: 175 };
-    const rightEarIn = { x: 610, y: 179 };
-    const rightEarTip = { x: 682 + earLagX + flare, y: 76 + Math.max(0, -flare) * 0.9 };
-    const rightEarOut = { x: 706, y: 204 };
-    const rightCheek = { x: headCX + rx, y: cheekY };
-    const neckRight = { x: 702, y: 344 };
-    const chin = { x: headCX, y: headCY + ry };
-    const neckLeft = { x: 576, y: 367 };
-    const leftCheek = { x: headCX - rx, y: cheekY };
+    const dxL = earLagX - flare;
+    const dxR = earLagX + flare;
+    const dyPin = Math.max(0, -flare) * 0.9;
+    const neckLeft = { x: 576.0, y: 365.0 };
+    const leftCheek = { x: 421.0, y: 275.0 };
+    const leftEarOut = { x: 483.5, y: 180.0 };
+    const leftEarTip = { x: 573.0 + dxL, y: 62.0 + dyPin };
+    const leftEarIn = { x: 596.0, y: 174.0 };
+    const rightEarIn = { x: 618.0, y: 178.0 };
+    const rightEarTip = { x: 679.5 + dxR, y: 76.0 + dyPin };
+    const rightEarOut = { x: 714.0, y: 196.0 };
+    const rightCheek = { x: 757.0, y: 280.0 };
+    const neckRight = { x: 722.0, y: 350.0 };
 
-    const traceOpenStroke = () => {
-      ctx.beginPath();
-      ctx.moveTo(neckLeft.x, neckLeft.y);
-      ctx.bezierCurveTo(headCX - rx * 0.54, headCY + ry, headCX - rx, cheekY + ry * 0.46, leftCheek.x, leftCheek.y);
-      ctx.bezierCurveTo(headCX - rx, cheekY - ry * 0.28, 436, 222, leftEarOut.x, leftEarOut.y);
-      ctx.bezierCurveTo(494, 126, 540 + (earLagX - flare) * 0.6, 65 + Math.max(0, -flare) * 0.6, leftEarTip.x, leftEarTip.y);
-      ctx.bezierCurveTo(583 + (earLagX - flare) * 0.4, 64 + Math.max(0, -flare) * 0.5, 588, 126, leftEarIn.x, leftEarIn.y);
-      ctx.quadraticCurveTo(597, 176, rightEarIn.x, rightEarIn.y);
-      ctx.bezierCurveTo(626, 130, 660 + (earLagX + flare) * 0.6, 76 + Math.max(0, -flare) * 0.6, rightEarTip.x, rightEarTip.y);
-      ctx.bezierCurveTo(702 + (earLagX + flare) * 0.4, 78 + Math.max(0, -flare) * 0.5, 710, 142, rightEarOut.x, rightEarOut.y);
-      ctx.bezierCurveTo(728, 228, headCX + rx, cheekY - ry * 0.26, rightCheek.x, rightCheek.y);
-      ctx.bezierCurveTo(headCX + rx, cheekY + ry * 0.42, 734, 328, neckRight.x, neckRight.y);
-    };
+    ctx.beginPath();
+    ctx.moveTo(neckLeft.x, neckLeft.y);
+    ctx.bezierCurveTo(520.3, 369.5, 416.7, 351.4, leftCheek.x, leftCheek.y);
+    ctx.bezierCurveTo(423.2, 235.2, 442.5, 192.8, leftEarOut.x, leftEarOut.y);
+    ctx.bezierCurveTo(519.3, 147.1, 529.2 + dxL * 0.6, 90.3 + dyPin * 0.6, leftEarTip.x, leftEarTip.y);
+    ctx.bezierCurveTo(596.8 + dxL * 0.4, 94.0 + dyPin * 0.5, 592.7, 136.4, leftEarIn.x, leftEarIn.y);
+    ctx.quadraticCurveTo(607.0, 176.0, rightEarIn.x, rightEarIn.y);
+    ctx.bezierCurveTo(640.1, 146.2, 642.6 + dxR * 0.6, 97.9 + dyPin * 0.6, rightEarTip.x, rightEarTip.y);
+    ctx.bezierCurveTo(717.7 + dxR * 0.4, 102.3 + dyPin * 0.5, 709.7, 155.8, rightEarOut.x, rightEarOut.y);
+    ctx.bezierCurveTo(738.0, 217.2, 757.4, 246.8, rightCheek.x, rightCheek.y);
+    ctx.bezierCurveTo(756.3, 307.2, 745.0, 334.2, neckRight.x, neckRight.y);
+  }
+
+  function drawV2UnifiedHeadAndEars(ctx, earLagX, earFlare, cream, taupe, ink, lw, angerBlush) {
+    const blush = angerBlush || 0;
+    const chin = { x: 589.0, y: 366.0 };
+    const neckLeft = { x: 576.0, y: 365.0 };
+
     const traceClosedFill = () => {
-      traceOpenStroke();
-      ctx.quadraticCurveTo(650, headCY + ry, chin.x, chin.y);
+      traceV2UnifiedHeadStroke(ctx, earLagX, earFlare);
+      ctx.quadraticCurveTo(660, 366, chin.x, chin.y);
       ctx.lineTo(neckLeft.x, neckLeft.y);
       ctx.closePath();
     };
@@ -2121,7 +2128,7 @@
     ctx.fillStyle = rgbaToCss(cream);
     ctx.fill();
 
-    // 2. Clipped soft taupe-to-cream ear gradients + nose-bridge taupe smudge + optional furious rosy blush
+    // 2. Clipped ear gradients + nose-bridge taupe smudge + optional furious rosy blush
     ctx.save();
     traceClosedFill();
     ctx.clip();
@@ -2134,37 +2141,37 @@
       return g;
     };
     ctx.save();
-    ctx.beginPath(); ctx.rect(454, 52, 136, 158); ctx.clip();
-    ctx.fillStyle = makeGrad(540, 64, 204);
-    ctx.fillRect(454, 52, 136, 158);
+    ctx.beginPath(); ctx.rect(472, 52, 130, 158); ctx.clip();
+    ctx.fillStyle = makeGrad(545, 62, 204);
+    ctx.fillRect(472, 52, 130, 158);
     ctx.restore();
 
     ctx.save();
-    ctx.beginPath(); ctx.rect(604, 64, 124, 158); ctx.clip();
-    ctx.fillStyle = makeGrad(668, 76, 214);
-    ctx.fillRect(604, 64, 124, 158);
+    ctx.beginPath(); ctx.rect(612, 64, 118, 158); ctx.clip();
+    ctx.fillStyle = makeGrad(672, 76, 214);
+    ctx.fillRect(612, 64, 118, 158);
     ctx.restore();
 
-    drawSoftTaupePatch(ctx, { x: 584, y: 270 }, 52, 48, taupe, 0.72);
+    drawSoftTaupePatch(ctx, { x: 586, y: 270 }, 52, 48, taupe, 0.72);
 
     if (blush > 0.08) {
       ctx.fillStyle = `rgba(255, 112, 122, ${Math.min(0.42, blush * 0.42).toFixed(3)})`;
       ctx.beginPath();
-      ctx.ellipse(426 + 29, 294 + 15, 29, 15, 0, 0, Math.PI * 2);
-      ctx.ellipse(678 + 29, 304 + 15, 29, 15, 0, 0, Math.PI * 2);
+      ctx.ellipse(432 + 28, 294 + 15, 28, 15, 0, 0, Math.PI * 2);
+      ctx.ellipse(680 + 28, 304 + 15, 28, 15, 0, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();
 
-    // 3. Single unbroken bold ink contour
+    // 3. Single unbroken bold ink contour around fused head + ears
     ctx.strokeStyle = rgbaToCss(ink);
     ctx.lineWidth = lw;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    traceOpenStroke();
+    traceV2UnifiedHeadStroke(ctx, earLagX, earFlare);
     ctx.stroke();
 
-    // 4. Inner ear tufts (|||)
+    // 4. Inner ear tufts (|||) cleanly anchored inside fused ears
     drawV2EarTufts(ctx, true, ink, lw);
     drawV2EarTufts(ctx, false, ink, lw);
   }
@@ -3140,15 +3147,15 @@
       // 2a2. Neck decorations over shoulder/chest, behind head, keyboard & arms
       drawDecorationsInSpace(ctx, skin, ['neck'], v2SpaceAnchors, v2SpacePerCanvas);
 
-      // 2b. Whiskers hugging the soft oval temples
+      // 2b. Whiskers directly traced from Video 2 reference temples (top-left \ \ and top-right / /)
       const wTwitch = hunt > 0.15 ? Math.sin(state.time * 30.0) * 3.5 * hunt : 0;
       ctx.strokeStyle = rgbaToCss(ink);
       ctx.lineWidth = catLW * 0.90;
       ctx.beginPath();
-      ctx.moveTo(424, 184 + wTwitch); ctx.lineTo(446, 204);
-      ctx.moveTo(444, 162 - wTwitch); ctx.lineTo(462, 188);
-      ctx.moveTo(714, 198); ctx.lineTo(742, 168 + wTwitch);
-      ctx.moveTo(730, 218); ctx.lineTo(762, 200 - wTwitch);
+      ctx.moveTo(420, 168 + wTwitch); ctx.lineTo(446, 194);
+      ctx.moveTo(444, 146 - wTwitch); ctx.lineTo(462, 178);
+      ctx.moveTo(728, 206); ctx.lineTo(754, 174 + wTwitch);
+      ctx.moveTo(740, 224); ctx.lineTo(772, 208 - wTwitch);
       ctx.stroke();
 
       // 2c. Soft round mochi unified head + ears
@@ -4780,6 +4787,138 @@
     };
   }
 
+  // Generate a crisp 720x640 (2x of 360x320) transparent artist template PNG
+  // so creators can paint directly over KuroCat's exact head/ears/eyes/torso/keyboard guides.
+  function generateHandDrawTemplateDataUrl(currentSkin) {
+    const off = document.createElement('canvas');
+    off.width = 720;
+    off.height = 640;
+    const ctx = off.getContext('2d');
+    const baseShape = (currentSkin && currentSkin.shape) ? { ...currentSkin.shape } : {
+      build: 'standard', bodyWidth: 1, headScale: 1, cheekFullness: 1, neckWidth: 1,
+      earSize: 1, earBaseWidth: 1, earPointiness: 1, tailLength: 1, tailThickness: 1, pawStagger: 0
+    };
+    const guideSkin = {
+      shape: baseShape,
+      headSurface: 'dome',
+      idleLegsTinted: false,
+      colorpoint: false,
+      regions: [],
+      marks: [],
+      decorations: [],
+      hasPartArt: () => false,
+      palette: {
+        body: { r: 0.99, g: 0.96, b: 0.92, a: 0.52 },
+        bodyShade: null,
+        belly: null,
+        legs: { r: 0.99, g: 0.96, b: 0.92, a: 0.52 },
+        paws: { r: 0.99, g: 0.96, b: 0.92, a: 0.65 },
+        pawPads: null,
+        earOuter: { r: 0.96, g: 0.90, b: 0.84, a: 0.58 },
+        earInner: { r: 0.94, g: 0.78, b: 0.74, a: 0.45 },
+        tail: { r: 0.92, g: 0.86, b: 0.78, a: 0.36 },
+        tailTip: null,
+        outline: { r: 0.64, g: 0.39, b: 0.22, a: 0.85 },
+        crease: { r: 0.64, g: 0.39, b: 0.22, a: 0.45 },
+        whiskers: { r: 0.64, g: 0.39, b: 0.22, a: 0.32 },
+        nose: { r: 0.86, g: 0.52, b: 0.55, a: 0.55 },
+        mouth: { r: 0.64, g: 0.39, b: 0.22, a: 0.45 }
+      }
+    };
+
+    const st = createDefaultState();
+    st.time = 0;
+    st.tailPhase = 0.8;
+    const seatX = SEAT_ANCHOR.x;
+    const seatY = SEAT_ANCHOR.y;
+    const bd = getBuild(guideSkin);
+    const headCenter = { x: seatX, y: 126 + bd.headLift };
+
+    ctx.save();
+    ctx.scale(2, 2);
+
+    // 1. Faint keyboard & mouse desk reference at bottom
+    ctx.save();
+    ctx.globalAlpha = 0.22;
+    drawMouse(ctx, st, 'classicMilk');
+    drawKeyboard(ctx, st, 'classicMilk', 'neonChartreuse');
+    ctx.restore();
+
+    // 2. Faint tail guide
+    ctx.save();
+    drawTail(ctx, seatX, seatY, st, guideSkin);
+    ctx.restore();
+
+    // 3. Ears + unified silhouette outline
+    ctx.save();
+    ctx.translate(headCenter.x, headCenter.y);
+    if (baseShape.headScale !== 1) ctx.scale(baseShape.headScale, baseShape.headScale);
+    drawEar3D(ctx, true, 0, 0, 0, 0, guideSkin);
+    drawEar3D(ctx, false, 0, 0, 0, 0, guideSkin);
+    ctx.restore();
+
+    drawUnifiedSilhouette(ctx, seatX, seatY, headCenter, 0, st, guideSkin);
+    drawFrontPaws(ctx, seatX, seatY, 0, st, guideSkin);
+
+    // 4. Center symmetry axis + eye ovals + nose + neck pivot guide
+    const hs = baseShape.headScale || 1;
+    ctx.save();
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = 'rgba(164, 100, 56, 0.32)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(seatX, 58);
+    ctx.lineTo(seatX, 236);
+    ctx.stroke();
+
+    // Neck head/body split line (y = 158)
+    const neckY = headCenter.y + 32 * hs;
+    ctx.strokeStyle = 'rgba(214, 108, 44, 0.55)';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(seatX - 64, neckY);
+    ctx.lineTo(seatX + 64, neckY);
+    ctx.stroke();
+
+    // Eye position guide ovals
+    ctx.setLineDash([2.5, 2]);
+    ctx.strokeStyle = 'rgba(214, 108, 44, 0.72)';
+    ctx.lineWidth = 1.0;
+    for (const sign of [-1, 1]) {
+      const ex = headCenter.x + sign * 17.2 * hs;
+      const ey = headCenter.y - 2.0 * hs;
+      ctx.beginPath();
+      ctx.ellipse(ex, ey, 8.2 * hs, 8.8 * hs, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Tiny nose marker
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(220, 120, 128, 0.65)';
+    ctx.beginPath();
+    ctx.arc(headCenter.x, headCenter.y + 8 * hs, 2.2 * hs, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Clean small guide labels
+    ctx.font = '600 7.5px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    ctx.fillStyle = 'rgba(130, 82, 48, 0.78)';
+    ctx.textAlign = 'center';
+    ctx.fillText('KuroCat 手绘参考底图 (720×640) · 新建图层绘制，导出前隐藏本参考层', 180, 18);
+
+    ctx.font = '500 6.8px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(164, 100, 56, 0.72)';
+    ctx.fillText('← 头部/躯干分界', seatX + 67, neckY + 2.5);
+    ctx.fillText('动态尾巴区(可留空)', seatX + 62, seatY - 38);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(120, 110, 102, 0.68)';
+    ctx.fillText('键盘与打字爪区（猫身画在此线上方）', 194, 306);
+    ctx.restore();
+
+    ctx.restore();
+    return off.toDataURL('image/png');
+  }
+
   // Render clean 360x320 idle preview PNG (base64 without data: prefix) for embedding in .kurocat
   function renderPreviewBase64(resolvedSkin, kbTheme, eyeTheme) {
     const off = document.createElement('canvas');
@@ -4858,6 +4997,7 @@
     getDecorationTransform,
     getDecorationOverlayGeometry,
     renderPreviewBase64,
+    generateHandDrawTemplateDataUrl,
     registerKeyboardTheme,
     getKeyboardThemeColors,
     drawKeyboardCardPreview

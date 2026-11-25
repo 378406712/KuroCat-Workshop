@@ -1133,6 +1133,73 @@ textarea {
   font-size: 12px;
   font-weight: 600;
   color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.drawing-mode-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.drawing-mode-panel[hidden] {
+  display: none;
+}
+
+.drawing-template-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  background: var(--surface, #FFFFFF);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.drawing-template-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.drawing-template-copy strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.drawing-template-copy span {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-secondary);
+}
+
+.drawing-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.drawing-original-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 2px;
+}
+
+.drawing-original-opts[hidden] {
+  display: none;
+}
+
+.drawing-checks {
+  margin-top: 0;
 }
 
 .photo-dropzone {
