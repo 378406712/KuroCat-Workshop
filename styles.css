@@ -4081,9 +4081,11 @@ textarea {
   }
 
   .workbench.mode-editing .exploded-pane,
+  .workbench.mode-editing .exploded-card,
   .workbench.mode-editing .stage-column,
   .workbench.mode-editing .stage-card {
     height: auto;
+    flex: none;
   }
 
   .workbench.mode-editing .exploded-canvas-wrap {
@@ -4354,8 +4356,15 @@ textarea {
 
   .workbench.mode-editing .exploded-canvas-wrap {
     height: auto;
-    min-height: 260px;
+    min-height: 0;
     flex: 0 0 auto;
+    width: 100%;
+  }
+
+  #exploded-canvas {
+    width: 100%;
+    height: auto;
+    display: block;
   }
 
   .exploded-card {
