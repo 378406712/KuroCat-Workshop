@@ -34,7 +34,7 @@ const SHAPE_RANGES = {
   earSpacing: [0.65, 1.35],
   earBaseWidth: [0.65, 1.40],
   earPointiness: [0.50, 1.50],
-  armSpacing: [0.55, 1.65],
+  armSpacing: [0.55, 1.60],
   armRootY: [-18.0, 18.0],
   armLength: [0.65, 1.45],
   hindLegRootX: [-16.0, 16.0],

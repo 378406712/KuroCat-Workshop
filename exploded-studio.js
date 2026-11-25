@@ -1973,7 +1973,7 @@
         colorChip('小爪颜色', 'paws', colorToHex(pal.paws, '#FFFFFF')) +
         colorChip('肉垫颜色', 'pawPads', colorToHex(pal.pawPads, '#F3A6B2'));
       slidersHtml =
-        sliderRow('双手间距', 'armSpacing', 0.55, 1.65, 0.02, shape.armSpacing || 1.0, '×') +
+        sliderRow('双手间距', 'armSpacing', 0.55, 1.60, 0.02, shape.armSpacing || 1.0, '×') +
         sliderRow('根部高低', 'armRootY', -18, 18, 1, shape.armRootY || 0, 'px') +
         sliderRow('手臂长短', 'armLength', 0.65, 1.45, 0.02, shape.armLength || 1.0, '×') +
         sliderRow('双爪错落', 'pawStagger', 0, 1, 0.05, shape.pawStagger != null ? shape.pawStagger : 1.0, '');
@@ -2468,9 +2468,9 @@
     if (activeSkeletonHandle === 'armRootY') {
       raw.shape.armRootY = round2(clamp((orig.armRootY || 0) + dy, -18, 18));
     } else if (activeSkeletonHandle === 'armSpacingR') {
-      raw.shape.armSpacing = round2(clamp((orig.armSpacing || 1) + dx / 24, 0.55, 1.65));
+      raw.shape.armSpacing = round2(clamp((orig.armSpacing || 1) + dx / 24, 0.55, 1.60));
     } else if (activeSkeletonHandle === 'armSpacingL') {
-      raw.shape.armSpacing = round2(clamp((orig.armSpacing || 1) - dx / 24, 0.55, 1.65));
+      raw.shape.armSpacing = round2(clamp((orig.armSpacing || 1) - dx / 24, 0.55, 1.60));
     } else if (activeSkeletonHandle === 'armLength') {
       raw.shape.armLength = round2(clamp((orig.armLength || 1) + dy / 42, 0.65, 1.45));
     } else if (activeSkeletonHandle === 'earTip') {

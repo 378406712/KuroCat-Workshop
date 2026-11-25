@@ -25,7 +25,7 @@
     tailLength: [0.70, 1.30, 1.0],
     tailThickness: [0.70, 1.50, 1.0],
     tailRootY: [-14.0, 14.0, 0.0],
-    armSpacing: [0.55, 1.65, 1.0],
+    armSpacing: [0.55, 1.60, 1.0],
     armRootY: [-18.0, 18.0, 0.0],
     armLength: [0.65, 1.45, 1.0],
     hindLegRootX: [-16.0, 16.0, 0.0],
