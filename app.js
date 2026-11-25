@@ -14,6 +14,7 @@
   const animState = Renderer.createDefaultState();
 
   let currentPose = 'idle'; // optional API override; default 'idle' runs full live interactive mode
+  let showWhiteOutline = false; // default OFF for clean canvas preview
   let kbTheme = 'classicMilk';
   let eyeTheme = 'neonChartreuse';
   let pointerTarget = { yaw: 0, pitch: 0, gazeX: 0, gazeY: 0, active: false };
@@ -145,6 +146,9 @@
     renderPenSwatches();
     renderDecorationsUI();
     scheduleHistory();
+    if (window.KuroExplodedStudio && typeof window.KuroExplodedStudio.onSkinSynced === 'function') {
+      window.KuroExplodedStudio.onSkinSynced();
+    }
   }
 
   // --- Undo / Redo: snapshots of rawSkin, taken once edits have been quiet for a moment ---
@@ -404,6 +408,10 @@
   catCanvas.addEventListener('pointerdown', (e) => {
     const pos = getCanvasLogicalPos(e);
     live.lastActivity = performance.now();
+    if (window.KuroExplodedStudio && window.KuroExplodedStudio.handleLiveCanvasPointerDown(pos, lastRenderTransforms, animState)) {
+      catCanvas.setPointerCapture(e.pointerId);
+      return;
+    }
     if (pen) {
       penPointerDown(e, pos);
       return;
@@ -570,6 +578,11 @@
 
   catCanvas.addEventListener('pointermove', (e) => {
     const pos = getCanvasLogicalPos(e);
+    if (window.KuroExplodedStudio && window.KuroExplodedStudio.isSkeletonMode()) {
+      const hitSkel = window.KuroExplodedStudio.handleLiveCanvasPointerMove(pos, lastRenderTransforms, animState);
+      catCanvas.style.cursor = hitSkel ? 'grab' : 'default';
+      return;
+    }
     if (pen) {
       penPointerMove(pos);
       return;
@@ -702,6 +715,9 @@
   }
 
   catCanvas.addEventListener('pointerup', () => {
+    if (window.KuroExplodedStudio && window.KuroExplodedStudio.handleLiveCanvasPointerUp()) {
+      return;
+    }
     if (pen) {
       if (pen.mode === 'brushFill' || pen.mode === 'brushStroke') {
         finishFreehandStroke();
@@ -2091,7 +2107,10 @@
     {
       title: '五官与重点色',
       items: [
-        ['iris', '自定义虹膜瞳色', false],
+        ['iris', '双眼默认虹膜色', false],
+        ['irisLeft', '左眼虹膜色（异瞳）', false],
+        ['irisRight', '右眼虹膜色（异瞳）', false],
+        ['pupil', '瞳孔颜色', false],
         ['nose', '小鼻头', false],
         ['mouth', '猫咪 ω 嘴巴', false],
         ['points', '重点色面罩', false],
@@ -2345,7 +2364,8 @@
   // --- Regions & Marks Tab ---
   const SPACE_NAMES = {
     head: '脸部 head', skull: '头壳 skull', body: '身体 body',
-    tail: '尾巴 tail', leftEar: '左耳', rightEar: '右耳'
+    tail: '尾巴 tail', leftEar: '左耳', rightEar: '右耳',
+    leftArm: '左胳膊', rightArm: '右胳膊'
   };
 
   function renderRegionsAndMarksUI() {
@@ -2500,6 +2520,10 @@
       } else if (kind === 'tailRings') {
         const col = rawSkin.palette.stripes || '#8C5222';
         rawSkin.marks.push(...Spec.makeTailRingMarks(col, 0.65));
+      } else if (kind === 'armRings') {
+        const col = rawSkin.palette.stripes || '#6E4C32';
+        rawSkin.marks = rawSkin.marks.filter((m) => m.space !== 'leftArm' && m.space !== 'rightArm');
+        rawSkin.marks.push(...Spec.makeArmRingMarks(col, 0.78, 3, 2.8, 'both'));
       } else {
         const white = rawSkin.palette.belly || '#FAF4EA';
         const added = Spec.makePresetRegion(kind, kind.includes('Patch') ? undefined : white);
@@ -2516,6 +2540,84 @@
     syncSkin(true);
     showToast('已清空所有条纹图形');
   });
+
+  // --- Arm Stripes Customizer ---
+  (() => {
+    let armSides = 'both';
+    const sidesWrap = document.getElementById('arm-stripe-sides');
+    const colInput = document.getElementById('arm-stripe-color');
+    const colHex = document.getElementById('arm-stripe-color-hex');
+    const cntInput = document.getElementById('arm-stripe-count');
+    const cntVal = document.getElementById('arm-stripe-count-val');
+    const widInput = document.getElementById('arm-stripe-width');
+    const widVal = document.getElementById('arm-stripe-width-val');
+    const alpInput = document.getElementById('arm-stripe-alpha');
+    const alpVal = document.getElementById('arm-stripe-alpha-val');
+    const btnApply = document.getElementById('btn-apply-arm-stripes');
+    const btnClear = document.getElementById('btn-clear-arm-stripes');
+    if (!btnApply) return;
+
+    const applyArmStripes = (pushHist) => {
+      rawSkin.marks = (rawSkin.marks || []).filter((m) => m.space !== 'leftArm' && m.space !== 'rightArm');
+      rawSkin.marks.push(...Spec.makeArmRingMarks(
+        colInput.value,
+        parseFloat(alpInput.value),
+        parseInt(cntInput.value, 10),
+        parseFloat(widInput.value),
+        armSides
+      ));
+      syncSkin(!!pushHist);
+    };
+
+    sidesWrap.querySelectorAll('[data-arm-side]').forEach((b) => {
+      b.addEventListener('click', () => {
+        armSides = b.dataset.armSide;
+        sidesWrap.querySelectorAll('[data-arm-side]').forEach((x) => x.classList.toggle('active', x === b));
+        if ((rawSkin.marks || []).some((m) => m.space === 'leftArm' || m.space === 'rightArm')) {
+          applyArmStripes(true);
+        }
+      });
+    });
+
+    colInput.addEventListener('input', () => {
+      colHex.textContent = colInput.value.toUpperCase();
+      if ((rawSkin.marks || []).some((m) => m.space === 'leftArm' || m.space === 'rightArm')) applyArmStripes(false);
+    });
+    colInput.addEventListener('change', () => {
+      if ((rawSkin.marks || []).some((m) => m.space === 'leftArm' || m.space === 'rightArm')) syncSkin(true);
+    });
+    cntInput.addEventListener('input', () => {
+      cntVal.textContent = `${cntInput.value} 条`;
+      if ((rawSkin.marks || []).some((m) => m.space === 'leftArm' || m.space === 'rightArm')) applyArmStripes(false);
+    });
+    cntInput.addEventListener('change', () => {
+      if ((rawSkin.marks || []).some((m) => m.space === 'leftArm' || m.space === 'rightArm')) syncSkin(true);
+    });
+    widInput.addEventListener('input', () => {
+      widVal.textContent = parseFloat(widInput.value).toFixed(1);
+      if ((rawSkin.marks || []).some((m) => m.space === 'leftArm' || m.space === 'rightArm')) applyArmStripes(false);
+    });
+    widInput.addEventListener('change', () => {
+      if ((rawSkin.marks || []).some((m) => m.space === 'leftArm' || m.space === 'rightArm')) syncSkin(true);
+    });
+    alpInput.addEventListener('input', () => {
+      alpVal.textContent = `${Math.round(parseFloat(alpInput.value) * 100)}%`;
+      if ((rawSkin.marks || []).some((m) => m.space === 'leftArm' || m.space === 'rightArm')) applyArmStripes(false);
+    });
+    alpInput.addEventListener('change', () => {
+      if ((rawSkin.marks || []).some((m) => m.space === 'leftArm' || m.space === 'rightArm')) syncSkin(true);
+    });
+
+    btnApply.addEventListener('click', () => {
+      applyArmStripes(true);
+      showToast('已应用自定义胳膊条纹（静坐与打字实时生效）');
+    });
+    btnClear.addEventListener('click', () => {
+      rawSkin.marks = (rawSkin.marks || []).filter((m) => m.space !== 'leftArm' && m.space !== 'rightArm');
+      syncSkin(true);
+      showToast('已清除胳膊条纹');
+    });
+  })();
 
   document.getElementById('btn-copy-json').addEventListener('click', async () => {
     const txt = document.getElementById('json-preview').textContent;
@@ -2571,6 +2673,10 @@
     const decos = rawSkin.decorations || (rawSkin.decorations = []);
     const countEl = document.getElementById('decos-count');
     if (countEl) countEl.textContent = `${decos.length} / 8`;
+    const dockCountEl = document.getElementById('deco-dock-count');
+    if (dockCountEl) dockCountEl.textContent = String(decos.length);
+    const decoDrawerBtn = document.getElementById('btn-open-deco-drawer');
+    if (decoDrawerBtn) decoDrawerBtn.classList.toggle('active', decos.length > 0);
 
     const activeList = document.getElementById('decos-active-list');
     if (activeList) {
@@ -2946,20 +3052,20 @@
         tYaw = 0; tPitch = 0; tEarFold = 0.36;
         animState.leftPawActive = false; animState.rightPawActive = false;
       } else if (currentPose === 'hindFoot') {
-        // 3-key hind foot kick + 4-key tail typing combo demo!
+        // 3-key hind foot kick + 4-key tail typing combo demo (uncrossed for clear leg visibility!)
         tHind = 1;
-        animState.hindFoot = Renderer.screenQuadPoint(0.28, 0.45);
+        animState.hindFoot = Renderer.screenQuadPoint(0.76, 0.58);
         if (!isDouniTick) {
-          animState.leftPaw = Renderer.screenQuadPoint(0.68, 0.52);
-          animState.rightPaw = Renderer.screenQuadPoint(0.46, 0.35);
+          animState.leftPaw = Renderer.screenQuadPoint(0.24, 0.54);
+          animState.rightPaw = Renderer.screenQuadPoint(0.48, 0.42);
           animState.leftPawActive = true;
           animState.rightPawActive = true;
           animState.tailTypingTarget = 1;
-          animState.tailTipGoal = Renderer.screenQuadPoint(0.14, 0.62);
+          animState.tailTipGoal = Renderer.screenQuadPoint(0.90, 0.34);
           animState.keyGlow['2_3'] = 0.9;
           animState.keyGlow['1_6'] = 0.9;
-          animState.keyGlow['2_9'] = 0.9;
-          animState.keyGlow['1_11'] = 0.9;
+          animState.keyGlow['2_10'] = 0.9;
+          animState.keyGlow['1_12'] = 0.9;
         }
       } else if (currentPose === 'typing') {
         typingTimer += dt;
@@ -3069,8 +3175,10 @@
     lastRenderTransforms = Renderer.drawScene(catCtx, penPreviewSkin || resolvedSkin, animState, {
       kbTheme,
       eyeTheme,
+      whiteOutline: showWhiteOutline,
       editRegion: editingRegionIdx >= 0 ? rawSkin.regions[editingRegionIdx] : null,
       editDecorationIndex: selectedDecoIdx,
+      skeletonOverlay: window.KuroExplodedStudio ? window.KuroExplodedStudio.getSkeletonOverlayState() : null,
       pen: pen ? {
         space: pen.space,
         anchors: pen.anchors,
@@ -3146,12 +3254,24 @@
       editModeBanner.hidden = true;
       decoBanner.hidden = false;
       syncSkin(true);
-      switchTab('decorations');
+      if (window.KuroExplodedStudio && typeof window.KuroExplodedStudio.openDrawer === 'function') {
+        window.KuroExplodedStudio.openDrawer('accessories');
+      } else {
+        switchTab('decorations');
+      }
       showToast(`已为当前小猫佩戴「${item._label || '广场饰品'}」，可直接拖动微调！`);
       return true;
     },
     switchTab,
     showToast,
+    commitHistoryNow,
+    getRawSkin: () => rawSkin,
+    getResolvedSkin: () => resolvedSkin,
+    syncSkin: (pushHist) => syncSkin(pushHist),
+    undo: () => { const b = document.getElementById('btn-undo'); if (b && !b.disabled) b.click(); },
+    redo: () => { const b = document.getElementById('btn-redo'); if (b && !b.disabled) b.click(); },
+    exportSkin: () => { const b = document.getElementById('btn-export'); if (b) b.click(); },
+    getEyeTheme: () => eyeTheme,
     setPose: (p) => { setWorkshopPose(p || 'idle'); },
     getKeyboardThemeId: () => kbTheme,
     applyKeyboardTheme: (id, label, colors) => {
@@ -3211,6 +3331,14 @@
         btn.classList.toggle('active', btn.dataset.pose === currentPose);
       });
     }
+  }
+
+  const btnWhiteOutline = document.getElementById('btn-toggle-white-outline');
+  if (btnWhiteOutline) {
+    btnWhiteOutline.addEventListener('click', () => {
+      showWhiteOutline = !showWhiteOutline;
+      btnWhiteOutline.classList.toggle('active', showWhiteOutline);
+    });
   }
 
   const stagePoseBar = document.getElementById('stage-pose-bar');

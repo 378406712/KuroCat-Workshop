@@ -104,7 +104,7 @@
     ]
   }
   </script>
-  <link rel="stylesheet" href="styles.css?v=20261125g" />
+  <link rel="stylesheet" href="styles.css?v=20261125p" />
 </head>
 <body>
   <div class="studio-shell">
@@ -139,15 +139,6 @@
               <path d="M14.5 3.5a2.12 2.12 0 0 1 3 3L8 16l-4 1 1-4 9.5-9.5Z"/>
             </svg>
             <span class="nav-label">皮肤工坊</span>
-          </button>
-          <button type="button" class="nav-item" data-nav="paint">
-            <svg class="nav-icon" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M10 3a7 7 0 1 0 0 14h1.2a2.3 2.3 0 0 0 1.6-3.9 1.6 1.6 0 0 1 1.1-2.7H15a2 2 0 0 0 2-2A5.4 5.4 0 0 0 10 3Z"/>
-              <circle cx="7" cy="8.5" r="0.9" fill="currentColor" stroke="none"/>
-              <circle cx="10.5" cy="6.8" r="0.9" fill="currentColor" stroke="none"/>
-              <circle cx="6.8" cy="12" r="0.9" fill="currentColor" stroke="none"/>
-            </svg>
-            <span class="nav-label">组件画板</span>
           </button>
         </div>
 
@@ -277,6 +268,18 @@
               <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M12.5 5l4 4-4 4M16 9H8.5a4.5 4.5 0 0 0 0 9H11" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </div>
+          <button type="button" class="btn btn-ghost" id="btn-open-more-drawer" title="传猫照生成 / 模板库 / 高级设置">更多</button>
+          <div class="help-anchor">
+            <button type="button" class="icon-btn help-btn" id="btn-open-help" title="快速上手帮助" aria-label="快速上手帮助">?</button>
+            <div class="help-popover" id="help-popover" hidden>
+              <div class="help-pop-title">3 步画出你的桌面小猫</div>
+              <ol class="help-pop-steps">
+                <li><strong>拆件点画</strong>：点「开始编辑」拆开 7 个组件（含三键踩键后腿），单击进入画布直接落笔上色，滚轮可放大细画、抬笔即存（<code>Ctrl/⌘+Z</code> 秒撤）。</li>
+                <li><strong>调骨架位置</strong>：在单组件下方调滑块，或点右侧小猫的「调骨架」直接拖圆点改双手间距、手臂根部与长短。</li>
+                <li><strong>实时试玩导出</strong>：右侧随时敲键盘/撸猫验货，满意后点右上角「导出 .kurocat」拖进桌宠即刻生效。</li>
+              </ol>
+            </div>
+          </div>
           <label class="btn btn-secondary" for="import-kurocat-input" title="导入已有 .kurocat 文件继续编辑">
             导入
           </label>
@@ -305,21 +308,129 @@
         </div>
       </header>
 
-      <!-- VIEW 1: Workshop Workbench -->
-      <main class="workbench" id="workshop-view">
-        <!-- Left: Interactive 2.5D Cat Stage -->
+      <!-- VIEW 1: Unified Exploded-Component WYSIWYG Workshop -->
+      <main class="workbench mode-hero" id="workshop-view">
+        <!-- LEFT (in editing mode): Exploded Component Overview & Zoomed WYSIWYG Paint Canvas -->
+        <section class="exploded-pane" id="exploded-pane" hidden>
+          <div class="exploded-card">
+            <div class="exploded-head" id="exploded-head">
+              <div class="exploded-head-left">
+                <button type="button" class="mini-btn exploded-back-btn" id="btn-exploded-back" hidden>← 拆件</button>
+                <div class="exploded-part-pills" id="exploded-part-pills" role="tablist" aria-label="身体组件">
+                  <button type="button" class="part-pill" data-exploded-part="ears">耳朵</button>
+                  <button type="button" class="part-pill" data-exploded-part="head">头部</button>
+                  <button type="button" class="part-pill" data-exploded-part="body">身体</button>
+                  <button type="button" class="part-pill" data-exploded-part="leftArm">左手臂</button>
+                  <button type="button" class="part-pill" data-exploded-part="rightArm">右手臂</button>
+                  <button type="button" class="part-pill" data-exploded-part="hindLeg">后腿</button>
+                  <button type="button" class="part-pill" data-exploded-part="tail">尾巴</button>
+                </div>
+              </div>
+              <div class="exploded-head-right">
+                <label class="exploded-mirror-pill" title="左右对称绘制与配色">
+                  <input type="checkbox" id="exploded-mirror-toggle" checked />
+                  <span>对称</span>
+                </label>
+                <button type="button" class="mini-btn danger" id="btn-exploded-clear-part" title="清空当前部位画作">清空</button>
+              </div>
+            </div>
+
+            <div class="exploded-canvas-wrap" id="exploded-canvas-wrap">
+              <canvas id="exploded-canvas" width="600" height="460" aria-label="小猫拆件与组件画笔编辑区"></canvas>
+              <div class="exploded-zoom-bar" id="exploded-zoom-bar" hidden role="group" aria-label="画布缩放与平移">
+                <button type="button" class="zoom-pill-btn" id="btn-part-zoom-out" title="缩小画布（滚轮向下 / -）" aria-label="缩小画布">−</button>
+                <button type="button" class="zoom-pill-val tabular" id="btn-part-zoom-reset" title="点击复位 100%（快捷键 0）">100%</button>
+                <button type="button" class="zoom-pill-btn" id="btn-part-zoom-in" title="放大画布（滚轮向上 / +）" aria-label="放大画布">+</button>
+                <span class="zoom-pill-sep" aria-hidden="true"></span>
+                <button type="button" class="zoom-pill-btn zoom-pan-btn" id="btn-part-pan-toggle" title="抓手平移（也可按住空格或右键拖动）" aria-label="抓手平移">
+                  <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M6.5 10.5V5.5a1 1 0 1 1 2 0v4M8.5 9V4.2a1 1 0 1 1 2 0V9M10.5 9V4.8a1 1 0 1 1 2 0V9.5M12.5 9.5V6.6a1 1 0 1 1 2 0v5.1a4.8 4.8 0 0 1-4.8 4.8H9.2a4.4 4.4 0 0 1-3.6-1.9l-1.9-2.7a1 1 0 0 1 1.6-1.2l1.2 1.3"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- WYSIWYG Multi-Brush Dock (shown automatically when a component is zoomed in) -->
+            <div class="exploded-brush-dock" id="exploded-brush-dock" hidden>
+              <div class="brush-tools-row" role="toolbar" aria-label="画笔工具">
+                <button type="button" class="brush-btn" data-brush-tool="pen" title="硬边马克笔">硬笔</button>
+                <button type="button" class="brush-btn active" data-brush-tool="calligraphy" title="毛笔：随运笔速度与压感变粗细出锋">毛笔</button>
+                <button type="button" class="brush-btn" data-brush-tool="soft" title="柔边画笔：柔和羽化边缘">柔边</button>
+                <button type="button" class="brush-btn" data-brush-tool="airbrush" title="喷枪：雾状柔边点喷，适合腮红与渐变">喷枪</button>
+                <button type="button" class="brush-btn" data-brush-tool="smudge" title="涂抹：柔和过渡相邻毛色">涂抹</button>
+                <button type="button" class="brush-btn" data-brush-tool="fillBrush" title="色块笔：自由圈画闭合填色">色块</button>
+                <button type="button" class="brush-btn" data-brush-tool="bucket" title="油漆桶：修改当前组件底色">油漆桶</button>
+                <button type="button" class="brush-btn" data-brush-tool="eraser" title="橡皮擦：擦除经过的笔触或色块">橡皮</button>
+                <button type="button" class="brush-btn" data-brush-tool="eyedropper" title="吸管：从画布吸取颜色">吸管</button>
+              </div>
+
+              <div class="brush-params-row">
+                <div class="brush-color-group">
+                  <input type="color" id="exploded-brush-color" value="#1A1A1E" aria-label="画笔颜色" />
+                  <div class="exploded-swatches" id="exploded-swatches"></div>
+                </div>
+                <div class="brush-sliders-group">
+                  <label class="brush-mini-slider">
+                    <span>粗细</span>
+                    <input type="range" id="exploded-brush-size" min="1" max="14" step="0.4" value="4.2" />
+                    <span class="tabular" id="exploded-brush-size-val">4.2</span>
+                  </label>
+                  <label class="brush-mini-slider">
+                    <span>透明</span>
+                    <input type="range" id="exploded-brush-alpha" min="0.15" max="1" step="0.05" value="1" />
+                    <span class="tabular" id="exploded-brush-alpha-val">100%</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contextual Per-Part Geometry & Color Inspector (2-4 sliders for selected part only) -->
+            <div class="exploded-part-inspector" id="exploded-part-inspector" hidden></div>
+          </div>
+
+          <!-- Bottom-Left Horizontal Accessory Carousel Dock (aligns bottom flush with right 2.5D stage) -->
+          <div class="deco-dock-card" id="deco-dock-card" aria-label="配饰横向选择条">
+            <div class="deco-dock-head">
+              <div class="deco-dock-head-left">
+                <span class="deco-dock-title">配饰</span>
+                <div class="deco-dock-cats" id="deco-category-pills" role="group" aria-label="配饰分类">
+                  <button type="button" class="pill active" data-cat="all">全部</button>
+                  <button type="button" class="pill" data-cat="headTop">头顶</button>
+                  <button type="button" class="pill" data-cat="face">脸部</button>
+                  <button type="button" class="pill" data-cat="neck">颈部</button>
+                  <button type="button" class="pill" data-cat="tailTip">尾尖</button>
+                </div>
+              </div>
+              <div class="deco-dock-head-right">
+                <label class="mini-btn deco-dock-upload" for="deco-file-input" title="上传自定义透明贴纸或配饰图片">+ 上传</label>
+                <button type="button" class="mini-btn" id="btn-open-deco-drawer" title="管理已佩戴配饰、调整层级或精确微调">已戴 <span class="tabular" id="deco-dock-count">0</span></button>
+              </div>
+            </div>
+            <div class="deco-dock-track">
+              <button type="button" class="deco-scroll-btn" id="btn-deco-scroll-left" aria-label="向左浏览配饰" title="向左滑动">‹</button>
+              <div class="deco-gallery deco-gallery-strip" id="deco-gallery"></div>
+              <button type="button" class="deco-scroll-btn" id="btn-deco-scroll-right" aria-label="向右浏览配饰" title="向右滑动">›</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT (or Centered Hero on Initial Load): Live Interactive 2.5D Cat Simulator -->
         <section class="stage-column">
           <div class="stage-card">
             <div class="stage-header">
               <div class="stage-title-group">
-                <span class="stage-badge" id="stage-coat-badge">实时 2.5D 预览</span>
-                <span class="stage-hint" id="stage-hint">敲键盘打字 · 狂甩鼠标晕倒 · 轻抚撸猫 · 按住拎起拖拽</span>
+                <span class="stage-badge" id="stage-coat-badge">实时 2.5D 模拟</span>
+                <span class="stage-hint" id="stage-hint">敲键盘打字 · 轻抚撸猫 · 按住拎起</span>
               </div>
-              <div class="backdrop-pills" role="group" aria-label="预览背景">
-                <button type="button" class="chip active" data-bg="cream">暖米纸</button>
-                <button type="button" class="chip" data-bg="slate">浅灰</button>
-                <button type="button" class="chip" data-bg="dark">暗夜</button>
-                <button type="button" class="chip" data-bg="checker">透明</button>
+              <div class="stage-header-actions">
+                <button type="button" class="chip btn-skeleton" id="btn-toggle-skeleton" title="在小猫身上直接拖动圆点调整双手间距、手臂根部与长短">调骨架</button>
+                <button type="button" class="chip" id="btn-toggle-white-outline" title="切换桌宠贴纸白边预览（默认隐藏）">白边</button>
+                <div class="backdrop-pills" role="group" aria-label="预览背景">
+                  <button type="button" class="chip active" data-bg="cream">暖米</button>
+                  <button type="button" class="chip" data-bg="slate">浅灰</button>
+                  <button type="button" class="chip" data-bg="dark">暗夜</button>
+                  <button type="button" class="chip" data-bg="checker">透明</button>
+                </div>
               </div>
             </div>
 
@@ -341,6 +452,23 @@
               <div class="canvas-overlay-badge" id="deco-banner" hidden>
                 <span>调整配饰：拖动移动位置 · 拖右下角缩放 · 拖顶部圆点旋转</span>
                 <button type="button" id="btn-exit-deco-edit" class="mini-btn">完成调整</button>
+              </div>
+            </div>
+
+            <!-- Hero Opening Action Bar (visible only before user clicks Start Editing) -->
+            <div class="hero-start-bar" id="hero-start-bar">
+              <button type="button" class="btn btn-primary hero-start-btn" id="btn-hero-start">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14.5 3.5a2.12 2.12 0 0 1 3 3L8 16l-4 1 1-4 9.5-9.5Z"/>
+                </svg>
+                <span>开始编辑</span>
+              </button>
+              <div class="hero-alt-links">
+                <button type="button" class="hero-link-btn" id="btn-hero-blank">白猫素胚</button>
+                <span class="hero-link-dot" aria-hidden="true">·</span>
+                <button type="button" class="hero-link-btn" id="btn-hero-photo">传猫照生成</button>
+                <span class="hero-link-dot" aria-hidden="true">·</span>
+                <button type="button" class="hero-link-btn" id="btn-hero-templates">换模板</button>
               </div>
             </div>
 
@@ -380,25 +508,27 @@
               </div>
             </div>
           </div>
-
-          <div class="usage-strip">
-            <span class="usage-step">上传照片或手绘图</span>
-            <span class="usage-sep" aria-hidden="true">/</span>
-            <span class="usage-step">调整毛色、体型与配饰</span>
-            <span class="usage-sep" aria-hidden="true">/</span>
-            <span class="usage-step">导出 .kurocat 拖进换装间</span>
-          </div>
         </section>
+      </main>
 
-        <!-- Right: Studio Inspector Tabs -->
-        <aside class="panel-column">
+      <!-- Progressive Disclosure Slide-Over Backdrop -->
+      <div class="studio-drawer-backdrop" id="studio-drawer-backdrop" hidden></div>
+
+      <!-- Progressive Disclosure Drawer 1: More Tools (Photo-to-Skin / Templates / Global Colors / Shape / Advanced Bezier & JSON) -->
+      <aside class="studio-drawer" id="drawer-more" aria-label="更多工具" hidden>
+        <div class="studio-drawer-head">
+          <h3>更多创作工具</h3>
+          <button type="button" class="icon-btn" data-close-drawer aria-label="关闭">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+          </button>
+        </div>
+        <div class="panel-column drawer-panel-inner">
           <nav class="tab-bar" role="tablist">
-            <button type="button" class="tab-btn active" data-tab="photo" role="tab">传图生成</button>
+            <button type="button" class="tab-btn active" data-tab="photo" role="tab">传猫照生成</button>
             <button type="button" class="tab-btn" data-tab="templates" role="tab">模板库</button>
-            <button type="button" class="tab-btn" data-tab="palette" role="tab">毛色五官</button>
-            <button type="button" class="tab-btn" data-tab="shape" role="tab">体型轮廓</button>
-            <button type="button" class="tab-btn" data-tab="regions" role="tab">手绘花纹</button>
-            <button type="button" class="tab-btn" data-tab="decorations" role="tab">配饰装扮</button>
+            <button type="button" class="tab-btn" data-tab="palette" role="tab">全局毛色</button>
+            <button type="button" class="tab-btn" data-tab="shape" role="tab">全部体型</button>
+            <button type="button" class="tab-btn" data-tab="regions" role="tab">钢笔与源码</button>
           </nav>
 
           <div class="tab-panels">
@@ -730,9 +860,20 @@
                 <pre id="json-preview" class="json-code"></pre>
               </details>
             </section>
+          </div>
+        </div>
+      </aside>
 
-            <!-- TAB 6: Decorations -->
-            <section class="tab-panel" id="tab-decorations">
+      <!-- Progressive Disclosure Drawer 2: Accessories & Custom Stickers -->
+      <aside class="studio-drawer" id="drawer-accessories" aria-label="配饰装扮" hidden>
+        <div class="studio-drawer-head">
+          <h3>配饰与贴纸装扮</h3>
+          <button type="button" class="icon-btn" data-close-drawer aria-label="关闭">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M5 5l10 10M15 5 5 15"/></svg>
+          </button>
+        </div>
+        <div class="drawer-scroll-body">
+          <section class="tab-panel active" id="tab-decorations">
               <div class="card-section">
                 <div class="section-head">
                   <h2>已佩戴配饰</h2>
@@ -814,124 +955,9 @@
                   </label>
                 </div>
               </div>
-
-              <div class="card-section">
-                <div class="section-head">
-                  <h2>内置装扮库</h2>
-                  <span class="muted-note">点击即可佩戴 · 最多 8 件</span>
-                </div>
-                <div class="pill-grid deco-cat-pills" id="deco-category-pills">
-                  <button type="button" class="pill active" data-cat="all">全部 (18)</button>
-                  <button type="button" class="pill" data-cat="headTop">头顶</button>
-                  <button type="button" class="pill" data-cat="face">脸部</button>
-                  <button type="button" class="pill" data-cat="neck">颈部</button>
-                  <button type="button" class="pill" data-cat="tailTip">尾尖</button>
-                </div>
-                <div class="deco-gallery" id="deco-gallery"></div>
-              </div>
-            </section>
-          </div>
-        </aside>
-      </main>
-
-      <!-- VIEW 1.5: Component Drawing Board (MS-Paint style + Tablet Pressure + Live 2.5D Preview) -->
-      <main class="paint-shell" id="paint-view" hidden>
-        <div class="paint-ribbon">
-          <div class="paint-ribbon-group">
-            <span class="paint-group-title">选择组件</span>
-            <div class="paint-part-tabs" id="paint-part-tabs" role="tablist">
-              <button type="button" class="paint-part-btn active" data-part="head">脸部</button>
-              <button type="button" class="paint-part-btn" data-part="skull">头顶</button>
-              <button type="button" class="paint-part-btn" data-part="body">身体</button>
-              <button type="button" class="paint-part-btn" data-part="leftEar">左耳</button>
-              <button type="button" class="paint-part-btn" data-part="rightEar">右耳</button>
-              <button type="button" class="paint-part-btn" data-part="leftArm">左胳膊</button>
-              <button type="button" class="paint-part-btn" data-part="rightArm">右胳膊</button>
-              <button type="button" class="paint-part-btn" data-part="tail">尾巴</button>
-            </div>
-          </div>
-
-          <div class="paint-ribbon-group">
-            <span class="paint-group-title">绘图工具</span>
-            <div class="paint-tool-grid" id="paint-tool-grid">
-              <button type="button" class="paint-tool-btn active" data-tool="brush" title="自由画笔 (支持数位板压感)">✏️ 画笔</button>
-              <button type="button" class="paint-tool-btn" data-tool="fillBrush" title="自由圈画闭合色块">🖌️ 色块笔</button>
-              <button type="button" class="paint-tool-btn" data-tool="line" title="直线条纹">📏 直线</button>
-              <button type="button" class="paint-tool-btn" data-tool="ellipse" title="椭圆/斑点">⭕ 椭圆</button>
-              <button type="button" class="paint-tool-btn" data-tool="rect" title="矩形色块">▭ 矩形</button>
-              <button type="button" class="paint-tool-btn" data-tool="bucket" title="油漆桶：修改当前组件底色">🪣 油漆桶</button>
-              <button type="button" class="paint-tool-btn" data-tool="eraser" title="橡皮擦：擦除经过的笔画或色块">🧽 橡皮擦</button>
-              <button type="button" class="paint-tool-btn" data-tool="eyedropper" title="吸管：从画板吸取颜色">💉 吸管</button>
-            </div>
-          </div>
-
-          <div class="paint-ribbon-group paint-props-group">
-            <span class="paint-group-title">笔刷与辅助</span>
-            <div class="paint-props-row">
-              <label class="paint-mini-ctrl">
-                <span>粗细</span>
-                <input type="range" id="paint-size" min="1" max="12" step="0.5" value="3.5" />
-                <span class="tabular" id="paint-size-val">3.5</span>
-              </label>
-              <label class="paint-mini-ctrl">
-                <span>透明</span>
-                <input type="range" id="paint-alpha" min="0.2" max="1" step="0.05" value="1" />
-                <span class="tabular" id="paint-alpha-val">100%</span>
-              </label>
-              <label class="paint-check-pill"><input type="checkbox" id="paint-mirror" checked /> 左右对称</label>
-              <label class="paint-check-pill"><input type="checkbox" id="paint-pressure" checked /> 数位板压感</label>
-              <label class="paint-check-pill"><input type="checkbox" id="paint-grid" checked /> 辅助网格</label>
-            </div>
-          </div>
-
-          <div class="paint-ribbon-group paint-color-group">
-            <span class="paint-group-title">调色板</span>
-            <div class="paint-palette-row">
-              <input type="color" id="paint-color" value="#3B2E28" title="自定义当前画笔颜色" />
-              <div class="paint-swatches" id="paint-swatches"></div>
-            </div>
-          </div>
-
-          <div class="paint-ribbon-actions">
-            <button type="button" class="mini-btn" id="paint-btn-undo" title="撤销 (Ctrl/Cmd+Z)">↩ 撤销</button>
-            <button type="button" class="mini-btn danger" id="paint-btn-clear-part" title="清空当前组件上的所有画作">清空当前组件</button>
-          </div>
-        </div>
-
-        <div class="paint-workspace">
-          <section class="paint-board-card">
-            <div class="paint-board-head">
-              <div>
-                <strong id="paint-part-title">脸部 (head)</strong>
-                <span class="muted-note" id="paint-part-hint">在虚线轮廓内绘制，超出轮廓部分会自动裁剪；支持鼠标与数位板压感</span>
-              </div>
-              <span class="paint-tablet-badge" id="paint-tablet-badge">鼠标 / 数位板就绪</span>
-            </div>
-            <div class="paint-canvas-wrap">
-              <canvas id="paint-canvas" width="560" height="480"></canvas>
-            </div>
           </section>
-
-          <aside class="paint-preview-card">
-            <div class="paint-preview-head">
-              <strong>实时成品预览 (2.5D)</strong>
-              <span class="muted-note">左边每画一笔，右边即时同步</span>
-            </div>
-            <div class="paint-preview-stage">
-              <canvas id="paint-preview-canvas" width="360" height="320"></canvas>
-            </div>
-            <div class="paint-preview-poses" id="paint-preview-poses">
-              <button type="button" class="pose-pill active" data-paint-pose="idle">静坐</button>
-              <button type="button" class="pose-pill" data-paint-pose="typing">抬手打字</button>
-              <button type="button" class="pose-pill" data-paint-pose="sleep">趴卧</button>
-              <button type="button" class="pose-pill" data-paint-pose="drag">拎起</button>
-            </div>
-            <div class="paint-preview-tip">
-              切到「抬手打字」可实时查看左/右胳膊条纹随手臂弯折的效果；画完直接点右上角「导出 .kurocat」即可拖入客户端。
-            </div>
-          </aside>
         </div>
-      </main>
+      </aside>
 
       <!-- VIEW 2: Community Plaza (Skins / Accessories / Keyboards) -->
       <main class="plaza-shell" id="plaza-view" hidden>
@@ -1295,12 +1321,12 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="spec.js?v=20261125i"></script>
-  <script src="renderer.js?v=20261125i"></script>
+  <script src="spec.js?v=20261125n"></script>
+  <script src="renderer.js?v=20261125n"></script>
   <script src="decorations.js?v=20261125b"></script>
   <script src="photo-analyzer.js?v=20261125b"></script>
-  <script src="app.js?v=20261125g"></script>
-  <script src="paint-studio.js?v=20261125g"></script>
-  <script src="plaza.js?v=20261125i"></script>
+  <script src="app.js?v=20261125o"></script>
+  <script src="exploded-studio.js?v=20261125p"></script>
+  <script src="plaza.js?v=20261125j"></script>
 </body>
 </html>

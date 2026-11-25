@@ -15,10 +15,12 @@ const COMMUNITY_DIR = path.join(ROOT, 'community');
 const ACCESSORIES_DIR = path.join(ROOT, 'community-accessories');
 const KEYBOARDS_DIR = path.join(ROOT, 'community-keyboards');
 
-const VALID_SPACES = new Set(['head', 'skull', 'body', 'tail', 'leftEar', 'rightEar']);
+const VALID_SPACES = new Set(['head', 'skull', 'body', 'tail', 'leftEar', 'rightEar', 'leftArm', 'rightArm', 'hindLeg']);
 const PALETTE_KEYS = new Set([
   'body', 'bodyShade', 'belly', 'legs', 'paws', 'pawPads',
-  'earOuter', 'earInner', 'nose', 'mouth', 'iris',
+  'hindLeg', 'hindPaw',
+  'earOuter', 'earInner', 'nose', 'mouth',
+  'iris', 'irisLeft', 'irisRight', 'pupil', 'pupilLeft', 'pupilRight',
   'tail', 'tailTip', 'stripes', 'whiskers', 'crease',
   'outline', 'points', 'pointsMid'
 ]);
@@ -29,10 +31,19 @@ const SHAPE_RANGES = {
   cheekFullness: [0.85, 1.25],
   neckWidth: [0.65, 1.40],
   earSize: [0.80, 1.25],
+  earSpacing: [0.65, 1.35],
   earBaseWidth: [0.65, 1.40],
   earPointiness: [0.50, 1.50],
+  armSpacing: [0.55, 1.65],
+  armRootY: [-18.0, 18.0],
+  armLength: [0.65, 1.45],
+  hindLegRootX: [-16.0, 16.0],
+  hindLegRootY: [-14.0, 14.0],
+  hindLegWidth: [0.70, 1.45],
+  hindLegReach: [0.75, 1.35],
   tailLength: [0.70, 1.30],
   tailThickness: [0.70, 1.50],
+  tailRootY: [-14.0, 14.0],
   pawStagger: [0.0, 1.0]
 };
 const KB_COLOR_KEYS = ['mouseBody', 'mouseBorder', 'wheel', 'base', 'deck', 'key', 'keyBorder', 'accent'];

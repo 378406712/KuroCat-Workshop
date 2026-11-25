@@ -2,10 +2,13 @@
 (function (global) {
   'use strict';
 
-  const VALID_SPACES = ['head', 'skull', 'body', 'tail', 'leftEar', 'rightEar'];
+  const VALID_SPACES = ['head', 'skull', 'body', 'tail', 'leftEar', 'rightEar', 'leftArm', 'rightArm', 'hindLeg'];
+  const VALID_BRUSHES = ['round', 'soft', 'airbrush', 'smudge'];
   const PALETTE_KEYS = [
     'body', 'bodyShade', 'belly', 'legs', 'paws', 'pawPads',
-    'earOuter', 'earInner', 'nose', 'mouth', 'iris',
+    'hindLeg', 'hindPaw',
+    'earOuter', 'earInner', 'nose', 'mouth',
+    'iris', 'irisLeft', 'irisRight', 'pupil', 'pupilLeft', 'pupilRight',
     'tail', 'tailTip', 'stripes', 'whiskers', 'crease',
     'outline', 'points', 'pointsMid'
   ];
@@ -18,8 +21,17 @@
     earSize: [0.80, 1.25, 1.0],
     earBaseWidth: [0.65, 1.40, 1.0],
     earPointiness: [0.50, 1.50, 1.0],
+    earSpacing: [0.65, 1.35, 1.0],
     tailLength: [0.70, 1.30, 1.0],
     tailThickness: [0.70, 1.50, 1.0],
+    tailRootY: [-14.0, 14.0, 0.0],
+    armSpacing: [0.55, 1.65, 1.0],
+    armRootY: [-18.0, 18.0, 0.0],
+    armLength: [0.65, 1.45, 1.0],
+    hindLegRootX: [-16.0, 16.0, 0.0],
+    hindLegRootY: [-14.0, 14.0, 0.0],
+    hindLegWidth: [0.70, 1.45, 1.0],
+    hindLegReach: [0.75, 1.35, 1.0],
     pawStagger: [0.0, 1.0, 1.0]
   };
 
@@ -122,7 +134,9 @@
     body: { x0: -300, y0: -300, x1: 300, y1: 300 },
     tail: { x0: -4, y0: -40, x1: 104, y1: 40 },
     leftEar: { x0: -200, y0: -260, x1: 200, y1: 60 },
-    rightEar: { x0: -200, y0: -260, x1: 200, y1: 60 }
+    rightEar: { x0: -200, y0: -260, x1: 200, y1: 60 },
+    leftArm: { x0: -4, y0: -24, x1: 104, y1: 24 },
+    rightArm: { x0: -4, y0: -24, x1: 104, y1: 24 }
   };
 
   function unitVec(x, y) {
@@ -245,7 +259,7 @@
   }
 
   // --- Left/right mirroring (face and body centre line is x = 0; ears swap sides, tails have no mirror) ---
-  const MIRROR_EAR = { leftEar: 'rightEar', rightEar: 'leftEar' };
+  const MIRROR_EAR = { leftEar: 'rightEar', rightEar: 'leftEar', leftArm: 'rightArm', rightArm: 'leftArm' };
 
   function canMirror(space) {
     return space !== 'tail';
@@ -378,6 +392,12 @@
     if (!pal.body) pal.body = parseHexColor('#161618');
     if (!pal.legs) pal.legs = { ...pal.body };
     if (!pal.paws) pal.paws = pal.points ? { ...pal.points } : { ...pal.legs };
+    if (!pal.hindLeg) pal.hindLeg = Object.assign({}, pal.legs);
+    if (!pal.hindPaw) pal.hindPaw = Object.assign({}, pal.paws);
+    if (!pal.irisLeft && pal.iris) pal.irisLeft = Object.assign({}, pal.iris);
+    if (!pal.irisRight && pal.iris) pal.irisRight = Object.assign({}, pal.iris);
+    if (!pal.pupilLeft && pal.pupil) pal.pupilLeft = Object.assign({}, pal.pupil);
+    if (!pal.pupilRight && pal.pupil) pal.pupilRight = Object.assign({}, pal.pupil);
     if (!pal.earOuter) pal.earOuter = pal.points ? { ...pal.points } : { ...pal.legs };
     if (!pal.tail) pal.tail = { ...pal.earOuter };
     if (pal.points && !pal.pointsMid) {
@@ -427,17 +447,35 @@
 
     const marks = (raw.marks || []).map((m) => {
       const baseCol = m.color ? parseHexColor(m.color) : pal.stripes;
-      const col = baseCol ? { ...baseCol } : { r: 0.2, g: 0.2, b: 0.2, a: 1 };
+      const col = baseCol ? Object.assign({}, baseCol) : { r: 0.2, g: 0.2, b: 0.2, a: 1 };
       const alpha = typeof m.alpha === 'number' ? clamp(m.alpha, 0, 1) : 1;
       col.a *= alpha;
+      const brush = VALID_BRUSHES.includes(m.brush) ? m.brush : 'round';
+      const softness = typeof m.softness === 'number' ? clamp(m.softness, 0, 1) : 0.65;
       return {
         space: m.space,
         stroke: m.kind === 'stroke',
         width: m.kind === 'stroke' ? clamp(typeof m.width === 'number' ? m.width : 2, 0.2, 24) : 0,
+        brush,
+        softness,
         color: col,
         points: m.points.map(([x, y]) => ({ x: clamp(x, -400, 400), y: clamp(y, -400, 400) }))
       };
     });
+
+    const partGradients = {};
+    if (raw.partGradients && typeof raw.partGradients === 'object') {
+      for (const sp of VALID_SPACES) {
+        const g = raw.partGradients[sp];
+        if (g && isValidHex(g.from) && isValidHex(g.to)) {
+          partGradients[sp] = {
+            from: parseHexColor(g.from),
+            to: parseHexColor(g.to),
+            stop: typeof g.stop === 'number' ? clamp(g.stop, 0.1, 0.9) : 0.5
+          };
+        }
+      }
+    }
 
     const hasPartArt = (space) =>
       regions.some((r) => r.space === space) || marks.some((m) => m.space === space);
@@ -447,6 +485,7 @@
       author: (raw.author || '').trim().slice(0, 40),
       palette: pal,
       shape,
+      partGradients,
       headSurface: raw.headSurface === 'plane' ? 'plane' : 'dome',
       renderStyle: (raw.renderStyle === 'douni' || raw.renderStyle === 'dazed' || raw.renderStyle === 'damiao' || raw.renderStyle === 'naimi') ? raw.renderStyle : 'standard',
       typingStyle: raw.typingStyle === 'douni' ? 'douni' : 'standard',
@@ -528,9 +567,32 @@
           points: m.points.slice(0, 512).map(([x, y]) => [round2(clamp(x, -400, 400)), round2(clamp(y, -400, 400))])
         };
         if (typeof m.alpha === 'number' && m.alpha < 0.999) out.alpha = round2(clamp(m.alpha, 0, 1));
-        if (out.kind === 'stroke') out.width = round2(clamp(typeof m.width === 'number' ? m.width : 2.2, 0.2, 24));
+        if (out.kind === 'stroke') {
+          out.width = round2(clamp(typeof m.width === 'number' ? m.width : 2.2, 0.2, 24));
+          if (VALID_BRUSHES.includes(m.brush) && m.brush !== 'round') {
+            out.brush = m.brush;
+            if (typeof m.softness === 'number') out.softness = round2(clamp(m.softness, 0, 1));
+          }
+        }
         return out;
       });
+    }
+
+    if (raw.partGradients && typeof raw.partGradients === 'object') {
+      const pgOut = {};
+      let pgCount = 0;
+      for (const sp of VALID_SPACES) {
+        const g = raw.partGradients[sp];
+        if (g && isValidHex(g.from) && isValidHex(g.to)) {
+          pgOut[sp] = {
+            from: g.from.toUpperCase(),
+            to: g.to.toUpperCase(),
+            stop: round2(clamp(typeof g.stop === 'number' ? g.stop : 0.5, 0.1, 0.9))
+          };
+          pgCount++;
+        }
+      }
+      if (pgCount > 0) clean.partGradients = pgOut;
     }
 
     if (raw.decorations && raw.decorations.length > 0) {
@@ -674,6 +736,29 @@
       { space: 'tail', kind: 'stroke', color: c, alpha: a, width: 3.8, points: [[52, -9], [52, 9]] },
       { space: 'tail', kind: 'stroke', color: c, alpha: a, width: 4.0, points: [[76, -9], [76, 9]] }
     ];
+  }
+
+  function makeArmRingMarks(color, alpha, count, width, sides) {
+    const c = color || '#6E4C32';
+    const a = alpha === undefined ? 0.78 : clamp(alpha, 0.1, 1);
+    const n = clamp(Math.round(count === undefined ? 3 : count), 1, 6);
+    const w = clamp(width === undefined ? 2.8 : width, 1.0, 6.0);
+    const targets = sides === 'leftArm' ? ['leftArm'] : sides === 'rightArm' ? ['rightArm'] : ['leftArm', 'rightArm'];
+    const out = [];
+    for (const sp of targets) {
+      for (let i = 0; i < n; i++) {
+        const x = n === 1 ? 44 : round2(22 + (42 * i) / (n - 1));
+        out.push({
+          space: sp,
+          kind: 'stroke',
+          color: c,
+          alpha: round2(a),
+          width: round2(w),
+          points: [[x, -11], [round2(x + 2.5), 0], [x, 11]]
+        });
+      }
+    }
+    return out;
   }
 
   // Built-in & Popular Breed Templates
@@ -860,10 +945,39 @@
     }
   ];
 
+  const BLANK_WHITE_SKIN = {
+    formatVersion: 1,
+    name: '纯白素胚小猫',
+    author: 'KuroCat 皮肤工坊',
+    palette: {
+      body: '#FAF7F1',
+      belly: '#FFFFFF',
+      legs: '#FAF7F1',
+      paws: '#FFFFFF',
+      pawPads: '#F3A6B2',
+      earOuter: '#F4EFE6',
+      earInner: '#F6C6CE',
+      nose: '#EB9CA8',
+      mouth: '#7B675E',
+      iris: '#E8B84B',
+      tail: '#F4EFE6',
+      stripes: '#5A4A42',
+      whiskers: '#9A8C80',
+      crease: '#B7AA9D'
+    },
+    shape: { build: 'standard' },
+    headSurface: 'dome',
+    regions: [],
+    marks: [],
+    decorations: []
+  };
+
   global.KuroSpec = {
     VALID_SPACES,
+    VALID_BRUSHES,
     PALETTE_KEYS,
     SHAPE_RANGES,
+    BLANK_WHITE_SKIN,
     clamp,
     round2,
     isValidHex,
@@ -891,6 +1005,7 @@
     makePresetRegion,
     makeTabbyForeheadMarks,
     makeTailRingMarks,
+    makeArmRingMarks,
     OFFICIAL_TEMPLATES,
     EXTRA_PRESETS
   };

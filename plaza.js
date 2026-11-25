@@ -13,6 +13,7 @@
   };
 
   const ROUTE_TITLES = {
+    paint: '组件画板',
     'plaza-skins': '皮肤广场',
     'plaza-accessories': '饰品广场',
     'plaza-keyboards': '键盘广场',
@@ -201,6 +202,7 @@
 
   // --- Unified Route Navigation ---
   function routeToHash(route) {
+    if (route === 'paint') return '#paint';
     if (route === 'plaza-skins') return '#plaza';
     if (route === 'plaza-accessories') return '#accessories';
     if (route === 'plaza-keyboards') return '#keyboards';
@@ -224,7 +226,8 @@
   }
 
   function updatePageHeadingMeta() {
-    if (activeRoute === 'plaza-skins') topbarPageMeta.textContent = `${skinsData.length} 款作品`;
+    if (activeRoute === 'paint') topbarPageMeta.textContent = '支持数位板压感 · 分组件绘制 · 右侧实时预览成品';
+    else if (activeRoute === 'plaza-skins') topbarPageMeta.textContent = `${skinsData.length} 款作品`;
     else if (activeRoute === 'plaza-accessories') topbarPageMeta.textContent = `${accessoriesData.length} 款作品`;
     else if (activeRoute === 'plaza-keyboards') topbarPageMeta.textContent = `${keyboardsData.length} 款配色`;
     else if (activeRoute === 'guide') topbarPageMeta.textContent = 'AI Agent 一键投稿 · Fork PR 规范 · 无代码 Issue';
@@ -234,8 +237,10 @@
   function navigate(route, skipHash) {
     activeRoute = route;
     const isWorkshop = route === 'workshop';
+    const isPaint = route === 'paint';
     const isPlaza = route.startsWith('plaza-');
     const isGuide = route === 'guide';
+    const paintView = document.getElementById('paint-view');
 
     navItems.forEach((el) => {
       if (el.classList.contains('nav-item')) {
@@ -244,11 +249,12 @@
     });
 
     workshopView.hidden = !isWorkshop;
+    if (paintView) paintView.hidden = !isPaint;
     plazaView.hidden = !isPlaza;
     guideView.hidden = !isGuide;
 
     topbarWorkshopLeft.hidden = !isWorkshop;
-    topbarWorkshopRight.hidden = !isWorkshop;
+    topbarWorkshopRight.hidden = !isWorkshop && !isPaint;
     topbarPageHeading.hidden = isWorkshop;
     topbarPlazaRight.hidden = !isPlaza;
     topbarGuideRight.hidden = !isGuide;
@@ -256,6 +262,11 @@
     if (!isWorkshop) {
       topbarPageTitle.textContent = ROUTE_TITLES[route] || '';
       updatePageHeadingMeta();
+    }
+
+    if (window.KuroPaintStudio) {
+      if (isPaint) window.KuroPaintStudio.onEnter();
+      else window.KuroPaintStudio.onLeave();
     }
 
     if (isPlaza) {
@@ -596,6 +607,9 @@
       if (window.KuroWorkshopAPI && window.KuroWorkshopAPI.loadExternalSkin(spec, `广场皮肤 · ${item.title}`)) {
         closePlayModal();
         navigate('workshop');
+        if (window.KuroExplodedStudio && typeof window.KuroExplodedStudio.enterExplodedMode === 'function') {
+          window.KuroExplodedStudio.enterExplodedMode(true);
+        }
       }
     } catch (err) {
       toast('载入皮肤失败：' + err.message);
