@@ -1,7 +1,30 @@
 {
-  "generatedAt": "2026-11-25T08:34:20.909Z",
-  "count": 5,
+  "generatedAt": "2026-11-26T02:01:58.733Z",
+  "count": 6,
   "accessories": [
+    {
+      "slug": "lemomtree-bell",
+      "title": "铃铛",
+      "author": "lemontree",
+      "authorUrl": "https://github.com/chanke17",
+      "description": "圣诞主题",
+      "tags": [
+        "圣诞",
+        "可爱",
+        "lemontree"
+      ],
+      "createdAt": "2026-11-26",
+      "anchor": "headTop",
+      "offsetX": 0,
+      "offsetY": 16,
+      "scale": 0.9,
+      "rotation": 0,
+      "pngPath": "./community-accessories/lemomtree-bell/accessory.png",
+      "previewPath": null,
+      "width": 1024,
+      "height": 1024,
+      "sizeBytes": 151076
+    },
     {
       "slug": "zhongfen-bai-cat",
       "title": "神经雀白中分",

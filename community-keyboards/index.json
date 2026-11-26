@@ -1,7 +1,37 @@
 {
-  "generatedAt": "2026-11-25T08:34:20.909Z",
-  "count": 7,
+  "generatedAt": "2026-11-26T02:01:58.733Z",
+  "count": 10,
   "keyboards": [
+    {
+      "slug": "macaroon-cream",
+      "title": "马卡龙奶油 · MACAROON",
+      "author": "TwinTusks",
+      "authorUrl": "https://github.com/TwinTusks",
+      "description": "取自实拍 Macaroon 全套：奶油白键帽、马卡龙粉功能键、黄油色数字区与底壳，浅色温柔系，白猫、布偶猫和三花猫都很搭。",
+      "tags": [
+        "马卡龙",
+        "奶油白",
+        "粉色",
+        "浅色键盘",
+        "低饱和",
+        "温柔风"
+      ],
+      "createdAt": "2026-11-26",
+      "keyboardPath": "./community-keyboards/macaroon-cream/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#FCF8F4",
+        "mouseBorder": "#B58E8A",
+        "wheel": "#E79FAB",
+        "base": "#F2E3C7",
+        "deck": "#FDF4EF",
+        "key": "#FFF3F4",
+        "keyBorder": "#E7C9CC",
+        "accent": "#EFA3B1",
+        "darkText": true
+      },
+      "sizeBytes": 334
+    },
     {
       "slug": "douni-retro",
       "title": "小豆泥复古灰键",
@@ -28,6 +58,31 @@
         "darkText": true
       },
       "sizeBytes": 402
+    },
+    {
+      "slug": "ev63-ghost-shell",
+      "title": "ev63-ghost-shell",
+      "author": "xthon",
+      "authorUrl": "https://github.com/xthon-proton",
+      "description": "如果可以定义其他键的键帽颜色就好了",
+      "tags": [
+        "ev63"
+      ],
+      "createdAt": "2026-11-25",
+      "keyboardPath": "./community-keyboards/ev63-ghost-shell/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#746D6E",
+        "mouseBorder": "#6B6666",
+        "wheel": "#FFFFFF",
+        "base": "#302F2F",
+        "deck": "#363334",
+        "key": "#545053",
+        "keyBorder": "#050505",
+        "accent": "#2378F3",
+        "darkText": true
+      },
+      "sizeBytes": 319
     },
     {
       "slug": "sea-salt-blue",
@@ -57,6 +112,31 @@
         "darkText": true
       },
       "sizeBytes": 325
+    },
+    {
+      "slug": "twilight-caramel",
+      "title": "暮色焦糖",
+      "author": "枭瑞",
+      "authorUrl": "https://github.com/shin984",
+      "description": "深褐是咖啡店里的木质桌面和咖啡杯底，浅黄是窗边透进来的夕阳和杯里的蜂蜜奶泡，浅蓝是傍晚开始转凉的天色，浅紫是远处路灯刚亮起来时那一层薄薄的暮霭。",
+      "tags": [
+        "原创配色"
+      ],
+      "createdAt": "2026-11-25",
+      "keyboardPath": "./community-keyboards/twilight-caramel/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#734E4E",
+        "mouseBorder": "#765B5B",
+        "wheel": "#B4FEF1",
+        "base": "#5B3939",
+        "deck": "#5F4545",
+        "key": "#FFDDAD",
+        "keyBorder": "#6CC6FE",
+        "accent": "#8AB7FF",
+        "darkText": true
+      },
+      "sizeBytes": 316
     },
     {
       "slug": "zhongfen-gray-rainbow",

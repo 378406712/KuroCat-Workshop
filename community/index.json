@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-25T08:34:20.909Z",
-  "count": 14,
+  "generatedAt": "2026-11-26T02:01:58.733Z",
+  "count": 23,
   "skins": [
     {
       "slug": "abyssinian-farmer",
@@ -23,6 +23,53 @@
       "paletteSummary": [
         "#956749",
         "#CC9B5C"
+      ]
+    },
+    {
+      "slug": "british-golden-shaded-dingdang",
+      "title": "英短金渐层",
+      "author": "xthon",
+      "authorUrl": "https://github.com/xthon-proton",
+      "description": "根据家里的英短金渐层 叮当捏的，尽量还原啦，金渐层好难捏呀",
+      "tags": [
+        "英短",
+        "金渐层"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/british-golden-shaded-dingdang/skin.kurocat",
+      "previewPath": "./community/british-golden-shaded-dingdang/preview.png",
+      "previewType": "png",
+      "decorationCount": 0,
+      "regionCount": 1,
+      "sizeBytes": 50415,
+      "paletteSummary": [
+        "#E8A84F",
+        "#FFFFFF",
+        "#A3C149"
+      ]
+    },
+    {
+      "slug": "british-silver-shaded",
+      "title": "英短银渐层",
+      "author": "元仔妈妈",
+      "authorUrl": "https://github.com/sailorliu",
+      "description": "这只银渐层根据我家8岁的元仔小宝贝为原型制作，保留了黑色脚垫和绿瞳的特征~",
+      "tags": [
+        "银渐层",
+        "英短",
+        "社区贡献"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/british-silver-shaded/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 44,
+      "sizeBytes": 18986,
+      "paletteSummary": [
+        "#ADB2B7",
+        "#F2EEE4",
+        "#8FA676"
       ]
     },
     {
@@ -101,6 +148,75 @@
       ]
     },
     {
+      "slug": "dora",
+      "title": "Dora",
+      "author": "EdithZou",
+      "authorUrl": "",
+      "description": "Dora 是一只暖棕色的小猫，有奶油白的肚皮和爪尖，还有一双浅绿色眼睛。",
+      "tags": [
+        "棕色",
+        "绿眼睛"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/dora/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 4,
+      "sizeBytes": 134206,
+      "paletteSummary": [
+        "#906B4D",
+        "#F7F1E6",
+        "#B4CF87"
+      ]
+    },
+    {
+      "slug": "happy-cute-ragdoll",
+      "title": "灰棕双色高兴",
+      "author": "wk",
+      "authorUrl": "https://github.com/wkk723",
+      "description": "以海豹双色布偶猫为灵感，奶白胸腹搭配灰棕花色、白爪和浅蓝眼睛。由 wk 与 Codex 协作制作；本投稿仅含标准皮肤外观，不包含定制程序的拖动动作、提醒和环绕字。",
+      "tags": [
+        "布偶猫",
+        "蓝眼睛",
+        "灰棕白",
+        "AI辅助"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/happy-cute-ragdoll/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 35446,
+      "paletteSummary": [
+        "#F5F2ED",
+        "#B0DAF2"
+      ]
+    },
+    {
+      "slug": "keegan",
+      "title": "Keegan(?)",
+      "author": "Tayce",
+      "authorUrl": "https://github.com/Tayce929",
+      "description": "一个不像雪豹的戴着类似Keegan巴拉克拉法的猫（？）",
+      "tags": [
+        "COD",
+        "Keegan"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/keegan/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 4,
+      "sizeBytes": 259610,
+      "paletteSummary": [
+        "#ADADAD",
+        "#C3EDFF"
+      ]
+    },
+    {
       "slug": "mackerel-tabby",
       "title": "棕虎斑（暖棕鲭鱼纹）",
       "author": "anphuchoang5-sys",
@@ -126,10 +242,35 @@
       ]
     },
     {
+      "slug": "meili-cat",
+      "title": "梅莉猫",
+      "author": "Saturday",
+      "authorUrl": "",
+      "description": "梅莉 猫猫 治愈 昆虫学者",
+      "tags": [
+        "治愈",
+        "昆虫学者",
+        "蝴蝶",
+        "小礼帽"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/meili-cat/skin.kurocat",
+      "previewPath": "./community/meili-cat/preview.png",
+      "previewType": "png",
+      "decorationCount": 4,
+      "regionCount": 1,
+      "sizeBytes": 177455,
+      "paletteSummary": [
+        "#F5EAD9",
+        "#6CB387",
+        "#F5EAD8"
+      ]
+    },
+    {
       "slug": "mm-snowshoe",
       "title": "MM小雪鞋",
       "author": "Melanine",
-      "authorUrl": "https://github.com/Melanine",
+      "authorUrl": "https://github.com/lyyc420",
       "description": "家养雪鞋小精灵",
       "tags": [
         "MM",
@@ -173,6 +314,28 @@
         "#FCC359",
         "#FFD175",
         "#88A852"
+      ]
+    },
+    {
+      "slug": "que-mao",
+      "title": "雀猫",
+      "author": "lightbit",
+      "authorUrl": "https://github.com/lightbit-emt",
+      "description": "狸花猫亚种",
+      "tags": [
+        "雀猫"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/que-mao/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 2,
+      "sizeBytes": 61582,
+      "paletteSummary": [
+        "#7E6B55",
+        "#F2EBDB",
+        "#C47B2C"
       ]
     },
     {
@@ -220,6 +383,52 @@
         "#F6EFE6",
         "#A8937B",
         "#D8EFEA"
+      ]
+    },
+    {
+      "slug": "xiaochou-baomi",
+      "title": "小臭爆米",
+      "author": "lost",
+      "authorUrl": "https://github.com/lost761102",
+      "description": "橘白猫",
+      "tags": [
+        "橘白猫"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/xiaochou-baomi/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 0,
+      "sizeBytes": 187776,
+      "paletteSummary": [
+        "#FAF7F1",
+        "#FFFFFF",
+        "#E8B84B"
+      ]
+    },
+    {
+      "slug": "xieliuhaijiangzhong-blue-ragdoll",
+      "title": "斜刘海犟种蓝双布偶猫",
+      "author": "米糕",
+      "authorUrl": "",
+      "description": "一只斜刘海的犟种猫",
+      "tags": [
+        "布偶猫",
+        "蓝双",
+        "斜刘海",
+        "犟种"
+      ],
+      "createdAt": "2026-11-25",
+      "skinPath": "./community/xieliuhaijiangzhong-blue-ragdoll/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 6,
+      "sizeBytes": 60119,
+      "paletteSummary": [
+        "#FCFCFC",
+        "#89C8F0"
       ]
     },
     {
