@@ -4493,8 +4493,6 @@
     const breath = Math.sin(t * 2.3) * 1.6;
     const seatX = SEAT_ANCHOR.x + (state.bodyShiftX || 0);
     const seatY = SEAT_ANCHOR.y;
-    const kbTheme = getKeyboardTheme(kbThemeName, skin);
-    const eyeTheme = getEyeTheme(eyeThemeName, skin);
 
     // Draw desk keyboard & mouse (fades gently when scruff-lifted)
     const deskAlpha = 1.0 - smoothstep(0.0, 0.55, scruffS);
@@ -4502,11 +4500,11 @@
       ctx.save();
       ctx.globalAlpha *= deskAlpha;
       if (state.isTabletActive) {
-        drawTablet(ctx, state, kbTheme, eyeTheme);
+        drawTablet(ctx, state, kbThemeName, eyeThemeName);
       } else {
-        drawMouse(ctx, state, kbTheme);
+        drawMouse(ctx, state, kbThemeName);
       }
-      drawKeyboard(ctx, state, kbTheme, eyeTheme);
+      drawKeyboard(ctx, state, kbThemeName, eyeThemeName);
       ctx.restore();
     }
 
