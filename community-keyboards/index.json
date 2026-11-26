@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-26T10:49:02.286Z",
-  "count": 14,
+  "generatedAt": "2026-11-26T13:37:22.364Z",
+  "count": 17,
   "keyboards": [
     {
       "slug": "lavender-sky-milk",
@@ -62,6 +62,64 @@
       "sizeBytes": 334
     },
     {
+      "slug": "minimal-black",
+      "title": "极简黑",
+      "author": "asucat",
+      "authorUrl": "https://github.com/asucat-bird",
+      "description": "初始皮肤-黑",
+      "tags": [
+        "极简",
+        "纯黑",
+        "全黑",
+        "初始皮肤",
+        "65%"
+      ],
+      "createdAt": "2026-11-26",
+      "keyboardPath": "./community-keyboards/minimal-black/keyboard.json",
+      "previewPath": "./community-keyboards/minimal-black/preview.png",
+      "colors": {
+        "mouseBody": "#000000",
+        "mouseBorder": "#000000",
+        "wheel": "#000000",
+        "base": "#000000",
+        "deck": "#000000",
+        "key": "#000000",
+        "keyBorder": "#000000",
+        "accent": "#000000",
+        "darkText": false
+      },
+      "sizeBytes": 313
+    },
+    {
+      "slug": "minimal-white",
+      "title": "极简白",
+      "author": "asucat",
+      "authorUrl": "https://github.com/asucat-bird",
+      "description": "初始皮肤-白",
+      "tags": [
+        "极简",
+        "纯白",
+        "全白",
+        "初始皮肤",
+        "65%"
+      ],
+      "createdAt": "2026-11-26",
+      "keyboardPath": "./community-keyboards/minimal-white/keyboard.json",
+      "previewPath": "./community-keyboards/minimal-white/preview.png",
+      "colors": {
+        "mouseBody": "#FFFFFF",
+        "mouseBorder": "#FFFFFF",
+        "wheel": "#FFFFFF",
+        "base": "#FFFFFF",
+        "deck": "#FFFFFF",
+        "key": "#FFFFFF",
+        "keyBorder": "#FFFFFF",
+        "accent": "#FFFFFF",
+        "darkText": true
+      },
+      "sizeBytes": 312
+    },
+    {
       "slug": "orange-dawn",
       "title": "橘光破晓",
       "author": "asucat",
@@ -89,6 +147,35 @@
         "darkText": true
       },
       "sizeBytes": 315
+    },
+    {
+      "slug": "orange-dusk",
+      "title": "橙染暮色",
+      "author": "asucat",
+      "authorUrl": "https://github.com/asucat-bird",
+      "description": "残阳泼玄铁，长风卷暮云。",
+      "tags": [
+        "暮色",
+        "玄铁",
+        "橘红",
+        "暗色键盘",
+        "65%"
+      ],
+      "createdAt": "2026-11-26",
+      "keyboardPath": "./community-keyboards/orange-dusk/keyboard.json",
+      "previewPath": "./community-keyboards/orange-dusk/preview.png",
+      "colors": {
+        "mouseBody": "#26282B",
+        "mouseBorder": "#0E0F11",
+        "wheel": "#E5501E",
+        "base": "#1F2124",
+        "deck": "#2B2E33",
+        "key": "#131417",
+        "keyBorder": "#3A3E44",
+        "accent": "#E5501E",
+        "darkText": false
+      },
+      "sizeBytes": 316
     },
     {
       "slug": "yuwan-cream-navy-65",

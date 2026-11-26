@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-26T10:49:02.286Z",
-  "count": 8,
+  "generatedAt": "2026-11-26T13:37:22.364Z",
+  "count": 12,
   "accessories": [
     {
       "slug": "fool-tophat",
@@ -22,6 +22,48 @@
       "width": 512,
       "height": 512,
       "sizeBytes": 22737
+    },
+    {
+      "slug": "gryffindor-scarf",
+      "title": "格兰芬多配色围巾",
+      "author": "萨满",
+      "authorUrl": "https://github.com/siennaliatwork",
+      "description": "格兰芬多配色围巾",
+      "tags": [
+        "围巾"
+      ],
+      "createdAt": "2026-11-26",
+      "anchor": "neck",
+      "offsetX": 0,
+      "offsetY": 0,
+      "scale": 0.5,
+      "rotation": 0,
+      "pngPath": "./community-accessories/gryffindor-scarf/accessory.png",
+      "previewPath": null,
+      "width": 329,
+      "height": 203,
+      "sizeBytes": 10810
+    },
+    {
+      "slug": "hufflepuff-scarf",
+      "title": "赫奇帕奇配色围巾",
+      "author": "萨满",
+      "authorUrl": "https://github.com/siennaliatwork",
+      "description": "赫奇帕奇配色围巾",
+      "tags": [
+        "围巾"
+      ],
+      "createdAt": "2026-11-26",
+      "anchor": "neck",
+      "offsetX": 0,
+      "offsetY": 0,
+      "scale": 0.5,
+      "rotation": 0,
+      "pngPath": "./community-accessories/hufflepuff-scarf/accessory.png",
+      "previewPath": null,
+      "width": 329,
+      "height": 204,
+      "sizeBytes": 10677
     },
     {
       "slug": "lemomtree-bell",
@@ -68,6 +110,48 @@
       "width": 102,
       "height": 102,
       "sizeBytes": 7796
+    },
+    {
+      "slug": "ravenclaw-scarf",
+      "title": "拉文克劳配色围巾",
+      "author": "萨满",
+      "authorUrl": "https://github.com/siennaliatwork",
+      "description": "拉文克劳配色围巾",
+      "tags": [
+        "围巾"
+      ],
+      "createdAt": "2026-11-26",
+      "anchor": "neck",
+      "offsetX": 0,
+      "offsetY": 0,
+      "scale": 0.5,
+      "rotation": 0,
+      "pngPath": "./community-accessories/ravenclaw-scarf/accessory.png",
+      "previewPath": null,
+      "width": 155,
+      "height": 97,
+      "sizeBytes": 5131
+    },
+    {
+      "slug": "slytherin-scarf",
+      "title": "斯莱特林配色围巾",
+      "author": "萨满",
+      "authorUrl": "https://github.com/siennaliatwork",
+      "description": "斯莱特林配色围巾",
+      "tags": [
+        "围巾"
+      ],
+      "createdAt": "2026-11-26",
+      "anchor": "neck",
+      "offsetX": 0,
+      "offsetY": 0,
+      "scale": 0.5,
+      "rotation": 0,
+      "pngPath": "./community-accessories/slytherin-scarf/accessory.png",
+      "previewPath": null,
+      "width": 329,
+      "height": 204,
+      "sizeBytes": 10797
     },
     {
       "slug": "zhongfen-bai-cat",

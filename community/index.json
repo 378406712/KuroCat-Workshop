@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-26T10:49:02.286Z",
-  "count": 36,
+  "generatedAt": "2026-11-26T13:37:22.364Z",
+  "count": 41,
   "skins": [
     {
       "slug": "beagle-duodong",
@@ -48,6 +48,78 @@
         "#5C5B5F",
         "#FAFAF8",
         "#B8A46E"
+      ]
+    },
+    {
+      "slug": "brown-bengal",
+      "title": "Brandy（棕色孟加拉豹猫）",
+      "author": "睡觉不看表",
+      "authorUrl": "https://github.com/zj0713001",
+      "description": "以自家棕色玫瑰纹孟加拉豹猫 Brandy 为原型：修长灵动体型、挺拔大立耳与浅橄榄绿大眼，暖金毛色配深浅层次毛绒玫瑰豹纹、双层颈链、奶白黑点肚皮与黑尖环纹长尾。",
+      "tags": [
+        "豹猫",
+        "孟加拉豹猫",
+        "玫瑰纹",
+        "绿瞳",
+        "社区贡献"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/brown-bengal/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 7,
+      "sizeBytes": 73640,
+      "paletteSummary": [
+        "#C9965A",
+        "#DCAD6F",
+        "#B3C870"
+      ]
+    },
+    {
+      "slug": "glen-black-cat",
+      "title": "格伦小黑猫",
+      "author": "Garun",
+      "authorUrl": "https://github.com/GarunNavidas",
+      "description": "给自家oc格伦捏的猫塑小黑猫",
+      "tags": [
+        "黑猫",
+        "异瞳",
+        "带一件配饰"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/glen-black-cat/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 2,
+      "sizeBytes": 56972,
+      "paletteSummary": [
+        "#1F2024",
+        "#6AA073"
+      ]
+    },
+    {
+      "slug": "handdrawn-dwarf-rabbit",
+      "title": "手绘侏儒兔",
+      "author": "羊咪",
+      "authorUrl": "",
+      "description": "手绘了一只侏儒兔，尾巴已经拉到最短了，边缘有一些为了保留兔脸产生的白边，以上种种我决定装瞎",
+      "tags": [
+        "侏儒兔",
+        "兔子",
+        "原创"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/handdrawn-dwarf-rabbit/skin.kurocat",
+      "previewPath": "./community/handdrawn-dwarf-rabbit/preview.gif",
+      "previewType": "gif",
+      "decorationCount": 4,
+      "regionCount": 11,
+      "sizeBytes": 74196,
+      "paletteSummary": [
+        "#EFD7B300",
+        "#2A1E13"
       ]
     },
     {
@@ -210,6 +282,27 @@
       ]
     },
     {
+      "slug": "sanse-calico",
+      "title": "三色",
+      "author": "SSuen",
+      "authorUrl": "https://github.com/SSSSSSuennnnnn",
+      "description": "照着自家长毛三花猫猫做的。猫猫名字是奶奶取的，叫三色。",
+      "tags": [
+        "三花猫"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/sanse-calico/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 194392,
+      "paletteSummary": [
+        "#F0EFE6",
+        "#E9C44A"
+      ]
+    },
+    {
       "slug": "shiba-cat",
       "title": "柴犬配色小猫咪",
       "author": "xylon98",
@@ -278,6 +371,29 @@
         "#6C6973",
         "#F4F0E7",
         "#F3B940"
+      ]
+    },
+    {
+      "slug": "white-heterochromia-dd",
+      "title": "白色异瞳咪DD",
+      "author": "烊烊",
+      "authorUrl": "https://github.com/1ang1128",
+      "description": "自家的异瞳白色小猫咪",
+      "tags": [
+        "白色异瞳",
+        "真猫还原"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/white-heterochromia-dd/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 0,
+      "sizeBytes": 57044,
+      "paletteSummary": [
+        "#FAF7F1",
+        "#FFFFFF",
+        "#86BCC6"
       ]
     },
     {
