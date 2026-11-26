@@ -1604,7 +1604,126 @@
     return hit;
   }
 
-  // Smart Paint Bucket: fills the exact clicked sub-layer (region / innerEar / tailTip / base palette)
+  function markContainsPoint(m, pt) {
+    const pts = m && m.points;
+    if (!pts || !pts.length) return false;
+    if (m.kind === 'polygon' && pts.length >= 3) {
+      const poly = pts.map((p) => ({ x: p[0], y: p[1] }));
+      if (Spec.pointInPolygon(pt, poly)) return true;
+      for (let j = 0; j < pts.length; j++) {
+        const a = pts[j], b = pts[(j + 1) % pts.length];
+        if (distPointToSegment(pt.x, pt.y, a[0], a[1], b[0], b[1]) <= 3.2) return true;
+      }
+      return false;
+    }
+    const tol = Math.max(3.5, (m.width || 2) * 0.65);
+    if (pts.length === 1) {
+      return Math.hypot(pts[0][0] - pt.x, pts[0][1] - pt.y) <= tol;
+    }
+    for (let j = 0; j < pts.length - 1; j++) {
+      const a = pts[j], b = pts[j + 1];
+      if (distPointToSegment(pt.x, pt.y, a[0], a[1], b[0], b[1]) <= tol) return true;
+    }
+    return false;
+  }
+
+  function markBBox(m) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const pts = m && m.points || [];
+    for (let i = 0; i < pts.length; i++) {
+      const x = pts[i][0], y = pts[i][1];
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    const pad = m.kind === 'stroke' ? Math.max(2.5, (m.width || 2) * 0.55) : 1.5;
+    return { minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad };
+  }
+
+  function marksTouchOrOverlap(a, b) {
+    const ba = markBBox(a), bb = markBBox(b);
+    if (ba.maxX < bb.minX || bb.maxX < ba.minX || ba.maxY < bb.minY || bb.maxY < ba.minY) return false;
+    const ptsA = a.points || [], ptsB = b.points || [];
+    const tol = (a.kind === 'stroke' ? Math.max(2.5, (a.width || 2) * 0.55) : 1.5)
+              + (b.kind === 'stroke' ? Math.max(2.5, (b.width || 2) * 0.55) : 1.5);
+    // Sample points from A against B (and vice-versa)
+    const stepA = Math.max(1, Math.floor(ptsA.length / 18));
+    for (let i = 0; i < ptsA.length; i += stepA) {
+      const p = { x: ptsA[i][0], y: ptsA[i][1] };
+      if (markContainsPoint(b, p)) return true;
+      for (let j = 0; j < ptsB.length - 1; j++) {
+        if (distPointToSegment(p.x, p.y, ptsB[j][0], ptsB[j][1], ptsB[j + 1][0], ptsB[j + 1][1]) <= tol) return true;
+      }
+    }
+    const stepB = Math.max(1, Math.floor(ptsB.length / 18));
+    for (let i = 0; i < ptsB.length; i += stepB) {
+      const p = { x: ptsB[i][0], y: ptsB[i][1] };
+      if (markContainsPoint(a, p)) return true;
+    }
+    return false;
+  }
+
+  function findHitMarkIndex(marks, spaces, pt) {
+    if (!marks || !marks.length) return -1;
+    for (let i = marks.length - 1; i >= 0; i--) {
+      const m = marks[i];
+      if (!m || spaces.indexOf(m.space) === -1) continue;
+      if (markContainsPoint(m, pt)) return i;
+    }
+    return -1;
+  }
+
+  function findEnclosingStrokeLoopIndex(marks, spaces, pt) {
+    if (!marks || !marks.length) return -1;
+    for (let i = marks.length - 1; i >= 0; i--) {
+      const m = marks[i];
+      if (!m || m.kind !== 'stroke' || spaces.indexOf(m.space) === -1) continue;
+      const pts = m.points;
+      if (!pts || pts.length < 6) continue;
+      const first = pts[0], last = pts[pts.length - 1];
+      const bb = markBBox(m);
+      const diag = Math.hypot(bb.maxX - bb.minX, bb.maxY - bb.minY);
+      if (diag < 6) continue;
+      const gap = Math.hypot(last[0] - first[0], last[1] - first[1]);
+      // Treat as a closed hand-drawn loop if endpoints meet within 28% of loop diagonal (or <= 14 units)
+      if (gap <= Math.max(14, diag * 0.28)) {
+        const poly = pts.map((p) => ({ x: p[0], y: p[1] }));
+        if (Spec.pointInPolygon(pt, poly)) return i;
+      }
+    }
+    return -1;
+  }
+
+  function recolorConnectedMarks(marks, startIdx, spaces, newHex) {
+    const start = marks[startIdx];
+    if (!start) return 0;
+    const origCol = String(start.color || '').toUpperCase().slice(0, 7);
+    const visited = new Set([startIdx]);
+    const queue = [startIdx];
+    while (queue.length) {
+      const idx = queue.shift();
+      const cur = marks[idx];
+      cur.color = newHex;
+      for (let i = 0; i < marks.length; i++) {
+        if (visited.has(i)) continue;
+        const cand = marks[i];
+        if (!cand || spaces.indexOf(cand.space) === -1) continue;
+        if (String(cand.color || '').toUpperCase().slice(0, 7) !== origCol) continue;
+        if (marksTouchOrOverlap(cur, cand)) {
+          visited.add(i);
+          queue.push(i);
+        }
+      }
+    }
+    return visited.size;
+  }
+
+  // Smart Paint Bucket (MS Paint-style):
+  // 1) Recolor clicked user-drawn stroke/polygon (and connected same-color strokes)
+  // 2) Fill inside a closed hand-drawn stroke loop (keeping the outline on top)
+  // 3) Recolor clicked built-in/custom region
+  // 4) Recolor innerEar / tailTip or part base palette
   function applyBucketToPart(partId, hex, wPt) {
     const raw = getRaw();
     const skin = getSkin();
@@ -1616,6 +1735,68 @@
     const unitSpace = partId === 'ears'
       ? (wPt && wPt.x >= CW * 0.5 ? 'rightEar' : 'leftEar')
       : partId;
+
+    // 0a. Hit-test user-drawn marks (topmost first) — recolors the clicked mark & connected same-color marks
+    if (wPt && raw.marks && raw.marks.length) {
+      const mapped = fromPartCanvas(partId, wPt);
+      const spaces = mapped.space === 'head' ? ['head', 'skull'] : [mapped.space];
+      const hitMarkIdx = findHitMarkIndex(raw.marks, spaces, mapped);
+      if (hitMarkIdx !== -1) {
+        let count = recolorConnectedMarks(raw.marks, hitMarkIdx, spaces, c);
+        if (mirrorEnabled && PART_BY_ID[partId] && PART_BY_ID[partId].canMirror) {
+          const mir = mirrorSpaceAndPts(mapped.space, [mapped]);
+          if (mir) {
+            const mirSpaces = mir.space === 'head' ? ['head', 'skull'] : [mir.space];
+            const mIdx = findHitMarkIndex(raw.marks, mirSpaces, mir.pts[0]);
+            if (mIdx !== -1 && mIdx !== hitMarkIdx) {
+              count += recolorConnectedMarks(raw.marks, mIdx, mirSpaces, c);
+            }
+          }
+        }
+        notifyChange(true);
+        renderPartInspector();
+        if (api) api.showToast(count > 1 ? ('已将相连的 ' + count + ' 笔自绘色块改色为 ' + c) : ('已将自绘笔触/色块改色为 ' + c));
+        return;
+      }
+
+      // 0b. Clicked inside a closed hand-drawn brush loop -> fill interior while keeping the outline on top
+      const loopIdx = findEnclosingStrokeLoopIndex(raw.marks, spaces, mapped);
+      if (loopIdx !== -1) {
+        if (raw.marks.length < 256) {
+          const loopMark = raw.marks[loopIdx];
+          const fillPoly = {
+            space: loopMark.space,
+            kind: 'polygon',
+            color: c,
+            points: loopMark.points.map((p) => [p[0], p[1]])
+          };
+          if (brushAlpha < 0.999) fillPoly.alpha = round2(brushAlpha);
+          raw.marks.splice(loopIdx, 0, fillPoly);
+          if (mirrorEnabled && PART_BY_ID[partId] && PART_BY_ID[partId].canMirror && raw.marks.length < 256) {
+            const mir = mirrorSpaceAndPts(mapped.space, [mapped]);
+            if (mir) {
+              const mirSpaces = mir.space === 'head' ? ['head', 'skull'] : [mir.space];
+              const mLoopIdx = findEnclosingStrokeLoopIndex(raw.marks, mirSpaces, mir.pts[0]);
+              if (mLoopIdx !== -1 && mLoopIdx !== loopIdx + 1) {
+                const mLoop = raw.marks[mLoopIdx];
+                const mFill = {
+                  space: mLoop.space,
+                  kind: 'polygon',
+                  color: c,
+                  points: mLoop.points.map((p) => [p[0], p[1]])
+                };
+                if (brushAlpha < 0.999) mFill.alpha = round2(brushAlpha);
+                raw.marks.splice(mLoopIdx, 0, mFill);
+              }
+            }
+          }
+          notifyChange(true);
+          renderPartInspector();
+          if (api) api.showToast('已在闭合线条内填充颜色 ' + c);
+          return;
+        }
+      }
+    }
 
     // 1. Hit-test existing custom regions (topmost first) — e.g. tuxedo cat's white lower face
     if (wPt && raw.regions && raw.regions.length && skin.regions && skin.regions.length) {

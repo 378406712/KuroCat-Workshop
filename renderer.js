@@ -4444,6 +4444,197 @@
     return { headCenter: toCanvas(582, 272), decoAnchors };
   }
 
+  // --- Beagle Duodong (比格多栋 · 彩蛋限定) Layered Sprite Rig ---
+  const BEAGLE_RECTS = {
+    earR: [2, 2, 78, 171], earL: [82, 2, 75, 170], head: [159, 2, 178, 161],
+    liftBody: [339, 2, 194, 156], sleepEarL: [535, 2, 114, 142], sleepEarR: [651, 2, 94, 138],
+    liftFrontPaw: [747, 2, 44, 124], sleepBody: [793, 2, 218, 122],
+    liftTail: [2, 175, 66, 110], liftHindPaw: [70, 175, 36, 100], body: [108, 175, 170, 79],
+    sleepTail: [280, 175, 114, 56], angerMark: [396, 175, 52, 52],
+    eyeFrameR: [450, 175, 60, 46], angryFrameR: [512, 175, 60, 44], eyeFrameL: [574, 175, 62, 42],
+    sleepFrontPaw: [638, 175, 58, 42], paw: [698, 175, 126, 41], angryFrameL: [826, 175, 62, 39],
+    pupilR: [890, 175, 45, 36], pupilL: [937, 175, 46, 34],
+    sleepHindPaw: [2, 287, 46, 33], liftEyeHi: [50, 287, 24, 30], bubble: [76, 287, 46, 30],
+    eyeClosed: [124, 287, 46, 26], sweat: [172, 287, 16, 23], eyeHi: [190, 287, 24, 17],
+    blush: [216, 287, 34, 16], nose: [252, 287, 14, 10]
+  };
+  let _beagleAtlasImg = null;
+  function getBeagleAtlas() {
+    if (_beagleAtlasImg) return _beagleAtlasImg;
+    if (typeof Image === 'undefined') return null;
+    const img = new Image();
+    img.src = 'assets/special/beagle-atlas.png';
+    _beagleAtlasImg = img;
+    return img;
+  }
+
+  function drawBeagleSprite(ctx, img, key, cx, cy, sc, rot, flipX) {
+    const r = BEAGLE_RECTS[key];
+    if (!r) return;
+    const dw = r[2] * sc, dh = r[3] * sc;
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (rot) ctx.rotate(rot);
+    if (flipX) ctx.scale(-1, 1);
+    ctx.drawImage(img, r[0], r[1], r[2], r[3], -dw * 0.5, -dh * 0.5, dw, dh);
+    ctx.restore();
+  }
+
+  function drawBeagleScene(ctx, skin, state, kbThemeName, eyeThemeName) {
+    const img = getBeagleAtlas();
+    const scruff = clamp(state.scruffDrag || 0, 0, 1);
+    const scruffS = smoothstep(0, 1, scruff);
+    const lie = clamp(state.lieIntensity || 0, 0, 1);
+    const sleepVal = clamp(Math.max(lie, (state.sleepiness || 0) > 0.55 ? ((state.sleepiness - 0.55) / 0.35) : 0), 0, 1);
+    const sleepS = smoothstep(0, 1, sleepVal) * (1.0 - scruffS);
+    const anger = clamp(state.angerIntensity || 0, 0, 1);
+    const happy = clamp(Math.max(state.petHead || 0, state.petBody || 0), 0, 1);
+    const t = state.time || 0;
+    const breath = Math.sin(t * 2.3) * 1.6;
+    const seatX = SEAT_ANCHOR.x + (state.bodyShiftX || 0);
+    const seatY = SEAT_ANCHOR.y;
+    const kbTheme = getKeyboardTheme(kbThemeName, skin);
+    const eyeTheme = getEyeTheme(eyeThemeName, skin);
+
+    // Draw desk keyboard & mouse (fades gently when scruff-lifted)
+    const deskAlpha = 1.0 - smoothstep(0.0, 0.55, scruffS);
+    if (deskAlpha > 0.02) {
+      ctx.save();
+      ctx.globalAlpha *= deskAlpha;
+      if (state.isTabletActive) {
+        drawTablet(ctx, state, kbTheme, eyeTheme);
+      } else {
+        drawMouse(ctx, state, kbTheme);
+      }
+      drawKeyboard(ctx, state, kbTheme, eyeTheme);
+      ctx.restore();
+    }
+
+    if (!img || !img.complete || img.naturalWidth <= 0) {
+      return { seatX, seatY, headCenter: { x: seatX, y: 138 }, decoAnchors: null };
+    }
+
+    const S = 0.56; // 178px head -> ~100px logical on 360x320 canvas
+    const gazeX = clamp((state.eyeGaze && state.eyeGaze.x) || (state.headYaw || 0) * 0.7, -1, 1) * 4.5 * S;
+    const gazeY = clamp((state.eyeGaze && state.eyeGaze.y) || (state.headPitch || 0) * 0.6, -1, 1) * 3.5 * S;
+    const blinking = (state.blinkProgress || 0) > 0.55;
+    const headTilt = (state.headTilt || 0) * 0.75;
+
+    const drawFace = (hx, hy, mode) => {
+      if (mode === 'sleep') {
+        drawBeagleSprite(ctx, img, 'eyeClosed', hx - 42 * S, hy + 24 * S, S, 0, false);
+        drawBeagleSprite(ctx, img, 'eyeClosed', hx + 26 * S, hy + 28 * S, S, 0, true);
+        drawBeagleSprite(ctx, img, 'nose', hx - 12 * S, hy + 46 * S, S, 0, false);
+        const bubSc = S * (0.88 + 0.18 * Math.sin(t * 2.2));
+        drawBeagleSprite(ctx, img, 'bubble', hx + 5 * S, hy + 54 * S, bubSc, 0, false);
+        return;
+      }
+      if (blinking && mode !== 'angry' && mode !== 'lift') {
+        drawBeagleSprite(ctx, img, 'eyeClosed', hx - 40 * S, hy + 22 * S, S, 0, false);
+        drawBeagleSprite(ctx, img, 'eyeClosed', hx + 26 * S, hy + 26 * S, S, 0, true);
+        drawBeagleSprite(ctx, img, 'nose', hx - 10 * S, hy + 44 * S, S, 0, false);
+        return;
+      }
+      if (mode === 'angry') {
+        // Swapped angryFrameR (left) / angryFrameL (right) so brows slope inward fiercely
+        drawBeagleSprite(ctx, img, 'angryFrameR', hx - 38 * S, hy + 18 * S, S, 0, false);
+        drawBeagleSprite(ctx, img, 'angryFrameL', hx + 28 * S, hy + 24 * S, S, 0, false);
+        drawBeagleSprite(ctx, img, 'pupilL', hx - 38 * S + gazeX * 0.6, hy + 22 * S + gazeY * 0.6, S, 0, false);
+        drawBeagleSprite(ctx, img, 'pupilR', hx + 28 * S + gazeX * 0.6, hy + 28 * S + gazeY * 0.6, S, 0, false);
+        drawBeagleSprite(ctx, img, 'nose', hx - 10 * S, hy + 46 * S, S, 0, false);
+        const pulse = 1.0 + Math.sin(t * 14.0) * 0.10;
+        drawBeagleSprite(ctx, img, 'angerMark', hx + 36 * S, hy - 44 * S, S * pulse, 0, false);
+        drawBeagleSprite(ctx, img, 'sweat', hx - 44 * S, hy - 36 * S, S, 0, false);
+        return;
+      }
+      drawBeagleSprite(ctx, img, 'eyeFrameL', hx - 38 * S, hy + 16 * S, S, 0, false);
+      drawBeagleSprite(ctx, img, 'eyeFrameR', hx + 28 * S, hy + 22 * S, S, 0, false);
+      drawBeagleSprite(ctx, img, 'pupilL', hx - 38 * S + gazeX, hy + 18 * S + gazeY, S, 0, false);
+      drawBeagleSprite(ctx, img, 'pupilR', hx + 28 * S + gazeX, hy + 24 * S + gazeY, S, 0, false);
+      if (mode === 'happy') {
+        drawBeagleSprite(ctx, img, 'eyeHi', hx - 36 * S + gazeX * 0.5, hy + 12 * S + gazeY * 0.5, S, 0, false);
+        drawBeagleSprite(ctx, img, 'eyeHi', hx + 30 * S + gazeX * 0.5, hy + 18 * S + gazeY * 0.5, S, 0, false);
+        drawBeagleSprite(ctx, img, 'blush', hx - 60 * S, hy + 44 * S, S, 0, false);
+        drawBeagleSprite(ctx, img, 'blush', hx + 42 * S, hy + 48 * S, S, 0, false);
+      } else if (mode === 'lift') {
+        drawBeagleSprite(ctx, img, 'liftEyeHi', hx - 36 * S + gazeX * 0.4, hy + 16 * S + gazeY * 0.4, S, 0, false);
+        drawBeagleSprite(ctx, img, 'liftEyeHi', hx + 30 * S + gazeX * 0.4, hy + 22 * S + gazeY * 0.4, S, 0, false);
+        drawBeagleSprite(ctx, img, 'sweat', hx - 44 * S, hy - 36 * S, S, 0, false);
+      }
+      drawBeagleSprite(ctx, img, 'nose', hx - 10 * S, hy + 44 * S, S, 0, false);
+    };
+
+    // Pose 5: Scruff-Lifted Dangling Beagle
+    if (scruffS > 0.35) {
+      const swing = clamp(state.scruffSwing || Math.sin(t * 4.2) * 0.14, -0.5, 0.5);
+      const hx = seatX - 10 + swing * 18;
+      const hy = 132 + Math.sin(t * 3.0) * 3.5;
+      const wag = Math.sin(t * 11.0) * 0.24;
+      const legSwing = Math.sin(t * 7.5) * 0.18 + swing * 0.45;
+      ctx.save();
+      ctx.translate(hx, hy);
+      ctx.rotate(swing * 0.25);
+      drawBeagleSprite(ctx, img, 'liftTail', 124 * S, -34 * S, S, wag, false);
+      drawBeagleSprite(ctx, img, 'liftHindPaw', 82 * S, 86 * S, S, -legSwing * 0.8, false);
+      drawBeagleSprite(ctx, img, 'liftBody', 34 * S, 26 * S, S, 0, false);
+      drawBeagleSprite(ctx, img, 'liftFrontPaw', -52 * S, 92 * S, S, legSwing, false);
+      drawBeagleSprite(ctx, img, 'liftFrontPaw', 18 * S, 100 * S, S, -legSwing * 0.9, false);
+      drawBeagleSprite(ctx, img, 'earL', -74 * S, 12 * S, S, -swing * 0.35 + Math.sin(t * 5.0) * 0.05, false);
+      drawBeagleSprite(ctx, img, 'head', 0, 0, S, 0, false);
+      drawFace(0, 0, 'lift');
+      drawBeagleSprite(ctx, img, 'earR', 86 * S, 22 * S, S, -swing * 0.35 - Math.sin(t * 5.0) * 0.05, false);
+      ctx.restore();
+      return { seatX, seatY, headCenter: { x: hx, y: hy }, decoAnchors: null };
+    }
+
+    // Pose 4: Curled Sleeping Beagle with breathing bubble & wagging tail
+    if (sleepS > 0.45) {
+      const hx = seatX - 24;
+      const hy = 178 + breath * 0.7;
+      const tailWag = Math.sin(t * 1.8) * 0.08;
+      ctx.save();
+      drawBeagleSprite(ctx, img, 'sleepTail', hx + 158 * S, hy + 44 * S, S, tailWag, false);
+      drawBeagleSprite(ctx, img, 'sleepHindPaw', hx + 104 * S, hy + 68 * S, S, 0, false);
+      drawBeagleSprite(ctx, img, 'sleepBody', hx + 54 * S, hy + 22 * S + breath * 0.35, S, 0, false);
+      drawBeagleSprite(ctx, img, 'sleepEarL', hx - 68 * S, hy + 12 * S, S, 0, false);
+      drawBeagleSprite(ctx, img, 'sleepFrontPaw', hx - 74 * S, hy + 72 * S, S, 0, false);
+      drawBeagleSprite(ctx, img, 'head', hx, hy, S, 0, false);
+      drawFace(hx, hy, 'sleep');
+      drawBeagleSprite(ctx, img, 'sleepEarR', hx + 70 * S, hy + 18 * S, S, 0, false);
+      drawBeagleSprite(ctx, img, 'sleepFrontPaw', hx + 18 * S, hy + 74 * S, S, 0, false);
+      ctx.restore();
+      return { seatX, seatY, headCenter: { x: hx, y: hy }, decoAnchors: null };
+    }
+
+    // Poses 1 / 2 / 3: Sitting & Typing / Happy Petting / Angry Fast-Typing
+    const lTap = clamp(state.leftPawActive || 0, 0, 1);
+    const rTap = clamp(state.rightPawActive || 0, 0, 1);
+    const hx = seatX + (state.headYaw || 0) * 4.5;
+    const hy = 152 + breath * 0.8 + (lTap + rTap) * 2.2;
+    const earBob = Math.sin(t * 2.3 - 0.5) * 0.03 + (lTap - rTap) * 0.08;
+    const faceMode = anger > 0.32 ? 'angry' : (happy > 0.22 ? 'happy' : 'idle');
+
+    ctx.save();
+    // Body anchored right behind keyboard
+    drawBeagleSprite(ctx, img, 'body', seatX + 4 * S, hy + 88 * S, S, 0, false);
+    // Left paw extending left (slaps down on left keypress)
+    drawBeagleSprite(ctx, img, 'paw', hx - 92 * S, hy + (72 + lTap * 18) * S, S, -lTap * 0.16, false);
+    // Head & ears
+    ctx.save();
+    ctx.translate(hx, hy);
+    ctx.rotate(headTilt);
+    drawBeagleSprite(ctx, img, 'earL', -74 * S, 12 * S, S, earBob, false);
+    drawBeagleSprite(ctx, img, 'head', 0, 0, S, 0, false);
+    drawFace(0, 0, faceMode);
+    // Right paw resting / slapping keyboard
+    drawBeagleSprite(ctx, img, 'paw', -6 * S, (96 + rTap * 18) * S, S, rTap * 0.14, false);
+    drawBeagleSprite(ctx, img, 'earR', 86 * S, 22 * S, S, -earBob, false);
+    ctx.restore();
+    ctx.restore();
+
+    return { seatX, seatY, headCenter: { x: hx, y: hy }, decoAnchors: null };
+  }
+
   function drawDouniScene(ctx, skin, state, kbThemeName, eyeThemeName) {
     const scruff = clamp(state.scruffDrag || 0, 0, 1);
     const scruffS = smoothstep(0, 1, scruff);
@@ -6481,6 +6672,18 @@
     const scaleX = ctx.canvas.width / 360;
     const scaleY = ctx.canvas.height / 320;
     ctx.scale(scaleX, scaleY);
+
+    if (skin.renderStyle === 'beagle') {
+      const xforms = drawBeagleScene(ctx, skin, state, kbTheme, eyeTheme);
+      drawSparkles(ctx, state);
+      drawFloatingBadges(ctx, state);
+      if (typeof opts.editDecorationIndex === 'number' && opts.editDecorationIndex >= 0 &&
+          skin.decorations && skin.decorations[opts.editDecorationIndex]) {
+        drawDecorationOverlay(ctx, skin.decorations[opts.editDecorationIndex], skin, xforms.seatX, xforms.seatY, xforms.headCenter, state, xforms.decoAnchors);
+      }
+      ctx.restore();
+      return xforms;
+    }
 
     if (skin.renderStyle === 'douni') {
       const xforms = drawDouniScene(ctx, skin, state, kbTheme, eyeTheme);
