@@ -1,7 +1,51 @@
 {
-  "generatedAt": "2026-11-26T02:01:58.733Z",
-  "count": 23,
+  "generatedAt": "2026-11-26T03:14:48.010Z",
+  "count": 25,
   "skins": [
+    {
+      "slug": "shiba-cat",
+      "title": "柴犬配色小猫咪",
+      "author": "xylon98",
+      "authorUrl": "https://github.com/xylon0908",
+      "description": "柴犬配色版小猫咪，弥补没有小狗的遗憾~",
+      "tags": [
+        "橘猫"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/shiba-cat/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 2,
+      "regionCount": 2,
+      "sizeBytes": 72042,
+      "paletteSummary": [
+        "#E89B4C",
+        "#FAF7F1",
+        "#D6B74E"
+      ]
+    },
+    {
+      "slug": "shinuzi-libai",
+      "title": "屎努子梨白",
+      "author": "Aileen",
+      "authorUrl": "",
+      "description": "屎努子我亲亲亲亲亲亲",
+      "tags": [
+        "狸白",
+        "屎努子"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/shinuzi-libai/skin.kurocat",
+      "previewPath": "./community/shinuzi-libai/preview.png",
+      "previewType": "png",
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 336743,
+      "paletteSummary": [
+        "#FAF8F5",
+        "#CFC987"
+      ]
+    },
     {
       "slug": "abyssinian-farmer",
       "title": "埃及农民（阿比西尼亚）",
