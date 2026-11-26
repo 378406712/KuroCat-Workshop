@@ -1,7 +1,78 @@
 {
-  "generatedAt": "2026-11-26T03:14:48.010Z",
-  "count": 25,
+  "generatedAt": "2026-11-26T05:58:47.509Z",
+  "count": 28,
   "skins": [
+    {
+      "slug": "jianzhou-muzzle",
+      "title": "简州猫（带嘴套）",
+      "author": "klenchi",
+      "authorUrl": "https://github.com/klenchi",
+      "description": "自家带嘴套的简州猫简州猫",
+      "tags": [
+        "简州猫",
+        "嘴套",
+        "虎斑猫",
+        "社区贡献"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/jianzhou-muzzle/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 133934,
+      "paletteSummary": [
+        "#B8A081",
+        "#EFE7D5",
+        "#B3E887"
+      ]
+    },
+    {
+      "slug": "mori-corgi-sanse",
+      "title": "黑头三色柯基仿色",
+      "author": "Mori",
+      "authorUrl": "https://github.com/moorri",
+      "description": "用小猫的模板仿了小狗，许愿出小狗模型啊啊啊啊啊啊啊",
+      "tags": [
+        "黑白棕三色",
+        "小狗"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/mori-corgi-sanse/skin.kurocat",
+      "previewPath": "./community/mori-corgi-sanse/preview.png",
+      "previewType": "png",
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 193397,
+      "paletteSummary": [
+        "#121212",
+        "#FFF9EB",
+        "#FAFAFA"
+      ]
+    },
+    {
+      "slug": "niangao-white-cat",
+      "title": "带小草的大白猫",
+      "author": "崔斐然",
+      "authorUrl": "https://github.com/cuifeiran",
+      "description": "照着我家小猫做的，叫粘糕，6斤，大白猫",
+      "tags": [
+        "白猫",
+        "带饰品"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/niangao-white-cat/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 4,
+      "regionCount": 0,
+      "sizeBytes": 58772,
+      "paletteSummary": [
+        "#FAFAF0",
+        "#FFFFFF",
+        "#EACD8A"
+      ]
+    },
     {
       "slug": "shiba-cat",
       "title": "柴犬配色小猫咪",

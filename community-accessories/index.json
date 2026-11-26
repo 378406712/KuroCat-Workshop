@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-26T02:01:58.733Z",
-  "count": 6,
+  "generatedAt": "2026-11-26T05:58:47.509Z",
+  "count": 7,
   "accessories": [
     {
       "slug": "lemomtree-bell",
@@ -24,6 +24,29 @@
       "width": 1024,
       "height": 1024,
       "sizeBytes": 151076
+    },
+    {
+      "slug": "lemontree-snow",
+      "title": "雪花",
+      "author": "lemontree",
+      "authorUrl": "https://github.com/chanke17",
+      "description": "圣诞主题",
+      "tags": [
+        "圣诞",
+        "可爱",
+        "lemontree"
+      ],
+      "createdAt": "2026-11-26",
+      "anchor": "headTop",
+      "offsetX": 22,
+      "offsetY": -4,
+      "scale": 0.82,
+      "rotation": 14,
+      "pngPath": "./community-accessories/lemontree-snow/accessory.png",
+      "previewPath": null,
+      "width": 102,
+      "height": 102,
+      "sizeBytes": 7796
     },
     {
       "slug": "zhongfen-bai-cat",
