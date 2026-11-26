@@ -202,9 +202,9 @@
       }
     },
     body: {
-      scale: 3.3,
-      toCanvas: (p) => ({ x: CW * 0.5 + p.x * 3.3, y: CH * 0.80 + p.y * 3.3 }),
-      fromCanvas: (c) => ({ x: (c.x - CW * 0.5) / 3.3, y: (c.y - CH * 0.80) / 3.3 })
+      scale: 3.05,
+      toCanvas: (p) => ({ x: CW * 0.5 + p.x * 3.05, y: CH * 0.86 + p.y * 3.05 }),
+      fromCanvas: (c) => ({ x: (c.x - CW * 0.5) / 3.05, y: (c.y - CH * 0.86) / 3.05 })
     },
     leftArm: {
       scale: 4.1,
@@ -267,7 +267,7 @@
 
   function drawMarkMapped(ctxRef, mark, mapFn, widthScale) {
     const scaled = mark.stroke
-      ? Object.assign({}, mark, { width: Math.max(1.2, (mark.width || 2) * widthScale) })
+      ? Object.assign({}, mark, { width: Math.max(0.25, (mark.width || 2) * widthScale) })
       : mark;
     Renderer.drawMark(ctxRef, scaled, 'round', mapFn);
   }
@@ -654,12 +654,6 @@
       ctx.save();
       traceBody();
       ctx.clip();
-      if (pal.belly && !skin.hasPartArt('body')) {
-        ctx.fillStyle = rgbaCss(pal.belly);
-        ctx.beginPath();
-        ctx.ellipse(0, -34, 48 * bw, 76, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
       drawSpaceArt(ctx, skin, ['body'], (p) => ({ x: p.x * bw * bScale, y: p.y * bScale }), bScale);
       ctx.restore();
 
@@ -731,8 +725,7 @@
       ctx.scale(sc, sc);
 
       const traceHead = () => {
-        ctx.beginPath();
-        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+        traceHeadWithJaw(ctx, (p) => ({ x: p.x * hS, y: p.y * hS }), m.cf, skin);
       };
 
       ctx.save();
@@ -745,7 +738,7 @@
       ctx.save();
       traceHead();
       ctx.clip();
-      drawSpaceArt(ctx, skin, ['head', 'skull'], (p) => ({ x: p.x * hS * m.cf, y: p.y * hS }), hS);
+      drawSpaceArt(ctx, skin, ['head', 'skull'], (p) => ({ x: p.x * hS, y: p.y * hS }), hS);
       ctx.restore();
 
       // Overlay cute eyes (supporting heterochromia & custom pupil color), nose, mouth, whiskers
@@ -906,15 +899,112 @@
   // -------------------------------------------------------------------------
   // Zoomed Part Paint Canvas Rendering
   // -------------------------------------------------------------------------
+  // Exact 2.5D build metrics matching renderer.js (STANDARD_BUILD / SLEEK_BUILD)
+  function get25DBuild(skin) {
+    if (skin && skin.bodyBuild === 'sleek') {
+      return {
+        headLift: -3.0,
+        cheekHalfW: 42.5, crownCtrlW: 25.0, crownBaseY: -29.5, cheekY: 6.5, cheekCtrlTopY: -13.0,
+        neckPinchX: 6.5, neckCtrlY: 27.5, hipHalfW: 44.5, waistCtrlW: 41.0, waistCtrlY: -50.0,
+        botOuterW: 42.0, botInnerW: 32.0, botHalfW: 22.0
+      };
+    }
+    return {
+      headLift: 0.0,
+      cheekHalfW: 42.5, crownCtrlW: 26.0, crownBaseY: -30.0, cheekY: 5.0, cheekCtrlTopY: -14.0,
+      neckPinchX: 2.5, neckCtrlY: 24.0, hipHalfW: 49.0, waistCtrlW: 51.5, waistCtrlY: -48.0,
+      botOuterW: 47.0, botInnerW: 36.0, botHalfW: 24.0
+    };
+  }
+
+  function traceHeadWithJaw(ctxRef, mapPt, cheekFullness, skin) {
+    const cf = cheekFullness || 1;
+    const bd = get25DBuild(skin);
+    const cheekW = bd.cheekHalfW * cf;
+    const jaw = Spec.jawSide(true, cf);
+    const crown = mapPt({ x: 0, y: bd.crownBaseY });
+    const rCheek = mapPt({ x: cheekW, y: bd.cheekY });
+    const lCheek = mapPt({ x: -cheekW, y: bd.cheekY });
+    const c1a = mapPt({ x: bd.crownCtrlW, y: bd.crownBaseY });
+    const c1b = mapPt({ x: cheekW + 1.5, y: bd.cheekCtrlTopY });
+    const c6a = mapPt({ x: -cheekW - 1.5, y: bd.cheekCtrlTopY });
+    const c6b = mapPt({ x: -bd.crownCtrlW, y: bd.crownBaseY });
+
+    ctxRef.beginPath();
+    ctxRef.moveTo(crown.x, crown.y);
+    ctxRef.bezierCurveTo(c1a.x, c1a.y, c1b.x, c1b.y, rCheek.x, rCheek.y);
+    // Connect down to jaw curve (head jawSide starts at (44*cf, 8) -> (0, 34) -> (-44*cf, 8))
+    for (let i = 3; i < jaw.length - 1; i++) {
+      const pt = mapPt(jaw[i]);
+      ctxRef.lineTo(pt.x, pt.y);
+    }
+    ctxRef.lineTo(lCheek.x, lCheek.y);
+    ctxRef.bezierCurveTo(c6a.x, c6a.y, c6b.x, c6b.y, crown.x, crown.y);
+    ctxRef.closePath();
+  }
+
+  function traceBodyWithJaw25D(ctxRef, skin) {
+    const s = skin.shape;
+    const bd = get25DBuild(skin);
+    const hs = s.headScale || 1;
+    const bw = s.bodyWidth || 1;
+    const nw = s.neckWidth || 1;
+    const cf = s.cheekFullness || 1;
+    // Exact resting 2.5D headCenter.y - seatY offset (126 + bd.headLift - 226)
+    const headOffY = -100 + bd.headLift;
+    const T = (wx, wy) => PART_VIEW.body.toCanvas({ x: wx, y: wy });
+    const H = (hx, hy) => T(hx * hs, headOffY + hy * hs);
+    const B = (bx, by) => T(bx * bw, by);
+
+    const cheekHalfW = bd.cheekHalfW * cf;
+    const rNeckX = (cheekHalfW - bd.neckPinchX) * nw;
+    const lNeckX = -rNeckX;
+    const neckWaistW = bd.waistCtrlW * (1 + (nw - 1) * 0.32);
+
+    const rCheek = H(cheekHalfW, 8);
+    const lCheek = H(-cheekHalfW, 8);
+    const rHip = B(bd.hipHalfW, -14);
+    const rBot = B(bd.botHalfW, 12);
+    const lBot = B(-bd.botHalfW, 12);
+    const lHip = B(-bd.hipHalfW, -14);
+
+    // Build exact top chin-notch curve matching renderer.js jawSide(false, cf)
+    const jaw = Spec.jawSide(false, cf);
+    ctxRef.beginPath();
+    ctxRef.moveTo(lCheek.x, lCheek.y);
+    // Trace jaw curve left -> chin -> right (jaw indices 3..length-2 run right->left, so reverse)
+    for (let i = jaw.length - 2; i >= 3; i--) {
+      const jp = jaw[i];
+      // Clamp jaw horizontal extent to the cheek outer edge so neck corners join smoothly
+      const clampedX = clamp(jp.x, -cheekHalfW, cheekHalfW);
+      const pt = H(clampedX, jp.y);
+      ctxRef.lineTo(pt.x, pt.y);
+    }
+    ctxRef.lineTo(rCheek.x, rCheek.y);
+    // Exact 2.5D right neck -> hip -> bottom -> left hip -> left neck Beziers
+    const c2a = H(rNeckX, bd.neckCtrlY);
+    const c2b = B(neckWaistW, bd.waistCtrlY);
+    ctxRef.bezierCurveTo(c2a.x, c2a.y, c2b.x, c2b.y, rHip.x, rHip.y);
+    const c3a = B(bd.botOuterW, 5), c3b = B(bd.botInnerW, 12);
+    ctxRef.bezierCurveTo(c3a.x, c3a.y, c3b.x, c3b.y, rBot.x, rBot.y);
+    ctxRef.lineTo(lBot.x, lBot.y);
+    const c4a = B(-bd.botInnerW, 12), c4b = B(-bd.botOuterW, 5);
+    ctxRef.bezierCurveTo(c4a.x, c4a.y, c4b.x, c4b.y, lHip.x, lHip.y);
+    const c5a = B(-neckWaistW, bd.waistCtrlY);
+    const c5b = H(lNeckX, bd.neckCtrlY);
+    ctxRef.bezierCurveTo(c5a.x, c5a.y, c5b.x, c5b.y, lCheek.x, lCheek.y);
+    ctxRef.closePath();
+    return { x0: CW * 0.5, y0: H(0, bd.cheekY).y, x1: CW * 0.5, y1: rBot.y };
+  }
+
   function traceZoomedPartSilhouette(ctxRef, partId, skin, earSpace) {
     const s = skin.shape;
     if (partId === 'head') {
+      const bd = get25DBuild(skin);
       const c = PART_VIEW.head.toCanvas({ x: 0, y: 0 });
-      const rx = 44 * (s.cheekFullness || 1) * PART_VIEW.head.scale;
-      const ry = 38 * PART_VIEW.head.scale;
-      ctxRef.beginPath();
-      ctxRef.ellipse(c.x, c.y, rx, ry, 0, 0, Math.PI * 2);
-      return { x0: c.x, y0: c.y - ry, x1: c.x, y1: c.y + ry };
+      const ry = Math.abs(bd.crownBaseY) * PART_VIEW.head.scale;
+      traceHeadWithJaw(ctxRef, (p) => PART_VIEW.head.toCanvas(p), s.cheekFullness, skin);
+      return { x0: c.x, y0: c.y - ry, x1: c.x, y1: c.y + 34 * PART_VIEW.head.scale };
     }
     if (partId === 'ears') {
       const sp = earSpace || 'leftEar';
@@ -925,20 +1015,7 @@
       return { x0: cx, y0: by, x1: g.tipX, y1: g.tipY };
     }
     if (partId === 'body') {
-      const T = (x, y) => PART_VIEW.body.toCanvas({ x: x * (s.bodyWidth || 1), y: y });
-      const nw = s.neckWidth || 1;
-      const topL = T(-36 * nw, -74), topR = T(36 * nw, -74);
-      const hipR = T(50, -14), botR = T(34, 14), botL = T(-34, 14), hipL = T(-50, -14);
-      ctxRef.beginPath();
-      ctxRef.moveTo(topL.x, topL.y);
-      ctxRef.lineTo(topR.x, topR.y);
-      ctxRef.quadraticCurveTo(T(52, -46).x, T(52, -46).y, hipR.x, hipR.y);
-      ctxRef.quadraticCurveTo(T(46, 10).x, T(46, 10).y, botR.x, botR.y);
-      ctxRef.lineTo(botL.x, botL.y);
-      ctxRef.quadraticCurveTo(T(-46, 10).x, T(-46, 10).y, hipL.x, hipL.y);
-      ctxRef.quadraticCurveTo(T(-52, -46).x, T(-52, -46).y, topL.x, topL.y);
-      ctxRef.closePath();
-      return { x0: CW * 0.5, y0: topL.y, x1: CW * 0.5, y1: botL.y };
+      return traceBodyWithJaw25D(ctxRef, skin);
     }
     if (partId === 'leftArm' || partId === 'rightArm' || partId === 'hindLeg') {
       const top = toPartCanvas(partId, { x: 0, y: 0 });
@@ -1065,14 +1142,6 @@
         const cx = unitSpace === 'leftEar' ? CW * 0.29 : CW * 0.71;
         traceEarTriangle(ctx, cx, CH * 0.80 - 10, sign, 1.25, 1.45, 1.0, skin.shape.earBaseWidth || 1, skin.shape.earPointiness || 1);
         ctx.fillStyle = rgbaCss(pal.earInner);
-        ctx.fill();
-      }
-      // Body default belly when no custom art yet
-      if (partId === 'body' && pal.belly && !skin.hasPartArt('body')) {
-        const bc = PART_VIEW.body.toCanvas({ x: 0, y: -32 });
-        ctx.fillStyle = rgbaCss(pal.belly);
-        ctx.beginPath();
-        ctx.ellipse(bc.x, bc.y, 110 * (skin.shape.bodyWidth || 1), 156, 0, 0, Math.PI * 2);
         ctx.fill();
       }
       // Tail tip preview
@@ -1236,7 +1305,7 @@
     // Brush cursor preview ring (scales naturally with zoomed part while keeping crisp screen stroke)
     if (cursorCanvasPt && !panning && !panToolActive && !spacePanHeld && activeTool !== 'bucket' && activeTool !== 'eyedropper') {
       const wScale = partId === 'ears' ? 2.15 : PART_VIEW[partId].scale;
-      const r = Math.max(4 / effScale, brushSize * wScale * (activeTool === 'airbrush' ? 1.1 : 0.55));
+      const r = Math.max(2.2 / effScale, brushSize * wScale * (activeTool === 'airbrush' ? 1.1 : 0.55));
       ctx.save();
       ctx.beginPath();
       ctx.arc(cursorCanvasPt.x, cursorCanvasPt.y, r, 0, Math.PI * 2);
@@ -1341,7 +1410,7 @@
       space: space,
       kind: 'stroke',
       color: colHex,
-      width: round2(clamp(activeTool === 'airbrush' ? brushSize * 1.45 : brushSize, 0.4, 24)),
+      width: round2(clamp(activeTool === 'airbrush' ? brushSize * 1.45 : brushSize, 0.2, 24)),
       points: simplified.map((p) => [round2(p.x), round2(p.y)])
     };
     if (brushKind !== 'round') {
@@ -1492,12 +1561,106 @@
     }
   }
 
-  // Paint Bucket: fills base palette color for the clicked component
-  function applyBucketToPart(partId, hex) {
+  function pointInPolygon(pt, poly) {
+    if (!poly || poly.length < 3) return false;
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const xi = poly[i].x, yi = poly[i].y;
+      const xj = poly[j].x, yj = poly[j].y;
+      const intersect = ((yi > pt.y) !== (yj > pt.y)) &&
+        (pt.x < ((xj - xi) * (pt.y - yi)) / ((yj - yi) || 1e-9) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  function findHitRegionIndex(skin, partId, unitSpace, wPt) {
+    if (!skin || !skin.regions || !skin.regions.length) return -1;
+    const spaces = partId === 'head' ? ['head', 'skull'] : [unitSpace];
+    const mapFn = (p) => {
+      if (partId === 'body') {
+        return PART_VIEW.body.toCanvas({ x: p.x * (skin.shape.bodyWidth || 1), y: p.y });
+      }
+      return toPartCanvas(partId, p, unitSpace);
+    };
+    for (let i = skin.regions.length - 1; i >= 0; i--) {
+      const r = skin.regions[i];
+      if (spaces.indexOf(r.space) === -1 || !r.flat || r.flat.length < 3) continue;
+      const poly = r.flat.map(mapFn);
+      if (pointInPolygon(wPt, poly)) return i;
+    }
+    return -1;
+  }
+
+  function isPointInEarInner(skin, unitSpace, wPt) {
+    if (!ctx || !skin) return false;
+    const sign = unitSpace === 'leftEar' ? -1 : 1;
+    const cx = unitSpace === 'leftEar' ? CW * 0.29 : CW * 0.71;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    traceEarTriangle(ctx, cx, CH * 0.80 - 10, sign, 1.25, 1.45, 1.0, skin.shape.earBaseWidth || 1, skin.shape.earPointiness || 1);
+    const hit = ctx.isPointInPath(wPt.x, wPt.y);
+    ctx.restore();
+    return hit;
+  }
+
+  // Smart Paint Bucket: fills the exact clicked sub-layer (region / innerEar / tailTip / base palette)
+  function applyBucketToPart(partId, hex, wPt) {
     const raw = getRaw();
-    if (!raw) return;
+    const skin = getSkin();
+    if (!raw || !skin) return;
     if (!raw.palette) raw.palette = {};
     const c = hex.toUpperCase();
+    const api = API();
+
+    const unitSpace = partId === 'ears'
+      ? (wPt && wPt.x >= CW * 0.5 ? 'rightEar' : 'leftEar')
+      : partId;
+
+    // 1. Hit-test existing custom regions (topmost first) — e.g. tuxedo cat's white lower face
+    if (wPt && raw.regions && raw.regions.length && skin.regions && skin.regions.length) {
+      const hitIdx = findHitRegionIndex(skin, partId, unitSpace, wPt);
+      if (hitIdx !== -1 && raw.regions[hitIdx]) {
+        raw.regions[hitIdx].fill = c;
+        let mirrorCount = 0;
+        if (mirrorEnabled && PART_BY_ID[partId] && PART_BY_ID[partId].canMirror) {
+          const mirrorSpace = partId === 'ears'
+            ? (unitSpace === 'leftEar' ? 'rightEar' : 'leftEar')
+            : unitSpace;
+          const mirrorPt = { x: CW - wPt.x, y: wPt.y };
+          const mIdx = findHitRegionIndex(skin, partId, mirrorSpace, mirrorPt);
+          if (mIdx !== -1 && mIdx !== hitIdx && raw.regions[mIdx]) {
+            raw.regions[mIdx].fill = c;
+            mirrorCount = 1;
+          }
+        }
+        notifyChange(true);
+        renderPartInspector();
+        if (api) api.showToast(mirrorCount ? ('已对称填充花纹色块为 ' + c) : ('已填充花纹色块为 ' + c));
+        return;
+      }
+    }
+
+    // 2. Hit-test built-in sub-regions: inner ear triangle & tail tip
+    if (partId === 'ears' && wPt && skin.palette && skin.palette.earInner && isPointInEarInner(skin, unitSpace, wPt)) {
+      raw.palette.earInner = c;
+      notifyChange(true);
+      renderPartInspector();
+      if (api) api.showToast('已将「内耳」颜色填充为 ' + c);
+      return;
+    }
+    if (partId === 'tail' && wPt && skin.palette && skin.palette.tailTip) {
+      const tipStart = toPartCanvas('tail', { x: 76, y: 0 });
+      if (wPt.x >= tipStart.x) {
+        raw.palette.tailTip = c;
+        notifyChange(true);
+        renderPartInspector();
+        if (api) api.showToast('已将「尾尖」颜色填充为 ' + c);
+        return;
+      }
+    }
+
+    // 3. Fallback: fill clicked part's base palette color
     if (partId === 'head') {
       raw.palette.headBody = c;
       delete raw.palette.bodyShade;
@@ -1532,8 +1695,7 @@
     notifyChange(true);
     renderPartInspector();
     const part = PART_BY_ID[partId];
-    const api = API();
-    if (api && part) api.showToast('已将「' + part.label + '」底色填充为 ' + c);
+    if (api && part) api.showToast('已将「' + (partId === 'ears' ? '外耳' : part.label) + '」底色填充为 ' + c);
   }
 
   // -------------------------------------------------------------------------
@@ -1768,6 +1930,7 @@
     if (partBackBtn) partBackBtn.hidden = true;
     if (brushDockEl) brushDockEl.hidden = true;
     if (inspectorEl) inspectorEl.hidden = true;
+    if (window.__kuroSetDecoDockCollapsed) window.__kuroSetDecoDockCollapsed(false);
     resetPartViewport();
     updatePartPillsUI();
 
@@ -1813,6 +1976,7 @@
     if (partBackBtn) partBackBtn.hidden = false;
     if (brushDockEl) brushDockEl.hidden = false;
     if (inspectorEl) inspectorEl.hidden = false;
+    if (window.__kuroSetDecoDockCollapsed) window.__kuroSetDecoDockCollapsed(true);
     resetPartViewport();
 
     zoomStartT = 0;
@@ -1837,6 +2001,7 @@
     if (partBackBtn) partBackBtn.hidden = true;
     if (brushDockEl) brushDockEl.hidden = true;
     if (inspectorEl) inspectorEl.hidden = true;
+    if (window.__kuroSetDecoDockCollapsed) window.__kuroSetDecoDockCollapsed(false);
     resetPartViewport();
     explodeT = 1;
     explodeTarget = 1;
@@ -2018,8 +2183,7 @@
         sliderRow('耳尖锐度', 'earPointiness', 0.50, 1.50, 0.02, shape.earPointiness || 1.0, '×');
     } else if (partId === 'body') {
       colorsHtml =
-        colorChip('躯干底色', 'body', colorToHex(pal.body, '#1A1A1E')) +
-        colorChip('肚皮颜色', 'belly', colorToHex(pal.belly || pal.body, '#FFFFFF'));
+        colorChip('躯干底色', 'body', colorToHex(pal.body, '#1A1A1E'));
       slidersHtml =
         sliderRow('身体胖瘦', 'bodyWidth', 0.85, 1.35, 0.02, shape.bodyWidth || 1.0, '×') +
         sliderRow('脖子粗细', 'neckWidth', 0.65, 1.40, 0.02, shape.neckWidth || 1.0, '×');
@@ -2079,6 +2243,14 @@
           lastVisibleMouthHex = val;
           const hideMouthCb = inspectorEl.querySelector('#ctx-hide-mouth');
           if (hideMouthCb && hideMouthCb.checked) hideMouthCb.checked = false;
+        } else if (key === 'belly') {
+          const api = API();
+          if (api && typeof api.applyPaletteChange === 'function') {
+            api.applyPaletteChange('belly', val);
+            requestRedraw();
+            return;
+          }
+          r.palette.belly = val;
         } else {
           r.palette[key] = val;
         }
@@ -2272,7 +2444,7 @@
       }
 
       if (activeTool === 'bucket') {
-        applyBucketToPart(selectedPartId, brushColor);
+        applyBucketToPart(selectedPartId, brushColor, screenToWorldPt(sPt));
         return;
       }
 
@@ -2508,7 +2680,7 @@
     if (panToolActive) setPanToolActive(false);
     if (tool === 'bucket') {
       const api = API();
-      if (api) api.showToast('油漆桶：点击画布填充当前部位底色');
+      if (api) api.showToast('油漆桶：点击内耳、花纹色块或底色区域直接上色');
     }
     if (!brushDockEl) return;
     const btns = brushDockEl.querySelectorAll('[data-brush-tool]');
@@ -2717,16 +2889,73 @@
         setTool(btn.dataset.brushTool);
       });
     }
-    if (sizeInput) {
-      sizeInput.addEventListener('input', () => {
-        brushSize = parseFloat(sizeInput.value);
-        if (sizeValEl) sizeValEl.textContent = brushSize.toFixed(1);
+    const setDecoDockCollapsed = (collapsed) => {
+      const dockCard = document.getElementById('deco-dock-card');
+      const dockBtn = document.getElementById('btn-deco-dock-toggle');
+      if (!dockCard) return;
+      dockCard.classList.toggle('collapsed', !!collapsed);
+      if (dockBtn) {
+        dockBtn.textContent = collapsed ? '展开配饰' : '收起';
+        dockBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      }
+      scheduleFitCanvases();
+    };
+    window.__kuroSetDecoDockCollapsed = setDecoDockCollapsed;
+
+    const btnDecoDockToggle = document.getElementById('btn-deco-dock-toggle');
+    if (btnDecoDockToggle) {
+      btnDecoDockToggle.addEventListener('click', () => {
+        const dockCard = document.getElementById('deco-dock-card');
+        setDecoDockCollapsed(!(dockCard && dockCard.classList.contains('collapsed')));
       });
     }
+
+    const syncBrushSize = (val, updateInputText) => {
+      const clamped = round2(clamp(val, 0.2, 24));
+      brushSize = clamped;
+      if (sizeInput) sizeInput.value = String(clamped);
+      if (sizeValEl && updateInputText !== false) sizeValEl.value = clamped.toFixed(1);
+      requestRedraw();
+    };
+    if (sizeInput) {
+      sizeInput.addEventListener('input', () => syncBrushSize(parseFloat(sizeInput.value), true));
+    }
+    if (sizeValEl) {
+      sizeValEl.addEventListener('input', () => {
+        const v = parseFloat(sizeValEl.value);
+        if (isFinite(v) && v >= 0.2 && v <= 24) syncBrushSize(v, false);
+      });
+      sizeValEl.addEventListener('change', () => {
+        const v = parseFloat(sizeValEl.value);
+        syncBrushSize(isFinite(v) ? v : brushSize, true);
+      });
+      sizeValEl.addEventListener('blur', () => {
+        const v = parseFloat(sizeValEl.value);
+        syncBrushSize(isFinite(v) ? v : brushSize, true);
+      });
+    }
+
+    const syncBrushAlpha = (val, updateInputText) => {
+      const clamped = round2(clamp(val, 0.05, 1));
+      brushAlpha = clamped;
+      if (alphaInput) alphaInput.value = String(clamped);
+      if (alphaValEl && updateInputText !== false) alphaValEl.value = String(Math.round(clamped * 100));
+    };
     if (alphaInput) {
-      alphaInput.addEventListener('input', () => {
-        brushAlpha = parseFloat(alphaInput.value);
-        if (alphaValEl) alphaValEl.textContent = Math.round(brushAlpha * 100) + '%';
+      alphaInput.addEventListener('input', () => syncBrushAlpha(parseFloat(alphaInput.value), true));
+    }
+    if (alphaValEl) {
+      alphaValEl.addEventListener('input', () => {
+        const pct = parseFloat(alphaValEl.value);
+        if (isFinite(pct) && pct >= 5 && pct <= 100) syncBrushAlpha(pct / 100, false);
+      });
+      alphaValEl.addEventListener('change', () => {
+        const pct = parseFloat(alphaValEl.value);
+        syncBrushAlpha(isFinite(pct) ? pct / 100 : brushAlpha, true);
+      });
+      alphaValEl.addEventListener('blur', () => {
+        const pct = parseFloat(alphaValEl.value);
+        syncBrushAlpha(isFinite(pct) ? pct / 100 : brushAlpha, true);
       });
     }
     if (colorInput) {

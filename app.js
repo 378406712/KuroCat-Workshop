@@ -3204,6 +3204,7 @@
   window.KuroWorkshopAPI = {
     getRawSkin: () => rawSkin,
     getResolvedSkin: () => resolvedSkin,
+    applyPaletteChange,
     getExportObject: () => {
       const previewB64 = Renderer.renderPreviewBase64(resolvedSkin, kbTheme, eyeTheme);
       return Spec.sanitizeForExport(rawSkin, previewB64);

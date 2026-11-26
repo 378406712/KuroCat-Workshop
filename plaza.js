@@ -190,10 +190,42 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  // --- Mobile Sidebar Drawer ---
+  // --- Mobile Sidebar Drawer & Desktop Collapsible Sidebar ---
+  const studioShell = document.querySelector('.studio-shell');
+  const desktopSidebarBtn = document.getElementById('btn-sidebar-toggle');
+  const SIDEBAR_PREF_KEY = 'kurocat.sidebarCollapsed';
+
   function setSidebarOpen(open) {
     sidebar.classList.toggle('open', open);
     sidebarBackdrop.hidden = !open;
+  }
+
+  function setDesktopSidebarCollapsed(collapsed, persist) {
+    if (!studioShell) return;
+    studioShell.classList.toggle('sidebar-collapsed', !!collapsed);
+    if (desktopSidebarBtn) {
+      desktopSidebarBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      desktopSidebarBtn.title = collapsed ? '展开左侧边栏' : '收起左侧边栏';
+    }
+    if (persist) {
+      try { localStorage.setItem(SIDEBAR_PREF_KEY, collapsed ? '1' : '0'); } catch (_) {}
+    }
+    // Re-fit painting & 2.5D preview canvases right away and after sidebar slide transition
+    window.dispatchEvent(new Event('resize'));
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 220);
+  }
+
+  try {
+    if (localStorage.getItem(SIDEBAR_PREF_KEY) === '1') {
+      setDesktopSidebarCollapsed(true, false);
+    }
+  } catch (_) {}
+
+  if (desktopSidebarBtn) {
+    desktopSidebarBtn.addEventListener('click', () => {
+      const next = !(studioShell && studioShell.classList.contains('sidebar-collapsed'));
+      setDesktopSidebarCollapsed(next, true);
+    });
   }
 
   document.getElementById('btn-sidebar-open').addEventListener('click', () => setSidebarOpen(true));
