@@ -6143,6 +6143,14 @@
   function preloadSpecialAssets(renderStyle, onLoad) {
     if (renderStyle === 'damiao' || renderStyle === 'naimi') {
       ensureAlfieAssets(renderStyle, onLoad);
+    } else if (renderStyle === 'beagle') {
+      const img = getBeagleAtlas();
+      if (!img) return;
+      if (img.complete && img.naturalWidth > 0) {
+        if (onLoad) onLoad();
+      } else if (onLoad) {
+        img.addEventListener('load', onLoad, { once: true });
+      }
     }
   }
 
