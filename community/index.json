@@ -1,7 +1,55 @@
 {
-  "generatedAt": "2026-11-26T05:58:47.509Z",
-  "count": 28,
+  "generatedAt": "2026-11-26T10:49:02.286Z",
+  "count": 36,
   "skins": [
+    {
+      "slug": "beagle-duodong",
+      "title": "比格瞳",
+      "author": "狐狸",
+      "authorUrl": "",
+      "description": "不给肉吃就会生气的小狗",
+      "tags": [
+        "彩蛋限定",
+        "比格犬",
+        "小狗"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/beagle-duodong/skin.kurocat",
+      "previewPath": "./community/beagle-duodong/preview.gif",
+      "previewType": "gif",
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 815,
+      "paletteSummary": [
+        "#FFFFFF",
+        "#1A1818"
+      ]
+    },
+    {
+      "slug": "blue-white-british",
+      "title": "蓝白英短",
+      "author": "QYHHHH",
+      "authorUrl": "https://github.com/QYHHHH",
+      "description": "照着自家蓝白英短做的：头和身体统一的灰色，八字白脸，粉鼻头上带一点黑，白围脖白爪子，一双橄榄金眼睛。全部花色用平滑曲线绘制，深浅背景下边缘都干净无毛边。",
+      "tags": [
+        "蓝白",
+        "英短",
+        "八字脸",
+        "白围脖"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/blue-white-british/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 8,
+      "sizeBytes": 44449,
+      "paletteSummary": [
+        "#5C5B5F",
+        "#FAFAF8",
+        "#B8A46E"
+      ]
+    },
     {
       "slug": "jianzhou-muzzle",
       "title": "简州猫（带嘴套）",
@@ -28,6 +76,27 @@
       ]
     },
     {
+      "slug": "maomi-sensei",
+      "title": "猫咪老师",
+      "author": "枭瑞",
+      "authorUrl": "https://github.com/shin984",
+      "description": "仿《夏目友人帐》中的娘口三三",
+      "tags": [
+        "招财猫"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/maomi-sensei/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 0,
+      "sizeBytes": 139303,
+      "paletteSummary": [
+        "#FBF7EF",
+        "#F7F4EF"
+      ]
+    },
+    {
       "slug": "mori-corgi-sanse",
       "title": "黑头三色柯基仿色",
       "author": "Mori",
@@ -51,6 +120,29 @@
       ]
     },
     {
+      "slug": "mydei",
+      "title": "Mydei",
+      "author": "耶蜜耶蜜",
+      "authorUrl": "",
+      "description": "代餐好吃爱吃，配色参考蜜果羹，ed属性",
+      "tags": [
+        "万敌",
+        "崩铁",
+        "厄敌"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/mydei/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 2,
+      "regionCount": 2,
+      "sizeBytes": 140752,
+      "paletteSummary": [
+        "#EC8541",
+        "#FFCE52"
+      ]
+    },
+    {
       "slug": "niangao-white-cat",
       "title": "带小草的大白猫",
       "author": "崔斐然",
@@ -71,6 +163,50 @@
         "#FAFAF0",
         "#FFFFFF",
         "#EACD8A"
+      ]
+    },
+    {
+      "slug": "pang-huahua",
+      "title": "家有胖花花-简州猫",
+      "author": "箱子",
+      "authorUrl": "https://github.com/C814613271-xiangzi",
+      "description": "源自家里17斤大胖简州猫",
+      "tags": [
+        "简州猫"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/pang-huahua/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 2,
+      "sizeBytes": 315715,
+      "paletteSummary": [
+        "#483505",
+        "#FAF7F1",
+        "#D6B74E"
+      ]
+    },
+    {
+      "slug": "phoebe-tortie",
+      "title": "菲比 2.0",
+      "author": "Sven",
+      "authorUrl": "https://github.com/ppsullivan",
+      "description": "参考对象是女友的玳瑁德文",
+      "tags": [
+        "玳瑁",
+        "德文"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/phoebe-tortie/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 14,
+      "sizeBytes": 122669,
+      "paletteSummary": [
+        "#9A7A56",
+        "#AFA45A"
       ]
     },
     {
@@ -115,6 +251,56 @@
       "paletteSummary": [
         "#FAF8F5",
         "#CFC987"
+      ]
+    },
+    {
+      "slug": "tom",
+      "title": "Tom 蓝白",
+      "author": "imwxc",
+      "authorUrl": "https://github.com/imwxc",
+      "description": "照着家里的英短蓝白 Tom 做的：额头一抹倒三角开脸，眼睛下方两团圆灰腮，脖子围一圈白围脖，白胸白腿配蓝灰背，一双亮金色眼睛。圆头宽耳、短腿，尾巴也是一身蓝灰。",
+      "tags": [
+        "英短",
+        "蓝白",
+        "白围脖",
+        "金瞳",
+        "真猫",
+        "原创"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/tom/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 2,
+      "sizeBytes": 2786,
+      "paletteSummary": [
+        "#6C6973",
+        "#F4F0E7",
+        "#F3B940"
+      ]
+    },
+    {
+      "slug": "yuwan-blue-fold",
+      "title": "鱼丸 · 英短蓝折耳",
+      "author": "目镜哥",
+      "authorUrl": "",
+      "description": "这是根据我家小猫的外观制作的，她叫鱼丸。全身蓝灰一个色，配一双琥珀金瞳。",
+      "tags": [
+        "英短蓝猫",
+        "折耳猫",
+        "金瞳"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/yuwan-blue-fold/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 1,
+      "sizeBytes": 1531,
+      "paletteSummary": [
+        "#767C82",
+        "#C89B32"
       ]
     },
     {
@@ -446,7 +632,7 @@
       "previewType": null,
       "decorationCount": 0,
       "regionCount": 2,
-      "sizeBytes": 61582,
+      "sizeBytes": 42444,
       "paletteSummary": [
         "#7E6B55",
         "#F2EBDB",

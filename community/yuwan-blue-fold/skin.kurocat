@@ -1,0 +1,59 @@
+{
+  "formatVersion": 1,
+  "name": "鱼丸 · 英短蓝折耳",
+  "author": "目镜哥",
+  "palette": {
+    "body": "#767C82",
+    "bodyShade": "#6E757B",
+    "belly": "#767C82",
+    "legs": "#767C82",
+    "paws": "#767C82",
+    "pawPads": "#595056",
+    "earOuter": "#767C82",
+    "earInner": "#A79498",
+    "nose": "#4A4F55",
+    "mouth": "#585D62",
+    "iris": "#C89B32",
+    "pupil": "#17191B",
+    "tail": "#6B7177",
+    "tailTip": "#60666C",
+    "whiskers": "#E6EAEBC4",
+    "crease": "#767C8280"
+  },
+  "shape": {
+    "build": "standard",
+    "bodyWidth": 1.05,
+    "headScale": 1.02,
+    "cheekFullness": 1.08,
+    "neckWidth": 0.95,
+    "earSize": 0.82,
+    "earBaseWidth": 1.08,
+    "earPointiness": 0.56,
+    "earSpacing": 1.08,
+    "tailThickness": 1.06,
+    "pawStagger": 0
+  },
+  "headSurface": "dome",
+  "regions": [
+    {
+      "space": "body",
+      "fill": "#8A9198",
+      "alpha": 0.20,
+      "anchors": [
+        { "x": -30, "y": -104, "inX": -30, "inY": -96, "outX": -12, "outY": -104 },
+        { "x": 30, "y": -104, "inX": 12, "inY": -104, "outX": 30, "outY": -96 },
+        { "x": 26, "y": -34, "inX": 28, "inY": -64, "outX": 22, "outY": -24 },
+        { "x": 0, "y": -14, "inX": 16, "inY": -14, "outX": -16, "outY": -14 },
+        { "x": -26, "y": -34, "inX": -22, "inY": -24, "outX": -28, "outY": -64 }
+      ]
+    }
+  ],
+  "marks": [
+    {
+      "space": "leftArm",
+      "kind": "polygon",
+      "color": "#D6DCE0",
+      "points": [[86, -4], [91, -4], [92, -2], [90, 0], [86, 0], [85, -2]]
+    }
+  ]
+}

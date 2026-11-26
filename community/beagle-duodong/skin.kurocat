@@ -1,0 +1,38 @@
+{
+  "formatVersion": 1,
+  "name": "比格瞳",
+  "author": "狐狸",
+  "renderStyle": "beagle",
+  "typingStyle": "douni",
+  "palette": {
+    "body": "#FFFFFF",
+    "bodyShade": "#F5EFE6",
+    "headBody": "#C79862",
+    "belly": "#FFFFFF",
+    "legs": "#FFFFFF",
+    "paws": "#FFFFFF",
+    "earOuter": "#C79862",
+    "earInner": "#A87948",
+    "tail": "#534133",
+    "tailTip": "#FFFFFF",
+    "nose": "#1C1816",
+    "iris": "#1A1818",
+    "outline": "#1C1816",
+    "crease": "#1C1816",
+    "whiskers": "#1C1816"
+  },
+  "shape": {
+    "build": "standard",
+    "bodyWidth": 1.12,
+    "headScale": 1.08,
+    "cheekFullness": 1.18,
+    "earSize": 1.20,
+    "earPointiness": 0.55,
+    "tailLength": 0.95,
+    "tailThickness": 1.05,
+    "pawStagger": 0
+  },
+  "headSurface": "dome",
+  "idleLegs": "chest",
+  "marks": []
+}

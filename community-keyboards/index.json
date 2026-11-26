@@ -1,7 +1,36 @@
 {
-  "generatedAt": "2026-11-26T02:01:58.733Z",
-  "count": 10,
+  "generatedAt": "2026-11-26T10:49:02.286Z",
+  "count": 14,
   "keyboards": [
+    {
+      "slug": "lavender-sky-milk",
+      "title": "雾蓝薰衣草",
+      "author": "QYHHHH",
+      "authorUrl": "https://github.com/QYHHHH",
+      "description": "照着桌上的键盘配的：奶白外壳与白键帽，雾蓝功能键描边，薰衣草紫的 Esc、回车和方向键点缀，再配一只樱花粉鼠标。",
+      "tags": [
+        "奶白",
+        "雾蓝",
+        "薰衣草紫",
+        "浅色键盘",
+        "粉色鼠标"
+      ],
+      "createdAt": "2026-11-26",
+      "keyboardPath": "./community-keyboards/lavender-sky-milk/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#F4B9C0",
+        "mouseBorder": "#C98993",
+        "wheel": "#B9ABE6",
+        "base": "#E9E7E3",
+        "deck": "#F6F5F2",
+        "key": "#FCFBF9",
+        "keyBorder": "#A8C3EA",
+        "accent": "#AE9FE0",
+        "darkText": true
+      },
+      "sizeBytes": 319
+    },
     {
       "slug": "macaroon-cream",
       "title": "马卡龙奶油 · MACAROON",
@@ -31,6 +60,91 @@
         "darkText": true
       },
       "sizeBytes": 334
+    },
+    {
+      "slug": "orange-dawn",
+      "title": "橘光破晓",
+      "author": "asucat",
+      "authorUrl": "https://github.com/asucat-bird",
+      "description": "太阳橘红的血液泼洒在冷白而坚硬的金属上，地球万物看它苏醒，看它新生。",
+      "tags": [
+        "日出",
+        "冷白金属",
+        "橘红",
+        "浅色键盘",
+        "65%"
+      ],
+      "createdAt": "2026-11-26",
+      "keyboardPath": "./community-keyboards/orange-dawn/keyboard.json",
+      "previewPath": "./community-keyboards/orange-dawn/preview.png",
+      "colors": {
+        "mouseBody": "#F5F6F6",
+        "mouseBorder": "#AEB6BE",
+        "wheel": "#E5501E",
+        "base": "#CBD2D8",
+        "deck": "#E9EDF0",
+        "key": "#FAF7F1",
+        "keyBorder": "#DBD5C9",
+        "accent": "#E5501E",
+        "darkText": true
+      },
+      "sizeBytes": 315
+    },
+    {
+      "slug": "yuwan-cream-navy-65",
+      "title": "奶油海军蓝 65%",
+      "author": "目镜哥",
+      "authorUrl": "",
+      "description": "照着我的 65% 键盘配色做的：奶油白键帽、灰蓝修饰键、深海军蓝空格键，低调耐看。",
+      "tags": [
+        "奶油白",
+        "海军蓝",
+        "灰蓝修饰键",
+        "65%"
+      ],
+      "createdAt": "2026-11-26",
+      "keyboardPath": "./community-keyboards/yuwan-cream-navy-65/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#E5E3E4",
+        "mouseBorder": "#2A2F43",
+        "wheel": "#B3BDD0",
+        "base": "#D6D3CC",
+        "deck": "#C9C7BF",
+        "key": "#D8D5CC",
+        "keyBorder": "#B9B4AE",
+        "accent": "#2A2F43",
+        "darkText": true
+      },
+      "sizeBytes": 326
+    },
+    {
+      "slug": "yuwan-midnight-cream-fullsize",
+      "title": "暗夜奶油 · 深蓝奶白",
+      "author": "目镜哥",
+      "authorUrl": "",
+      "description": "照着我的带数字小键盘键盘做的：深海军蓝机身、奶油白键帽、浅灰修饰键和深色空格键。",
+      "tags": [
+        "深色键盘",
+        "奶油白",
+        "海军蓝",
+        "带小键盘"
+      ],
+      "createdAt": "2026-11-26",
+      "keyboardPath": "./community-keyboards/yuwan-midnight-cream-fullsize/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#2B333E",
+        "mouseBorder": "#1A2029",
+        "wheel": "#B8B7B5",
+        "base": "#2B333E",
+        "deck": "#3B424D",
+        "key": "#CFCBC3",
+        "keyBorder": "#A9A49D",
+        "accent": "#2D2B2C",
+        "darkText": true
+      },
+      "sizeBytes": 335
     },
     {
       "slug": "douni-retro",
