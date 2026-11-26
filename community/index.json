@@ -1,7 +1,28 @@
 {
-  "generatedAt": "2026-11-26T13:37:22.364Z",
-  "count": 41,
+  "generatedAt": "2026-11-26T15:47:09.404Z",
+  "count": 45,
   "skins": [
+    {
+      "slug": "baobao-orange-cat",
+      "title": "包包",
+      "author": "W",
+      "authorUrl": "",
+      "description": "包哥",
+      "tags": [
+        "橘猫"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/baobao-orange-cat/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 54665,
+      "paletteSummary": [
+        "#EE9E30",
+        "#EFCF6C"
+      ]
+    },
     {
       "slug": "beagle-duodong",
       "title": "比格瞳",
@@ -303,6 +324,28 @@
       ]
     },
     {
+      "slug": "seal-ragdoll-pu",
+      "title": "重点海豹布偶猫",
+      "author": "海水鱼",
+      "authorUrl": "https://github.com/v8v2bnvfcd-lgtm",
+      "description": "赛博永生的噗大人",
+      "tags": [
+        "布偶猫"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/seal-ragdoll-pu/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 2,
+      "sizeBytes": 169468,
+      "paletteSummary": [
+        "#F4EFE6",
+        "#FAF7F1",
+        "#CAF0FE"
+      ]
+    },
+    {
       "slug": "shiba-cat",
       "title": "柴犬配色小猫咪",
       "author": "xylon98",
@@ -394,6 +437,53 @@
         "#FAF7F1",
         "#FFFFFF",
         "#86BCC6"
+      ]
+    },
+    {
+      "slug": "xiaofeng",
+      "title": "小风",
+      "author": "Zoe",
+      "authorUrl": "https://github.com/ZoeDong",
+      "description": "松下风咪子，6个月的彩狸宝宝，小猫咪，鼻子是粉棕双色的，不挑食，最喜欢玩追逐游戏。",
+      "tags": [
+        "彩狸",
+        "风咪子"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/xiaofeng/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 83778,
+      "paletteSummary": [
+        "#A3825A",
+        "#FBF8F2",
+        "#C28E42"
+      ]
+    },
+    {
+      "slug": "yoyo-the-cat",
+      "title": "yoyo the cat",
+      "author": "果酱",
+      "authorUrl": "https://github.com/shuzhilaotie",
+      "description": "按照自家小猫咪画的皮肤~她叫又又~已经去喵星啦，所以我让她赛博永生一下哈哈哈，希望大家喜欢",
+      "tags": [
+        "三花",
+        "彩狸",
+        "原创"
+      ],
+      "createdAt": "2026-11-26",
+      "skinPath": "./community/yoyo-the-cat/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 5,
+      "sizeBytes": 443560,
+      "paletteSummary": [
+        "#F4EFE6",
+        "#FAF5EC",
+        "#FEB416"
       ]
     },
     {

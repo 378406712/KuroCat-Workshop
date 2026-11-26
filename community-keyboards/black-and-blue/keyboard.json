@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "黑与蓝",
+  "author": "AADDF",
+  "colors": {
+    "mouseBody": "#0B1123",
+    "mouseBorder": "#285CD7",
+    "wheel": "#7598FF",
+    "base": "#0F1834",
+    "deck": "#12182B",
+    "key": "#B8E7FF",
+    "keyBorder": "#93B7E6",
+    "accent": "#4DA3FF",
+    "darkText": true
+  }
+}

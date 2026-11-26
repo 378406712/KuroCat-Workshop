@@ -1,7 +1,34 @@
 {
-  "generatedAt": "2026-11-26T13:37:22.364Z",
-  "count": 17,
+  "generatedAt": "2026-11-26T15:47:09.404Z",
+  "count": 18,
   "keyboards": [
+    {
+      "slug": "black-and-blue",
+      "title": "黑与蓝",
+      "author": "AADDF",
+      "authorUrl": "https://github.com/fainyu",
+      "description": "没有就做了",
+      "tags": [
+        "深色键盘",
+        "蓝色",
+        "原创配色"
+      ],
+      "createdAt": "2026-11-26",
+      "keyboardPath": "./community-keyboards/black-and-blue/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#0B1123",
+        "mouseBorder": "#285CD7",
+        "wheel": "#7598FF",
+        "base": "#0F1834",
+        "deck": "#12182B",
+        "key": "#B8E7FF",
+        "keyBorder": "#93B7E6",
+        "accent": "#4DA3FF",
+        "darkText": true
+      },
+      "sizeBytes": 312
+    },
     {
       "slug": "lavender-sky-milk",
       "title": "雾蓝薰衣草",

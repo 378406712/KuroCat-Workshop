@@ -1,0 +1,7314 @@
+{
+  "formatVersion": 1,
+  "name": "燕尾服奶牛猫",
+  "author": "KuroCat 皮肤工坊",
+  "palette": {
+    "body": "#F4EFE6",
+    "headBody": "#F4EFE6",
+    "belly": "#FAF7F1",
+    "legs": "#F4EFE6",
+    "paws": "#444444",
+    "pawPads": "#000000",
+    "earOuter": "#3B3430",
+    "earInner": "#B5AEA6",
+    "nose": "#000000",
+    "mouth": "#000000",
+    "iris": "#CAF0FE",
+    "irisLeft": "#CAF0FE",
+    "irisRight": "#CAF0FE",
+    "tail": "#6E6660",
+    "tailTip": "#6E6660",
+    "whiskers": "#E8ECF0B8",
+    "crease": "#B5AEA68F"
+  },
+  "shape": {
+    "build": "standard",
+    "bodyWidth": 1.06,
+    "headScale": 0.91,
+    "cheekFullness": 0.98,
+    "earSize": 0.84,
+    "earBaseWidth": 1.39,
+    "earPointiness": 0.94,
+    "earSpacing": 0.91,
+    "tailLength": 1.16,
+    "tailThickness": 1.5,
+    "tailRootY": 3,
+    "armSpacing": 0.56,
+    "armRootY": 15,
+    "armLength": 1.03,
+    "pawStagger": 0
+  },
+  "headSurface": "dome",
+  "regions": [
+    {
+      "space": "body",
+      "fill": "#F4EFE6",
+      "anchors": [
+        {
+          "x": -34,
+          "y": -112,
+          "inX": -36,
+          "inY": -106,
+          "outX": -12,
+          "outY": -112
+        },
+        {
+          "x": 34,
+          "y": -112,
+          "inX": 12,
+          "inY": -112,
+          "outX": 36,
+          "outY": -106
+        },
+        {
+          "x": 38,
+          "y": -44,
+          "inX": 40,
+          "inY": -76,
+          "outX": 35,
+          "outY": -16
+        },
+        {
+          "x": 0,
+          "y": 2,
+          "inX": 24,
+          "inY": 2,
+          "outX": -24,
+          "outY": 2
+        },
+        {
+          "x": -38,
+          "y": -44,
+          "inX": -35,
+          "inY": -16,
+          "outX": -40,
+          "outY": -76
+        }
+      ]
+    },
+    {
+      "space": "head",
+      "fill": "#F4EFE6",
+      "anchors": [
+        {
+          "x": -0.36,
+          "y": -14.15,
+          "inX": -4.36,
+          "inY": -10.15,
+          "outX": 3.64,
+          "outY": -10.15
+        },
+        {
+          "x": 14,
+          "y": 7,
+          "inX": 7,
+          "inY": -4,
+          "outX": 25,
+          "outY": 13
+        },
+        {
+          "x": 37.88,
+          "y": 24.26,
+          "inX": 31.88,
+          "inY": 17.26,
+          "outX": 41.88,
+          "outY": 36.26
+        },
+        {
+          "x": -0.59,
+          "y": 57.78,
+          "inX": 25.41,
+          "inY": 57.78,
+          "outX": -26.59,
+          "outY": 57.78
+        },
+        {
+          "x": -40,
+          "y": 24,
+          "inX": -44,
+          "inY": 36,
+          "outX": -34,
+          "outY": 17
+        },
+        {
+          "x": -14,
+          "y": 7,
+          "inX": -25,
+          "inY": 13,
+          "outX": -7,
+          "outY": -4
+        }
+      ]
+    }
+  ],
+  "marks": [
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -4.05,
+          13.4
+        ],
+        [
+          -3.09,
+          11.54
+        ],
+        [
+          -3.09,
+          10.35
+        ],
+        [
+          -3.09,
+          8.33
+        ],
+        [
+          -3.27,
+          7.02
+        ],
+        [
+          -3.39,
+          5.51
+        ],
+        [
+          -3.15,
+          4.17
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          4.05,
+          13.4
+        ],
+        [
+          3.09,
+          11.54
+        ],
+        [
+          3.09,
+          10.35
+        ],
+        [
+          3.09,
+          8.33
+        ],
+        [
+          3.27,
+          7.02
+        ],
+        [
+          3.39,
+          5.51
+        ],
+        [
+          3.15,
+          4.17
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -0.98,
+          4.41
+        ],
+        [
+          -2.65,
+          5.25
+        ],
+        [
+          -4.26,
+          5.61
+        ],
+        [
+          -5.23,
+          5.73
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          0.98,
+          4.41
+        ],
+        [
+          2.65,
+          5.25
+        ],
+        [
+          4.26,
+          5.61
+        ],
+        [
+          5.23,
+          5.73
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -4.99,
+          5.48
+        ],
+        [
+          -4.64,
+          5.53
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          4.99,
+          5.48
+        ],
+        [
+          4.64,
+          5.53
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -5.23,
+          5.36
+        ],
+        [
+          -4.88,
+          5.41
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          5.23,
+          5.36
+        ],
+        [
+          4.88,
+          5.41
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -4.63,
+          5.12
+        ],
+        [
+          -4.28,
+          5.17
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          4.63,
+          5.12
+        ],
+        [
+          4.28,
+          5.17
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -5.84,
+          5.12
+        ],
+        [
+          -5.49,
+          5.17
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          5.84,
+          5.12
+        ],
+        [
+          5.49,
+          5.17
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -6.94,
+          4.14
+        ],
+        [
+          -6.59,
+          4.19
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          6.94,
+          4.14
+        ],
+        [
+          6.59,
+          4.19
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          3.76,
+          3.63
+        ],
+        [
+          4.11,
+          3.68
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -3.76,
+          3.63
+        ],
+        [
+          -4.11,
+          3.68
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          4.25,
+          3.63
+        ],
+        [
+          4.6,
+          3.68
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -4.25,
+          3.63
+        ],
+        [
+          -4.6,
+          3.68
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          5.21,
+          3.27
+        ],
+        [
+          5.56,
+          3.32
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -5.21,
+          3.27
+        ],
+        [
+          -5.56,
+          3.32
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          6.06,
+          3.02
+        ],
+        [
+          6.41,
+          3.07
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -6.06,
+          3.02
+        ],
+        [
+          -6.41,
+          3.07
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          6.42,
+          2.9
+        ],
+        [
+          6.77,
+          2.95
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -6.42,
+          2.9
+        ],
+        [
+          -6.77,
+          2.95
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -11.3,
+          1.6
+        ],
+        [
+          -10.95,
+          1.65
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          11.3,
+          1.6
+        ],
+        [
+          10.95,
+          1.65
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -16.8,
+          0.57
+        ],
+        [
+          -16.45,
+          0.62
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          16.8,
+          0.57
+        ],
+        [
+          16.45,
+          0.62
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -15.47,
+          0.21
+        ],
+        [
+          -14.51,
+          -0.04
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          15.47,
+          0.21
+        ],
+        [
+          14.51,
+          -0.04
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -8.74,
+          -0.82
+        ],
+        [
+          -8.39,
+          -0.77
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          8.74,
+          -0.82
+        ],
+        [
+          8.39,
+          -0.77
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          2.31,
+          4.12
+        ],
+        [
+          2.31,
+          4.6
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -2.31,
+          4.12
+        ],
+        [
+          -2.31,
+          4.6
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          1.89,
+          6.82
+        ],
+        [
+          2.24,
+          6.87
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -1.89,
+          6.82
+        ],
+        [
+          -2.24,
+          6.87
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          1.64,
+          0.85
+        ],
+        [
+          1.99,
+          0.9
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -1.64,
+          0.85
+        ],
+        [
+          -1.99,
+          0.9
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          1.15,
+          -1.83
+        ],
+        [
+          1.5,
+          -1.78
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -1.15,
+          -1.83
+        ],
+        [
+          -1.5,
+          -1.78
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          1.15,
+          -3.28
+        ],
+        [
+          1.5,
+          -3.23
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -1.15,
+          -3.28
+        ],
+        [
+          -1.5,
+          -3.23
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          1.15,
+          -3.53
+        ],
+        [
+          1.5,
+          -3.48
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -1.15,
+          -3.53
+        ],
+        [
+          -1.5,
+          -3.48
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -2.83,
+          -2.38
+        ],
+        [
+          -2.48,
+          -2.33
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          2.83,
+          -2.38
+        ],
+        [
+          2.48,
+          -2.33
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -4.41,
+          0.63
+        ],
+        [
+          -5.26,
+          1.36
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          4.41,
+          0.63
+        ],
+        [
+          5.26,
+          1.36
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -7.4,
+          5.48
+        ],
+        [
+          -7.05,
+          5.53
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          7.4,
+          5.48
+        ],
+        [
+          7.05,
+          5.53
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          14.58,
+          10.05
+        ],
+        [
+          15.07,
+          10.05
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -14.58,
+          10.05
+        ],
+        [
+          -15.07,
+          10.05
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          18.42,
+          9.21
+        ],
+        [
+          18.77,
+          9.26
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -18.42,
+          9.21
+        ],
+        [
+          -18.77,
+          9.26
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -0.99,
+          8.92
+        ],
+        [
+          -0.64,
+          8.97
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          0.99,
+          8.92
+        ],
+        [
+          0.64,
+          8.97
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          2.32,
+          6.65
+        ],
+        [
+          2.67,
+          6.7
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -2.32,
+          6.65
+        ],
+        [
+          -2.67,
+          6.7
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          -0.49,
+          4.22
+        ],
+        [
+          -0.14,
+          4.27
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#F4EFE6",
+      "points": [
+        [
+          0.49,
+          4.22
+        ],
+        [
+          0.14,
+          4.27
+        ]
+      ],
+      "width": 20.59,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          0.72,
+          3
+        ],
+        [
+          1.07,
+          3.05
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          -0.72,
+          3
+        ],
+        [
+          -1.07,
+          3.05
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          -9.05,
+          -0.3
+        ],
+        [
+          -8.7,
+          -0.25
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          9.05,
+          -0.3
+        ],
+        [
+          8.7,
+          -0.25
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          -13.25,
+          4.57
+        ],
+        [
+          -12.9,
+          4.62
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          13.25,
+          4.57
+        ],
+        [
+          12.9,
+          4.62
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          -10.93,
+          8.39
+        ],
+        [
+          -10.58,
+          8.44
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          10.93,
+          8.39
+        ],
+        [
+          10.58,
+          8.44
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          -12.55,
+          -4.41
+        ],
+        [
+          -12.2,
+          -4.36
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          12.55,
+          -4.41
+        ],
+        [
+          12.2,
+          -4.36
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          0.14,
+          -4.66
+        ],
+        [
+          0.49,
+          -4.61
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          -0.14,
+          -4.66
+        ],
+        [
+          -0.49,
+          -4.61
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          1.12,
+          1.84
+        ],
+        [
+          1.47,
+          1.89
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -1.12,
+          1.84
+        ],
+        [
+          -1.47,
+          1.89
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -10.12,
+          1.87
+        ],
+        [
+          -9.77,
+          1.92
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          10.12,
+          1.87
+        ],
+        [
+          9.77,
+          1.92
+        ]
+      ],
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -9.55,
+          3.37
+        ],
+        [
+          -9.2,
+          3.42
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          9.55,
+          3.37
+        ],
+        [
+          9.2,
+          3.42
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          0.41,
+          3.97
+        ],
+        [
+          0.76,
+          4.02
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -0.41,
+          3.97
+        ],
+        [
+          -0.76,
+          4.02
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          0.11,
+          -5.13
+        ],
+        [
+          0.46,
+          -5.08
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -0.11,
+          -5.13
+        ],
+        [
+          -0.46,
+          -5.08
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -11.89,
+          4.65
+        ],
+        [
+          -11.54,
+          4.7
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          11.89,
+          4.65
+        ],
+        [
+          11.54,
+          4.7
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          1.47,
+          8.72
+        ],
+        [
+          1.82,
+          8.77
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -1.47,
+          8.72
+        ],
+        [
+          -1.82,
+          8.77
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#1A1A1E",
+      "points": [
+        [
+          0.53,
+          3.81
+        ],
+        [
+          0.88,
+          3.86
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#1A1A1E",
+      "points": [
+        [
+          -0.53,
+          3.81
+        ],
+        [
+          -0.88,
+          3.86
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 21.46,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#1A1A1E",
+      "points": [
+        [
+          -0.31,
+          0.92
+        ],
+        [
+          0.04,
+          0.97
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#1A1A1E",
+      "points": [
+        [
+          0.31,
+          0.92
+        ],
+        [
+          -0.04,
+          0.97
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -39.72,
+          -81.14
+        ],
+        [
+          -39.37,
+          -81.09
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          39.72,
+          -81.14
+        ],
+        [
+          39.37,
+          -81.09
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -33.84,
+          -76.94
+        ],
+        [
+          -32.75,
+          -75.85
+        ],
+        [
+          -29.58,
+          -74.27
+        ],
+        [
+          -28.38,
+          -73.67
+        ],
+        [
+          -25.83,
+          -72.71
+        ],
+        [
+          -23.28,
+          -71.73
+        ],
+        [
+          -22.01,
+          -71.42
+        ],
+        [
+          -18.04,
+          -70.42
+        ],
+        [
+          -16.77,
+          -70.11
+        ],
+        [
+          -15.56,
+          -69.91
+        ],
+        [
+          -13.95,
+          -69.51
+        ],
+        [
+          -12.72,
+          -69.23
+        ],
+        [
+          -11.24,
+          -68.89
+        ],
+        [
+          -9.36,
+          -68.69
+        ],
+        [
+          -5.4,
+          -68.2
+        ],
+        [
+          -4.12,
+          -67.88
+        ],
+        [
+          -2.25,
+          -67.68
+        ],
+        [
+          -0.97,
+          -67.36
+        ],
+        [
+          2.32,
+          -66.89
+        ],
+        [
+          4.2,
+          -66.38
+        ],
+        [
+          5.4,
+          -66.17
+        ],
+        [
+          6.6,
+          -66.17
+        ],
+        [
+          9.23,
+          -65.74
+        ],
+        [
+          10.5,
+          -65.74
+        ],
+        [
+          11.7,
+          -65.74
+        ],
+        [
+          13.58,
+          -65.74
+        ],
+        [
+          14.86,
+          -65.74
+        ],
+        [
+          16.73,
+          -65.74
+        ],
+        [
+          18.01,
+          -65.74
+        ],
+        [
+          22.64,
+          -66.26
+        ],
+        [
+          23.92,
+          -66.57
+        ],
+        [
+          25.87,
+          -66.57
+        ],
+        [
+          27.81,
+          -66.57
+        ],
+        [
+          30.36,
+          -66.89
+        ],
+        [
+          31.64,
+          -66.89
+        ],
+        [
+          32.91,
+          -67.21
+        ],
+        [
+          34.18,
+          -67.21
+        ],
+        [
+          35.33,
+          -67.55
+        ],
+        [
+          36.29,
+          -68.24
+        ],
+        [
+          37.1,
+          -69.12
+        ],
+        [
+          37.51,
+          -69.53
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          33.84,
+          -76.94
+        ],
+        [
+          32.75,
+          -75.85
+        ],
+        [
+          29.58,
+          -74.27
+        ],
+        [
+          28.38,
+          -73.67
+        ],
+        [
+          25.83,
+          -72.71
+        ],
+        [
+          23.28,
+          -71.73
+        ],
+        [
+          22.01,
+          -71.42
+        ],
+        [
+          18.04,
+          -70.42
+        ],
+        [
+          16.77,
+          -70.11
+        ],
+        [
+          15.56,
+          -69.91
+        ],
+        [
+          13.95,
+          -69.51
+        ],
+        [
+          12.72,
+          -69.23
+        ],
+        [
+          11.24,
+          -68.89
+        ],
+        [
+          9.36,
+          -68.69
+        ],
+        [
+          5.4,
+          -68.2
+        ],
+        [
+          4.12,
+          -67.88
+        ],
+        [
+          2.25,
+          -67.68
+        ],
+        [
+          0.97,
+          -67.36
+        ],
+        [
+          -2.32,
+          -66.89
+        ],
+        [
+          -4.2,
+          -66.38
+        ],
+        [
+          -5.4,
+          -66.17
+        ],
+        [
+          -6.6,
+          -66.17
+        ],
+        [
+          -9.23,
+          -65.74
+        ],
+        [
+          -10.5,
+          -65.74
+        ],
+        [
+          -11.7,
+          -65.74
+        ],
+        [
+          -13.58,
+          -65.74
+        ],
+        [
+          -14.86,
+          -65.74
+        ],
+        [
+          -16.73,
+          -65.74
+        ],
+        [
+          -18.01,
+          -65.74
+        ],
+        [
+          -22.64,
+          -66.26
+        ],
+        [
+          -23.92,
+          -66.57
+        ],
+        [
+          -25.87,
+          -66.57
+        ],
+        [
+          -27.81,
+          -66.57
+        ],
+        [
+          -30.36,
+          -66.89
+        ],
+        [
+          -31.64,
+          -66.89
+        ],
+        [
+          -32.91,
+          -67.21
+        ],
+        [
+          -34.18,
+          -67.21
+        ],
+        [
+          -35.33,
+          -67.55
+        ],
+        [
+          -36.29,
+          -68.24
+        ],
+        [
+          -37.1,
+          -69.12
+        ],
+        [
+          -37.51,
+          -69.53
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          1.28,
+          -68.46
+        ],
+        [
+          1.63,
+          -68.41
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -1.28,
+          -68.46
+        ],
+        [
+          -1.63,
+          -68.41
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -6.76,
+          -66.57
+        ],
+        [
+          -8.05,
+          -67.19
+        ],
+        [
+          -8.6,
+          -67.46
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          6.76,
+          -66.57
+        ],
+        [
+          8.05,
+          -67.19
+        ],
+        [
+          8.6,
+          -67.46
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -14.14,
+          -70.58
+        ],
+        [
+          -13.79,
+          -70.53
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          14.14,
+          -70.58
+        ],
+        [
+          13.79,
+          -70.53
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -17.76,
+          -73.59
+        ],
+        [
+          -17.41,
+          -73.54
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          17.76,
+          -73.59
+        ],
+        [
+          17.41,
+          -73.54
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -23.22,
+          -80
+        ],
+        [
+          -22.87,
+          -79.95
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          23.22,
+          -80
+        ],
+        [
+          22.87,
+          -79.95
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -27.76,
+          -82.96
+        ],
+        [
+          -27.41,
+          -82.91
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          27.76,
+          -82.96
+        ],
+        [
+          27.41,
+          -82.91
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -31.99,
+          -88.74
+        ],
+        [
+          -31.64,
+          -88.69
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          31.99,
+          -88.74
+        ],
+        [
+          31.64,
+          -88.69
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -3.35,
+          -65.66
+        ],
+        [
+          -3,
+          -65.61
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          3.35,
+          -65.66
+        ],
+        [
+          3,
+          -65.61
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -0.08,
+          -61.92
+        ],
+        [
+          0.27,
+          -61.87
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          0.08,
+          -61.92
+        ],
+        [
+          -0.27,
+          -61.87
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          3.88,
+          -61.52
+        ],
+        [
+          2.3,
+          -59.42
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -3.88,
+          -61.52
+        ],
+        [
+          -2.3,
+          -59.42
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -0.17,
+          -54.09
+        ],
+        [
+          0.1,
+          -52.87
+        ],
+        [
+          0.37,
+          -51.77
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          0.17,
+          -54.09
+        ],
+        [
+          -0.1,
+          -52.87
+        ],
+        [
+          -0.37,
+          -51.77
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -6.37,
+          -57.94
+        ],
+        [
+          -6.02,
+          -57.89
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          6.37,
+          -57.94
+        ],
+        [
+          6.02,
+          -57.89
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -6.79,
+          -59.59
+        ],
+        [
+          -7.61,
+          -59.59
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          6.79,
+          -59.59
+        ],
+        [
+          7.61,
+          -59.59
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -24.23,
+          -67.26
+        ],
+        [
+          -23.88,
+          -67.21
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          24.23,
+          -67.26
+        ],
+        [
+          23.88,
+          -67.21
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -31.35,
+          -72.28
+        ],
+        [
+          -31,
+          -72.23
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          31.35,
+          -72.28
+        ],
+        [
+          31,
+          -72.23
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -8.07,
+          -52.7
+        ],
+        [
+          -7.72,
+          -52.65
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          8.07,
+          -52.7
+        ],
+        [
+          7.72,
+          -52.65
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -6.57,
+          -52.29
+        ],
+        [
+          -5.15,
+          -52.16
+        ],
+        [
+          -3.87,
+          -52.16
+        ],
+        [
+          1.37,
+          -53.03
+        ],
+        [
+          5.33,
+          -54.02
+        ],
+        [
+          6.61,
+          -54.02
+        ],
+        [
+          10.57,
+          -54.52
+        ],
+        [
+          13.87,
+          -55.46
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          6.57,
+          -52.29
+        ],
+        [
+          5.15,
+          -52.16
+        ],
+        [
+          3.87,
+          -52.16
+        ],
+        [
+          -1.37,
+          -53.03
+        ],
+        [
+          -5.33,
+          -54.02
+        ],
+        [
+          -6.61,
+          -54.02
+        ],
+        [
+          -10.57,
+          -54.52
+        ],
+        [
+          -13.87,
+          -55.46
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          21.86,
+          -57.89
+        ],
+        [
+          23.36,
+          -58.44
+        ],
+        [
+          24.78,
+          -59.26
+        ],
+        [
+          26.2,
+          -60.01
+        ],
+        [
+          27.16,
+          -60.56
+        ],
+        [
+          28.31,
+          -61.65
+        ],
+        [
+          28.98,
+          -62.53
+        ],
+        [
+          29.58,
+          -63.73
+        ],
+        [
+          30.18,
+          -64.94
+        ],
+        [
+          30.76,
+          -67.84
+        ],
+        [
+          30.96,
+          -69.32
+        ],
+        [
+          29.12,
+          -68.84
+        ],
+        [
+          27.17,
+          -68.06
+        ],
+        [
+          21.26,
+          -64.91
+        ],
+        [
+          14.67,
+          -61.62
+        ],
+        [
+          11.38,
+          -60.21
+        ],
+        [
+          7.9,
+          -58.22
+        ],
+        [
+          5.28,
+          -56.91
+        ],
+        [
+          3.33,
+          -56.14
+        ],
+        [
+          1.77,
+          -54.97
+        ],
+        [
+          -0.39,
+          -53.21
+        ],
+        [
+          -1.41,
+          -52.4
+        ],
+        [
+          -2.37,
+          -51.44
+        ],
+        [
+          -4.4,
+          -50.3
+        ],
+        [
+          -5.88,
+          -49.76
+        ],
+        [
+          -7.15,
+          -49.76
+        ],
+        [
+          -8.43,
+          -49.76
+        ],
+        [
+          -9.98,
+          -49.76
+        ],
+        [
+          -11.93,
+          -50.15
+        ],
+        [
+          -15.15,
+          -51.02
+        ],
+        [
+          -17.78,
+          -52.33
+        ],
+        [
+          -21.85,
+          -54.52
+        ],
+        [
+          -24.75,
+          -55.97
+        ],
+        [
+          -25.98,
+          -57.2
+        ],
+        [
+          -26.32,
+          -58.68
+        ],
+        [
+          -25.86,
+          -60.37
+        ],
+        [
+          -25.41,
+          -61.78
+        ],
+        [
+          -25.07,
+          -63.07
+        ],
+        [
+          -25.07,
+          -64.31
+        ],
+        [
+          -25.9,
+          -65.13
+        ],
+        [
+          -27.32,
+          -65.81
+        ],
+        [
+          -27.6,
+          -66.23
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -21.86,
+          -57.89
+        ],
+        [
+          -23.36,
+          -58.44
+        ],
+        [
+          -24.78,
+          -59.26
+        ],
+        [
+          -26.2,
+          -60.01
+        ],
+        [
+          -27.16,
+          -60.56
+        ],
+        [
+          -28.31,
+          -61.65
+        ],
+        [
+          -28.98,
+          -62.53
+        ],
+        [
+          -29.58,
+          -63.73
+        ],
+        [
+          -30.18,
+          -64.94
+        ],
+        [
+          -30.76,
+          -67.84
+        ],
+        [
+          -30.96,
+          -69.32
+        ],
+        [
+          -29.12,
+          -68.84
+        ],
+        [
+          -27.17,
+          -68.06
+        ],
+        [
+          -21.26,
+          -64.91
+        ],
+        [
+          -14.67,
+          -61.62
+        ],
+        [
+          -11.38,
+          -60.21
+        ],
+        [
+          -7.9,
+          -58.22
+        ],
+        [
+          -5.28,
+          -56.91
+        ],
+        [
+          -3.33,
+          -56.14
+        ],
+        [
+          -1.77,
+          -54.97
+        ],
+        [
+          0.39,
+          -53.21
+        ],
+        [
+          1.41,
+          -52.4
+        ],
+        [
+          2.37,
+          -51.44
+        ],
+        [
+          4.4,
+          -50.3
+        ],
+        [
+          5.88,
+          -49.76
+        ],
+        [
+          7.15,
+          -49.76
+        ],
+        [
+          8.43,
+          -49.76
+        ],
+        [
+          9.98,
+          -49.76
+        ],
+        [
+          11.93,
+          -50.15
+        ],
+        [
+          15.15,
+          -51.02
+        ],
+        [
+          17.78,
+          -52.33
+        ],
+        [
+          21.85,
+          -54.52
+        ],
+        [
+          24.75,
+          -55.97
+        ],
+        [
+          25.98,
+          -57.2
+        ],
+        [
+          26.32,
+          -58.68
+        ],
+        [
+          25.86,
+          -60.37
+        ],
+        [
+          25.41,
+          -61.78
+        ],
+        [
+          25.07,
+          -63.07
+        ],
+        [
+          25.07,
+          -64.31
+        ],
+        [
+          25.9,
+          -65.13
+        ],
+        [
+          27.32,
+          -65.81
+        ],
+        [
+          27.6,
+          -66.23
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -31.42,
+          -71.71
+        ],
+        [
+          -31.42,
+          -69.42
+        ],
+        [
+          -30.98,
+          -66.53
+        ],
+        [
+          -30.66,
+          -65.25
+        ],
+        [
+          -29.89,
+          -63.31
+        ],
+        [
+          -29.57,
+          -62.03
+        ],
+        [
+          -28.79,
+          -60.08
+        ],
+        [
+          -27.75,
+          -58.21
+        ],
+        [
+          -26.71,
+          -56.33
+        ],
+        [
+          -26.08,
+          -55.06
+        ],
+        [
+          -25.2,
+          -54.38
+        ],
+        [
+          -24,
+          -53.58
+        ],
+        [
+          -22.91,
+          -53.44
+        ],
+        [
+          -22.91,
+          -54.93
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          31.42,
+          -71.71
+        ],
+        [
+          31.42,
+          -69.42
+        ],
+        [
+          30.98,
+          -66.53
+        ],
+        [
+          30.66,
+          -65.25
+        ],
+        [
+          29.89,
+          -63.31
+        ],
+        [
+          29.57,
+          -62.03
+        ],
+        [
+          28.79,
+          -60.08
+        ],
+        [
+          27.75,
+          -58.21
+        ],
+        [
+          26.71,
+          -56.33
+        ],
+        [
+          26.08,
+          -55.06
+        ],
+        [
+          25.2,
+          -54.38
+        ],
+        [
+          24,
+          -53.58
+        ],
+        [
+          22.91,
+          -53.44
+        ],
+        [
+          22.91,
+          -54.93
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -26.86,
+          -55.72
+        ],
+        [
+          -18.74,
+          -49.29
+        ],
+        [
+          -15.03,
+          -46.81
+        ],
+        [
+          -14.08,
+          -46.26
+        ],
+        [
+          -11.04,
+          -45.74
+        ],
+        [
+          -8.49,
+          -45.35
+        ],
+        [
+          -5.27,
+          -44.71
+        ],
+        [
+          -3.99,
+          -44.71
+        ],
+        [
+          -1.37,
+          -44.28
+        ],
+        [
+          -0.1,
+          -43.96
+        ],
+        [
+          2.52,
+          -43.53
+        ],
+        [
+          5.35,
+          -43.14
+        ],
+        [
+          7.57,
+          -43.14
+        ],
+        [
+          10.39,
+          -43.53
+        ],
+        [
+          12.54,
+          -44.37
+        ],
+        [
+          14.31,
+          -45.87
+        ],
+        [
+          15.13,
+          -47.03
+        ],
+        [
+          15.4,
+          -47.58
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          26.86,
+          -55.72
+        ],
+        [
+          18.74,
+          -49.29
+        ],
+        [
+          15.03,
+          -46.81
+        ],
+        [
+          14.08,
+          -46.26
+        ],
+        [
+          11.04,
+          -45.74
+        ],
+        [
+          8.49,
+          -45.35
+        ],
+        [
+          5.27,
+          -44.71
+        ],
+        [
+          3.99,
+          -44.71
+        ],
+        [
+          1.37,
+          -44.28
+        ],
+        [
+          0.1,
+          -43.96
+        ],
+        [
+          -2.52,
+          -43.53
+        ],
+        [
+          -5.35,
+          -43.14
+        ],
+        [
+          -7.57,
+          -43.14
+        ],
+        [
+          -10.39,
+          -43.53
+        ],
+        [
+          -12.54,
+          -44.37
+        ],
+        [
+          -14.31,
+          -45.87
+        ],
+        [
+          -15.13,
+          -47.03
+        ],
+        [
+          -15.4,
+          -47.58
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          7.66,
+          -44.59
+        ],
+        [
+          7.11,
+          -43.78
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          -7.66,
+          -44.59
+        ],
+        [
+          -7.11,
+          -43.78
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 14.36,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -61.07,
+          -15.19
+        ],
+        [
+          -60.72,
+          -15.14
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          61.07,
+          -15.19
+        ],
+        [
+          60.72,
+          -15.14
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -51.02,
+          -3.85
+        ],
+        [
+          -50.67,
+          -3.8
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          51.02,
+          -3.85
+        ],
+        [
+          50.67,
+          -3.8
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -28.52,
+          8.07
+        ],
+        [
+          -28.17,
+          8.12
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          28.52,
+          8.07
+        ],
+        [
+          28.17,
+          8.12
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -17.23,
+          8.21
+        ],
+        [
+          -16.88,
+          8.26
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          17.23,
+          8.21
+        ],
+        [
+          16.88,
+          8.26
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -51.03,
+          -27.86
+        ],
+        [
+          -50.68,
+          -27.81
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          51.03,
+          -27.86
+        ],
+        [
+          50.68,
+          -27.81
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -29.8,
+          -10.35
+        ],
+        [
+          -29.45,
+          -10.3
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          29.8,
+          -10.35
+        ],
+        [
+          29.45,
+          -10.3
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -14.07,
+          0.84
+        ],
+        [
+          -13.72,
+          0.89
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          14.07,
+          0.84
+        ],
+        [
+          13.72,
+          0.89
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -10.32,
+          7.6
+        ],
+        [
+          -9.97,
+          7.65
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          10.32,
+          7.6
+        ],
+        [
+          9.97,
+          7.65
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -3.13,
+          10.04
+        ],
+        [
+          -2.78,
+          10.09
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          3.13,
+          10.04
+        ],
+        [
+          2.78,
+          10.09
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -57.75,
+          -6.07
+        ],
+        [
+          -57.4,
+          -6.02
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          57.75,
+          -6.07
+        ],
+        [
+          57.4,
+          -6.02
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -56.17,
+          -20.71
+        ],
+        [
+          -55.64,
+          -18.49
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          56.17,
+          -20.71
+        ],
+        [
+          55.64,
+          -18.49
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -43.37,
+          5.51
+        ],
+        [
+          -43.02,
+          5.56
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          43.37,
+          5.51
+        ],
+        [
+          43.02,
+          5.56
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -42.09,
+          -5.13
+        ],
+        [
+          -41.74,
+          -5.08
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          42.09,
+          -5.13
+        ],
+        [
+          41.74,
+          -5.08
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -50.74,
+          -16.19
+        ],
+        [
+          -50.39,
+          -16.14
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          50.74,
+          -16.19
+        ],
+        [
+          50.39,
+          -16.14
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -41.26,
+          -3.61
+        ],
+        [
+          -40.91,
+          -3.56
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          41.26,
+          -3.61
+        ],
+        [
+          40.91,
+          -3.56
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -33.74,
+          0.73
+        ],
+        [
+          -33.39,
+          0.78
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          33.74,
+          0.73
+        ],
+        [
+          33.39,
+          0.78
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -25.07,
+          8.97
+        ],
+        [
+          -24.72,
+          9.02
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          25.07,
+          8.97
+        ],
+        [
+          24.72,
+          9.02
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          -0.79,
+          14.44
+        ],
+        [
+          -0.44,
+          14.49
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          0.79,
+          14.44
+        ],
+        [
+          0.44,
+          14.49
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -18,
+          14.79
+        ],
+        [
+          -17.65,
+          14.84
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          18,
+          14.79
+        ],
+        [
+          17.65,
+          14.84
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -50.08,
+          2.7
+        ],
+        [
+          -49.73,
+          2.75
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          50.08,
+          2.7
+        ],
+        [
+          49.73,
+          2.75
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -46.63,
+          9.49
+        ],
+        [
+          -46.28,
+          9.54
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          46.63,
+          9.49
+        ],
+        [
+          46.28,
+          9.54
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -62.79,
+          -40.72
+        ],
+        [
+          -62.44,
+          -40.67
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          62.79,
+          -40.72
+        ],
+        [
+          62.44,
+          -40.67
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -49.09,
+          -24.84
+        ],
+        [
+          -48.74,
+          -24.79
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          49.09,
+          -24.84
+        ],
+        [
+          48.74,
+          -24.79
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -0.68,
+          0.25
+        ],
+        [
+          -0.33,
+          0.3
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          0.68,
+          0.25
+        ],
+        [
+          0.33,
+          0.3
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          -25.02,
+          9.32
+        ],
+        [
+          -24.67,
+          9.37
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          25.02,
+          9.32
+        ],
+        [
+          24.67,
+          9.37
+        ]
+      ],
+      "alpha": 0.42,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -46.31,
+          -6.19
+        ],
+        [
+          -45.96,
+          -6.14
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          46.31,
+          -6.19
+        ],
+        [
+          45.96,
+          -6.14
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -55.24,
+          -30.02
+        ],
+        [
+          -54.89,
+          -29.97
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          55.24,
+          -30.02
+        ],
+        [
+          54.89,
+          -29.97
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -32.28,
+          14.97
+        ],
+        [
+          -31.93,
+          15.02
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          32.28,
+          14.97
+        ],
+        [
+          31.93,
+          15.02
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -28.51,
+          4.48
+        ],
+        [
+          -28.16,
+          4.53
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          28.51,
+          4.48
+        ],
+        [
+          28.16,
+          4.53
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -18.95,
+          -18.17
+        ],
+        [
+          -18.6,
+          -18.12
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          18.95,
+          -18.17
+        ],
+        [
+          18.6,
+          -18.12
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -58.94,
+          -61.15
+        ],
+        [
+          -58.59,
+          -61.1
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          58.94,
+          -61.15
+        ],
+        [
+          58.59,
+          -61.1
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          46.99,
+          -40.29
+        ],
+        [
+          47.34,
+          -40.24
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "body",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -46.99,
+          -40.29
+        ],
+        [
+          -47.34,
+          -40.24
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          0.08,
+          1.51
+        ],
+        [
+          0.43,
+          1.56
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -0.08,
+          1.51
+        ],
+        [
+          -0.43,
+          1.56
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -9.24,
+          0.71
+        ],
+        [
+          -8.89,
+          0.76
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "head",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          9.24,
+          0.71
+        ],
+        [
+          8.89,
+          0.76
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -2.73,
+          -54.57
+        ],
+        [
+          -2.38,
+          -54.52
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          2.73,
+          -54.57
+        ],
+        [
+          2.38,
+          -54.52
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -8.56,
+          -7.63
+        ],
+        [
+          -8.21,
+          -7.58
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          8.56,
+          -7.63
+        ],
+        [
+          8.21,
+          -7.58
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          10.75,
+          -7.28
+        ],
+        [
+          11.1,
+          -7.23
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -10.75,
+          -7.28
+        ],
+        [
+          -11.1,
+          -7.23
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -7.31,
+          -8.01
+        ],
+        [
+          -6.96,
+          -7.96
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          7.31,
+          -8.01
+        ],
+        [
+          6.96,
+          -7.96
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          -6.55,
+          -47.06
+        ],
+        [
+          -6.2,
+          -47.01
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightEar",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          6.55,
+          -47.06
+        ],
+        [
+          6.2,
+          -47.01
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          61.96,
+          -1.17
+        ],
+        [
+          62.31,
+          -1.12
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          61.96,
+          -1.17
+        ],
+        [
+          62.31,
+          -1.12
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          62.74,
+          1.41
+        ],
+        [
+          63.09,
+          1.46
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          62.74,
+          1.41
+        ],
+        [
+          63.09,
+          1.46
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          52.4,
+          2.5
+        ],
+        [
+          52.75,
+          2.55
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#B5AEA6",
+      "points": [
+        [
+          52.4,
+          2.5
+        ],
+        [
+          52.75,
+          2.55
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          53.96,
+          -0.51
+        ],
+        [
+          54.31,
+          -0.46
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          53.96,
+          -0.51
+        ],
+        [
+          54.31,
+          -0.46
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          74.75,
+          0.63
+        ],
+        [
+          75.1,
+          0.68
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          74.75,
+          0.63
+        ],
+        [
+          75.1,
+          0.68
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          100.77,
+          0.81
+        ],
+        [
+          101.12,
+          0.86
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#3B3430",
+      "points": [
+        [
+          100.77,
+          0.81
+        ],
+        [
+          101.12,
+          0.86
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          95.02,
+          9.6
+        ],
+        [
+          97.5,
+          7.69
+        ],
+        [
+          100.91,
+          4.16
+        ],
+        [
+          103.28,
+          0.9
+        ],
+        [
+          106.8,
+          -3.88
+        ],
+        [
+          108.54,
+          -7.14
+        ],
+        [
+          109.12,
+          -10.95
+        ],
+        [
+          106.03,
+          -12.29
+        ],
+        [
+          102.98,
+          -12.79
+        ],
+        [
+          99.99,
+          -13.3
+        ],
+        [
+          96.75,
+          -13.54
+        ],
+        [
+          95.84,
+          -11.65
+        ],
+        [
+          97.47,
+          -9.3
+        ],
+        [
+          100.38,
+          -3.04
+        ],
+        [
+          102.79,
+          2.92
+        ],
+        [
+          104.65,
+          8.27
+        ],
+        [
+          105.09,
+          11.2
+        ],
+        [
+          104.41,
+          13.41
+        ],
+        [
+          99.93,
+          14.64
+        ],
+        [
+          94.33,
+          15.66
+        ],
+        [
+          88.1,
+          16.91
+        ],
+        [
+          84.41,
+          17.61
+        ],
+        [
+          76.96,
+          18.8
+        ],
+        [
+          70.79,
+          19.73
+        ],
+        [
+          77.2,
+          19.28
+        ],
+        [
+          81.08,
+          18.29
+        ],
+        [
+          84.4,
+          17.07
+        ],
+        [
+          87.52,
+          15.38
+        ],
+        [
+          91.18,
+          12.55
+        ],
+        [
+          95.87,
+          7.43
+        ],
+        [
+          98.35,
+          2.95
+        ],
+        [
+          99.89,
+          -3
+        ],
+        [
+          99.38,
+          -8.65
+        ],
+        [
+          95.88,
+          -13.67
+        ],
+        [
+          91.29,
+          -15.5
+        ],
+        [
+          87.03,
+          -16.21
+        ],
+        [
+          82.13,
+          -16.87
+        ],
+        [
+          81.78,
+          -15.09
+        ],
+        [
+          84.39,
+          -12.65
+        ],
+        [
+          87.91,
+          -8.51
+        ],
+        [
+          90.75,
+          -4.94
+        ],
+        [
+          92.53,
+          -1.98
+        ],
+        [
+          94.25,
+          0.68
+        ],
+        [
+          95.14,
+          3.64
+        ],
+        [
+          96.05,
+          9
+        ],
+        [
+          95.58,
+          13.44
+        ],
+        [
+          93.72,
+          16.7
+        ],
+        [
+          90.4,
+          19.73
+        ],
+        [
+          85.02,
+          21.41
+        ],
+        [
+          76.3,
+          21.95
+        ],
+        [
+          73.25,
+          21.95
+        ],
+        [
+          63.9,
+          21.95
+        ],
+        [
+          60.58,
+          21.95
+        ],
+        [
+          66.06,
+          21.95
+        ],
+        [
+          71.59,
+          21.51
+        ],
+        [
+          74.64,
+          21.01
+        ],
+        [
+          82.21,
+          19.01
+        ],
+        [
+          90.54,
+          15.54
+        ],
+        [
+          95.87,
+          12.06
+        ],
+        [
+          98.99,
+          9.31
+        ],
+        [
+          101.56,
+          6.65
+        ],
+        [
+          105.71,
+          -0.81
+        ],
+        [
+          106.26,
+          -7.4
+        ],
+        [
+          105.28,
+          -11.57
+        ],
+        [
+          101.87,
+          -17.83
+        ],
+        [
+          98.66,
+          -20.87
+        ],
+        [
+          92.79,
+          -24.09
+        ],
+        [
+          87.64,
+          -25.52
+        ],
+        [
+          83.39,
+          -26.1
+        ],
+        [
+          86.01,
+          -23.89
+        ],
+        [
+          89.14,
+          -21.94
+        ],
+        [
+          93.75,
+          -18.83
+        ],
+        [
+          98.52,
+          -15.07
+        ],
+        [
+          101.35,
+          -11.2
+        ],
+        [
+          102.21,
+          -6.49
+        ],
+        [
+          101.24,
+          -3.59
+        ],
+        [
+          98.44,
+          -2.74
+        ],
+        [
+          95.49,
+          -5.37
+        ],
+        [
+          92.3,
+          -8.42
+        ],
+        [
+          89.72,
+          -11.08
+        ],
+        [
+          86.74,
+          -13.52
+        ],
+        [
+          84.28,
+          -14.98
+        ],
+        [
+          81.96,
+          -15.43
+        ],
+        [
+          85.11,
+          -11.29
+        ],
+        [
+          87.79,
+          -8.33
+        ],
+        [
+          89.99,
+          -5.36
+        ],
+        [
+          94.14,
+          0.56
+        ],
+        [
+          95.56,
+          4.7
+        ],
+        [
+          95.86,
+          7.33
+        ],
+        [
+          94.12,
+          11.38
+        ],
+        [
+          91.83,
+          12.07
+        ],
+        [
+          90.35,
+          9.38
+        ],
+        [
+          89.4,
+          4.67
+        ],
+        [
+          88.47,
+          -0.95
+        ],
+        [
+          86.64,
+          -7.18
+        ],
+        [
+          84.91,
+          -8.82
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          95.02,
+          9.6
+        ],
+        [
+          97.5,
+          7.69
+        ],
+        [
+          100.91,
+          4.16
+        ],
+        [
+          103.28,
+          0.9
+        ],
+        [
+          106.8,
+          -3.88
+        ],
+        [
+          108.54,
+          -7.14
+        ],
+        [
+          109.12,
+          -10.95
+        ],
+        [
+          106.03,
+          -12.29
+        ],
+        [
+          102.98,
+          -12.79
+        ],
+        [
+          99.99,
+          -13.3
+        ],
+        [
+          96.75,
+          -13.54
+        ],
+        [
+          95.84,
+          -11.65
+        ],
+        [
+          97.47,
+          -9.3
+        ],
+        [
+          100.38,
+          -3.04
+        ],
+        [
+          102.79,
+          2.92
+        ],
+        [
+          104.65,
+          8.27
+        ],
+        [
+          105.09,
+          11.2
+        ],
+        [
+          104.41,
+          13.41
+        ],
+        [
+          99.93,
+          14.64
+        ],
+        [
+          94.33,
+          15.66
+        ],
+        [
+          88.1,
+          16.91
+        ],
+        [
+          84.41,
+          17.61
+        ],
+        [
+          76.96,
+          18.8
+        ],
+        [
+          70.79,
+          19.73
+        ],
+        [
+          77.2,
+          19.28
+        ],
+        [
+          81.08,
+          18.29
+        ],
+        [
+          84.4,
+          17.07
+        ],
+        [
+          87.52,
+          15.38
+        ],
+        [
+          91.18,
+          12.55
+        ],
+        [
+          95.87,
+          7.43
+        ],
+        [
+          98.35,
+          2.95
+        ],
+        [
+          99.89,
+          -3
+        ],
+        [
+          99.38,
+          -8.65
+        ],
+        [
+          95.88,
+          -13.67
+        ],
+        [
+          91.29,
+          -15.5
+        ],
+        [
+          87.03,
+          -16.21
+        ],
+        [
+          82.13,
+          -16.87
+        ],
+        [
+          81.78,
+          -15.09
+        ],
+        [
+          84.39,
+          -12.65
+        ],
+        [
+          87.91,
+          -8.51
+        ],
+        [
+          90.75,
+          -4.94
+        ],
+        [
+          92.53,
+          -1.98
+        ],
+        [
+          94.25,
+          0.68
+        ],
+        [
+          95.14,
+          3.64
+        ],
+        [
+          96.05,
+          9
+        ],
+        [
+          95.58,
+          13.44
+        ],
+        [
+          93.72,
+          16.7
+        ],
+        [
+          90.4,
+          19.73
+        ],
+        [
+          85.02,
+          21.41
+        ],
+        [
+          76.3,
+          21.95
+        ],
+        [
+          73.25,
+          21.95
+        ],
+        [
+          63.9,
+          21.95
+        ],
+        [
+          60.58,
+          21.95
+        ],
+        [
+          66.06,
+          21.95
+        ],
+        [
+          71.59,
+          21.51
+        ],
+        [
+          74.64,
+          21.01
+        ],
+        [
+          82.21,
+          19.01
+        ],
+        [
+          90.54,
+          15.54
+        ],
+        [
+          95.87,
+          12.06
+        ],
+        [
+          98.99,
+          9.31
+        ],
+        [
+          101.56,
+          6.65
+        ],
+        [
+          105.71,
+          -0.81
+        ],
+        [
+          106.26,
+          -7.4
+        ],
+        [
+          105.28,
+          -11.57
+        ],
+        [
+          101.87,
+          -17.83
+        ],
+        [
+          98.66,
+          -20.87
+        ],
+        [
+          92.79,
+          -24.09
+        ],
+        [
+          87.64,
+          -25.52
+        ],
+        [
+          83.39,
+          -26.1
+        ],
+        [
+          86.01,
+          -23.89
+        ],
+        [
+          89.14,
+          -21.94
+        ],
+        [
+          93.75,
+          -18.83
+        ],
+        [
+          98.52,
+          -15.07
+        ],
+        [
+          101.35,
+          -11.2
+        ],
+        [
+          102.21,
+          -6.49
+        ],
+        [
+          101.24,
+          -3.59
+        ],
+        [
+          98.44,
+          -2.74
+        ],
+        [
+          95.49,
+          -5.37
+        ],
+        [
+          92.3,
+          -8.42
+        ],
+        [
+          89.72,
+          -11.08
+        ],
+        [
+          86.74,
+          -13.52
+        ],
+        [
+          84.28,
+          -14.98
+        ],
+        [
+          81.96,
+          -15.43
+        ],
+        [
+          85.11,
+          -11.29
+        ],
+        [
+          87.79,
+          -8.33
+        ],
+        [
+          89.99,
+          -5.36
+        ],
+        [
+          94.14,
+          0.56
+        ],
+        [
+          95.56,
+          4.7
+        ],
+        [
+          95.86,
+          7.33
+        ],
+        [
+          94.12,
+          11.38
+        ],
+        [
+          91.83,
+          12.07
+        ],
+        [
+          90.35,
+          9.38
+        ],
+        [
+          89.4,
+          4.67
+        ],
+        [
+          88.47,
+          -0.95
+        ],
+        [
+          86.64,
+          -7.18
+        ],
+        [
+          84.91,
+          -8.82
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          53.04,
+          9.95
+        ],
+        [
+          53.39,
+          10
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          53.04,
+          9.95
+        ],
+        [
+          53.39,
+          10
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          62.65,
+          6.23
+        ],
+        [
+          63,
+          6.28
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          62.65,
+          6.23
+        ],
+        [
+          63,
+          6.28
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          62.97,
+          -14.56
+        ],
+        [
+          63.32,
+          -14.51
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          62.97,
+          -14.56
+        ],
+        [
+          63.32,
+          -14.51
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          61.28,
+          -13.51
+        ],
+        [
+          61.63,
+          -13.46
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          61.28,
+          -13.51
+        ],
+        [
+          61.63,
+          -13.46
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          57.74,
+          6.55
+        ],
+        [
+          58.91,
+          6.18
+        ],
+        [
+          59.93,
+          5.67
+        ],
+        [
+          61.43,
+          4.78
+        ],
+        [
+          63.46,
+          3.53
+        ],
+        [
+          65.94,
+          1.39
+        ],
+        [
+          66.73,
+          0.55
+        ],
+        [
+          67.56,
+          -0.63
+        ],
+        [
+          68.37,
+          -1.59
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          57.74,
+          6.55
+        ],
+        [
+          58.91,
+          6.18
+        ],
+        [
+          59.93,
+          5.67
+        ],
+        [
+          61.43,
+          4.78
+        ],
+        [
+          63.46,
+          3.53
+        ],
+        [
+          65.94,
+          1.39
+        ],
+        [
+          66.73,
+          0.55
+        ],
+        [
+          67.56,
+          -0.63
+        ],
+        [
+          68.37,
+          -1.59
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          68.74,
+          -4.38
+        ],
+        [
+          69.09,
+          -4.33
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          68.74,
+          -4.38
+        ],
+        [
+          69.09,
+          -4.33
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          50.69,
+          12.65
+        ],
+        [
+          52.03,
+          12.31
+        ],
+        [
+          53.51,
+          11.7
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          50.69,
+          12.65
+        ],
+        [
+          52.03,
+          12.31
+        ],
+        [
+          53.51,
+          11.7
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          78.38,
+          0.83
+        ],
+        [
+          78.73,
+          0.88
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          78.38,
+          0.83
+        ],
+        [
+          78.73,
+          0.88
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          96.65,
+          2.62
+        ],
+        [
+          97,
+          2.67
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#8C5222",
+      "points": [
+        [
+          96.65,
+          2.62
+        ],
+        [
+          97,
+          2.67
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          10.76,
+          -0.14
+        ],
+        [
+          11.11,
+          -0.09
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          10.76,
+          -0.14
+        ],
+        [
+          11.11,
+          -0.09
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          4.8,
+          -1.35
+        ],
+        [
+          5.15,
+          -1.3
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          4.8,
+          -1.35
+        ],
+        [
+          5.15,
+          -1.3
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "leftArm",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          6.07,
+          0.54
+        ],
+        [
+          4.72,
+          0.29
+        ],
+        [
+          3.32,
+          0.11
+        ],
+        [
+          1.92,
+          0.02
+        ],
+        [
+          0.71,
+          0.02
+        ],
+        [
+          -0.64,
+          -0.04
+        ],
+        [
+          -0.88,
+          1.72
+        ],
+        [
+          -1.3,
+          2.89
+        ],
+        [
+          -1.74,
+          4.38
+        ],
+        [
+          -2.16,
+          5.56
+        ],
+        [
+          -2.63,
+          7.34
+        ],
+        [
+          -3.04,
+          9.7
+        ],
+        [
+          -3.53,
+          8.7
+        ],
+        [
+          -3.53,
+          6.92
+        ],
+        [
+          -3.53,
+          5.74
+        ],
+        [
+          -3.53,
+          3.96
+        ],
+        [
+          -3.53,
+          2.47
+        ],
+        [
+          -3.53,
+          0.69
+        ],
+        [
+          -3.53,
+          -1.09
+        ],
+        [
+          -3.53,
+          -2.57
+        ],
+        [
+          -3.53,
+          -4.93
+        ],
+        [
+          -3.9,
+          -3.56
+        ],
+        [
+          -4.69,
+          -1.51
+        ],
+        [
+          -5.58,
+          -0.03
+        ],
+        [
+          -6.51,
+          1.12
+        ],
+        [
+          -7.24,
+          2
+        ],
+        [
+          -8.39,
+          0.7
+        ],
+        [
+          -8.39,
+          -1.65
+        ],
+        [
+          -8.39,
+          -4.61
+        ],
+        [
+          -7.58,
+          -6.97
+        ],
+        [
+          -6.96,
+          -5.88
+        ],
+        [
+          -7.26,
+          -4.43
+        ],
+        [
+          -7.56,
+          -3.29
+        ],
+        [
+          -7.88,
+          -2.83
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "rightArm",
+      "kind": "stroke",
+      "color": "#FFFFFF",
+      "points": [
+        [
+          6.07,
+          0.54
+        ],
+        [
+          4.72,
+          0.29
+        ],
+        [
+          3.32,
+          0.11
+        ],
+        [
+          1.92,
+          0.02
+        ],
+        [
+          0.71,
+          0.02
+        ],
+        [
+          -0.64,
+          -0.04
+        ],
+        [
+          -0.88,
+          1.72
+        ],
+        [
+          -1.3,
+          2.89
+        ],
+        [
+          -1.74,
+          4.38
+        ],
+        [
+          -2.16,
+          5.56
+        ],
+        [
+          -2.63,
+          7.34
+        ],
+        [
+          -3.04,
+          9.7
+        ],
+        [
+          -3.53,
+          8.7
+        ],
+        [
+          -3.53,
+          6.92
+        ],
+        [
+          -3.53,
+          5.74
+        ],
+        [
+          -3.53,
+          3.96
+        ],
+        [
+          -3.53,
+          2.47
+        ],
+        [
+          -3.53,
+          0.69
+        ],
+        [
+          -3.53,
+          -1.09
+        ],
+        [
+          -3.53,
+          -2.57
+        ],
+        [
+          -3.53,
+          -4.93
+        ],
+        [
+          -3.9,
+          -3.56
+        ],
+        [
+          -4.69,
+          -1.51
+        ],
+        [
+          -5.58,
+          -0.03
+        ],
+        [
+          -6.51,
+          1.12
+        ],
+        [
+          -7.24,
+          2
+        ],
+        [
+          -8.39,
+          0.7
+        ],
+        [
+          -8.39,
+          -1.65
+        ],
+        [
+          -8.39,
+          -4.61
+        ],
+        [
+          -7.58,
+          -6.97
+        ],
+        [
+          -6.96,
+          -5.88
+        ],
+        [
+          -7.26,
+          -4.43
+        ],
+        [
+          -7.56,
+          -3.29
+        ],
+        [
+          -7.88,
+          -2.83
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    },
+    {
+      "space": "hindLeg",
+      "kind": "stroke",
+      "color": "#6E6660",
+      "points": [
+        [
+          35.9,
+          1.56
+        ],
+        [
+          23.67,
+          1.77
+        ],
+        [
+          12.54,
+          0.08
+        ],
+        [
+          13.04,
+          -1.34
+        ],
+        [
+          23.03,
+          -2.24
+        ],
+        [
+          51.91,
+          -3
+        ],
+        [
+          61.9,
+          -3.22
+        ],
+        [
+          65.39,
+          -2.78
+        ],
+        [
+          46.61,
+          0.76
+        ],
+        [
+          32.17,
+          3.27
+        ],
+        [
+          14.6,
+          5
+        ],
+        [
+          12.11,
+          4.88
+        ],
+        [
+          26.49,
+          3.26
+        ],
+        [
+          47.3,
+          1.65
+        ],
+        [
+          85.8,
+          0.01
+        ],
+        [
+          100.18,
+          -0.72
+        ],
+        [
+          84.13,
+          -0.09
+        ],
+        [
+          57.02,
+          0.44
+        ],
+        [
+          25.44,
+          0.18
+        ],
+        [
+          -3.58,
+          -1.17
+        ],
+        [
+          -13.51,
+          -1.97
+        ],
+        [
+          -1.75,
+          -2.37
+        ],
+        [
+          21.54,
+          -2.37
+        ],
+        [
+          51.2,
+          -1.82
+        ],
+        [
+          78.95,
+          -1.01
+        ],
+        [
+          92.76,
+          -0.75
+        ],
+        [
+          82.07,
+          0.31
+        ],
+        [
+          58.07,
+          3.05
+        ],
+        [
+          23.95,
+          6.09
+        ],
+        [
+          -2.53,
+          6.89
+        ],
+        [
+          -12.45,
+          6.89
+        ],
+        [
+          -1.13,
+          4.9
+        ],
+        [
+          23.44,
+          1.22
+        ],
+        [
+          61.94,
+          -2.32
+        ],
+        [
+          77.02,
+          -3.33
+        ],
+        [
+          85.93,
+          -3.62
+        ],
+        [
+          62,
+          -2.05
+        ],
+        [
+          30.43,
+          -0.95
+        ],
+        [
+          -4.27,
+          -0.41
+        ],
+        [
+          -18.08,
+          -0.41
+        ],
+        [
+          -6.95,
+          -1.39
+        ],
+        [
+          18.89,
+          -3.26
+        ],
+        [
+          56.18,
+          -4.12
+        ],
+        [
+          82.73,
+          -4.12
+        ],
+        [
+          111.04,
+          -4.37
+        ],
+        [
+          110.79,
+          -4.62
+        ],
+        [
+          92.52,
+          -4.09
+        ],
+        [
+          57.77,
+          -2.43
+        ],
+        [
+          21.74,
+          -1.59
+        ],
+        [
+          -6.65,
+          -0.77
+        ],
+        [
+          -18.49,
+          -0.33
+        ],
+        [
+          3.33,
+          -1.7
+        ],
+        [
+          38.72,
+          -3.08
+        ],
+        [
+          74.74,
+          -3.36
+        ],
+        [
+          98.67,
+          -3.36
+        ],
+        [
+          110.57,
+          -3.36
+        ],
+        [
+          102.86,
+          -3.32
+        ],
+        [
+          75.74,
+          -1.17
+        ],
+        [
+          35.89,
+          1.65
+        ],
+        [
+          -5.17,
+          4.15
+        ],
+        [
+          -15.16,
+          5.06
+        ],
+        [
+          2.15,
+          4.46
+        ],
+        [
+          35.63,
+          3.93
+        ],
+        [
+          74.84,
+          4.22
+        ],
+        [
+          103.86,
+          5.32
+        ],
+        [
+          119.51,
+          5.57
+        ],
+        [
+          105.51,
+          4.96
+        ],
+        [
+          79.67,
+          4.96
+        ],
+        [
+          44.91,
+          4.68
+        ],
+        [
+          19.64,
+          4.68
+        ],
+        [
+          -9.32,
+          4.68
+        ],
+        [
+          -1.24,
+          4.68
+        ],
+        [
+          25.8,
+          3.96
+        ],
+        [
+          58.01,
+          3.67
+        ],
+        [
+          96.51,
+          4.5
+        ],
+        [
+          112.8,
+          4.5
+        ],
+        [
+          123.92,
+          3.58
+        ],
+        [
+          110.55,
+          4.38
+        ],
+        [
+          87.19,
+          5.47
+        ],
+        [
+          46.77,
+          5.47
+        ],
+        [
+          34.87,
+          5.03
+        ],
+        [
+          53.7,
+          0.91
+        ],
+        [
+          86.78,
+          -5.76
+        ],
+        [
+          104.41,
+          -9.15
+        ],
+        [
+          111.91,
+          -10.38
+        ],
+        [
+          92.74,
+          -5.29
+        ],
+        [
+          75.94,
+          1.88
+        ],
+        [
+          67.49,
+          6.36
+        ],
+        [
+          75.62,
+          4.51
+        ],
+        [
+          91.81,
+          -2.62
+        ],
+        [
+          100.59,
+          -8.13
+        ],
+        [
+          91.43,
+          -2.73
+        ],
+        [
+          83.92,
+          7.14
+        ],
+        [
+          87,
+          10.94
+        ],
+        [
+          91.43,
+          8.9
+        ],
+        [
+          92.31,
+          6.06
+        ]
+      ],
+      "alpha": 0.26,
+      "width": 24,
+      "brush": "airbrush",
+      "softness": 0.85
+    }
+  ],
+  "partGradients": {
+    "leftEar": {
+      "from": "#6E5A4D",
+      "to": "#000000",
+      "stop": 0.85
+    },
+    "rightEar": {
+      "from": "#6E5A4D",
+      "to": "#000000",
+      "stop": 0.85
+    }
+  },
+  "preview": "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"
+}
