@@ -1,7 +1,34 @@
 {
-  "generatedAt": "2026-11-26T15:47:09.404Z",
-  "count": 18,
+  "generatedAt": "2026-11-27T04:24:54.573Z",
+  "count": 19,
   "keyboards": [
+    {
+      "slug": "blackberry",
+      "title": "黑莓",
+      "author": "哇哇",
+      "authorUrl": "",
+      "description": "黑粉暗系风格",
+      "tags": [
+        "深色键盘",
+        "黑莓",
+        "黑粉"
+      ],
+      "createdAt": "2026-11-27",
+      "keyboardPath": "./community-keyboards/blackberry/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#F96282",
+        "mouseBorder": "#FF66A1",
+        "wheel": "#000000",
+        "base": "#000000",
+        "deck": "#570024",
+        "key": "#F34481",
+        "keyBorder": "#050002",
+        "accent": "#FFFFFF",
+        "darkText": true
+      },
+      "sizeBytes": 310
+    },
     {
       "slug": "black-and-blue",
       "title": "黑与蓝",

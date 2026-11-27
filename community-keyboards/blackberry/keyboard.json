@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "黑莓",
+  "author": "哇哇",
+  "colors": {
+    "mouseBody": "#F96282",
+    "mouseBorder": "#FF66A1",
+    "wheel": "#000000",
+    "base": "#000000",
+    "deck": "#570024",
+    "key": "#F34481",
+    "keyBorder": "#050002",
+    "accent": "#FFFFFF",
+    "darkText": true
+  }
+}

@@ -1,7 +1,52 @@
 {
-  "generatedAt": "2026-11-27T02:42:10.429Z",
-  "count": 47,
+  "generatedAt": "2026-11-27T04:24:54.573Z",
+  "count": 52,
   "skins": [
+    {
+      "slug": "dacchan-orange-white",
+      "title": "大馋猫贱贱",
+      "author": "土豆子",
+      "authorUrl": "",
+      "description": "冻干狂热爱好喵，莫挨老子喵",
+      "tags": [
+        "橘白"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/dacchan-orange-white/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 2,
+      "regionCount": 0,
+      "sizeBytes": 173004,
+      "paletteSummary": [
+        "#FAF7F1",
+        "#FFFFFF",
+        "#E8B64A"
+      ]
+    },
+    {
+      "slug": "heterochromia-white-rose",
+      "title": "异瞳白猫玫瑰",
+      "author": "A95G84",
+      "authorUrl": "",
+      "description": "调皮捣蛋异瞳白猫",
+      "tags": [
+        "白猫",
+        "异瞳"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/heterochromia-white-rose/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 0,
+      "sizeBytes": 48734,
+      "paletteSummary": [
+        "#FAF7F1",
+        "#FFFFFF",
+        "#E8B84B"
+      ]
+    },
     {
       "slug": "lihua-brown-tabby",
       "title": "狸花猫（中华田园猫棕虎斑）",
@@ -24,6 +69,76 @@
       "paletteSummary": [
         "#A58155",
         "#D9AD55"
+      ]
+    },
+    {
+      "slug": "pipi-pp",
+      "title": "PP",
+      "author": "刘不能",
+      "authorUrl": "",
+      "description": "根据自己小咪照片生成的，加入些许细节，包括但不限于暗红瞳，额头花纹，胸口白毛，犟种性格",
+      "tags": [
+        "逻辑猫",
+        "挖煤"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/pipi-pp/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 74095,
+      "paletteSummary": [
+        "#C3BAB5",
+        "#2E2624",
+        "#A8D6F0"
+      ]
+    },
+    {
+      "slug": "red-panda-imitation",
+      "title": "仿小熊猫",
+      "author": "枭瑞",
+      "authorUrl": "",
+      "description": "仿柯基的老师简直是天才来的，于是做了个简陋的小熊猫",
+      "tags": [
+        "仿小熊猫"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/red-panda-imitation/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 232188,
+      "paletteSummary": [
+        "#E09A65",
+        "#FFF9EB",
+        "#FFFFFF"
+      ]
+    },
+    {
+      "slug": "siamese-piccolo",
+      "title": "小暹罗皮可罗",
+      "author": "Coco",
+      "authorUrl": "",
+      "description": "小暹罗咪，最像老鼠的一只",
+      "tags": [
+        "暹罗猫",
+        "蓝眼",
+        "黑白",
+        "重点色"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/siamese-piccolo/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 0,
+      "regionCount": 2,
+      "sizeBytes": 154730,
+      "paletteSummary": [
+        "#EEE7E2",
+        "#FAF7F1",
+        "#B9E7FD"
       ]
     },
     {
