@@ -1,0 +1,13 @@
+{
+  "title": "星星挂坠",
+  "author": "一路向北",
+  "authorUrl": "https://github.com/378406712",
+  "description": "金属环串着一颗金色五角星，挂在尾巴尖上，走路时会晃。",
+  "anchor": "tailTip",
+  "offsetX": 0,
+  "offsetY": -4,
+  "scale": 0.45,
+  "rotation": 0,
+  "tags": ["星星", "金色", "尾饰"],
+  "createdAt": "2026-11-27"
+}
