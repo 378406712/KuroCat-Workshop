@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "青釉松烟 65%",
+  "author": "378406712",
+  "colors": {
+    "mouseBody": "#6FA6A1",
+    "mouseBorder": "#3A6360",
+    "wheel": "#E8B858",
+    "base": "#273F42",
+    "deck": "#EEF5F3",
+    "key": "#FCFBF7",
+    "keyBorder": "#C5D9D5",
+    "accent": "#5A938E",
+    "darkText": true
+  }
+}
