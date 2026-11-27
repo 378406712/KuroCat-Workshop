@@ -182,6 +182,10 @@
   // -------------------------------------------------------------------------
   // Part Coordinate Systems for Zoomed Painting View (CW x CH)
   // -------------------------------------------------------------------------
+  // The tail's real half width in tail space is 5.5 (it scales with shape.tailThickness, so 5.5 always reaches the
+  // edge); the board draws exactly that band, so nothing painted outside it looks like part of the tail.
+  const TAIL_EDGE_Y = 5.5;
+  const TAIL_BOARD_Y = 13;
   const PART_VIEW = {
     head: {
       scale: 3.75,
@@ -226,8 +230,8 @@
     tail: {
       scale: 4.2,
       // part.x (0..100 root->tip) maps left->right; part.y (-10..10) maps vertical offset
-      toCanvas: (p) => ({ x: 64 + (p.x / 100) * (CW - 128), y: CH * 0.5 + p.y * 6.8 }),
-      fromCanvas: (c) => ({ x: ((c.x - 64) / (CW - 128)) * 100, y: (c.y - CH * 0.5) / 6.8 })
+      toCanvas: (p) => ({ x: 64 + (p.x / 100) * (CW - 128), y: CH * 0.5 + p.y * TAIL_BOARD_Y }),
+      fromCanvas: (c) => ({ x: ((c.x - 64) / (CW - 128)) * 100, y: (c.y - CH * 0.5) / TAIL_BOARD_Y })
     }
   };
 
@@ -900,21 +904,9 @@
   // Zoomed Part Paint Canvas Rendering
   // -------------------------------------------------------------------------
   // Exact 2.5D build metrics matching renderer.js (STANDARD_BUILD / SLEEK_BUILD)
+  // Silhouette proportions of the cat actually being drawn (standard / sleek), straight from the renderer.
   function get25DBuild(skin) {
-    if (skin && skin.bodyBuild === 'sleek') {
-      return {
-        headLift: -3.0,
-        cheekHalfW: 42.5, crownCtrlW: 25.0, crownBaseY: -29.5, cheekY: 6.5, cheekCtrlTopY: -13.0,
-        neckPinchX: 6.5, neckCtrlY: 27.5, hipHalfW: 44.5, waistCtrlW: 41.0, waistCtrlY: -50.0,
-        botOuterW: 42.0, botInnerW: 32.0, botHalfW: 22.0
-      };
-    }
-    return {
-      headLift: 0.0,
-      cheekHalfW: 42.5, crownCtrlW: 26.0, crownBaseY: -30.0, cheekY: 5.0, cheekCtrlTopY: -14.0,
-      neckPinchX: 2.5, neckCtrlY: 24.0, hipHalfW: 49.0, waistCtrlW: 51.5, waistCtrlY: -48.0,
-      botOuterW: 47.0, botInnerW: 36.0, botHalfW: 24.0
-    };
+    return Renderer.getBuild(skin);
   }
 
   function traceHeadWithJaw(ctxRef, mapPt, cheekFullness, skin) {
@@ -1020,7 +1012,7 @@
     if (partId === 'leftArm' || partId === 'rightArm' || partId === 'hindLeg') {
       const top = toPartCanvas(partId, { x: 0, y: 0 });
       const bot = toPartCanvas(partId, { x: 100, y: 0 });
-      const hw = partId === 'hindLeg' ? 66 : 70;
+      const hw = Math.abs(toPartCanvas(partId, { x: 0, y: 10 }).x - top.x); // y = ±10 is the limb edge
       ctxRef.beginPath();
       ctxRef.moveTo(top.x - hw, top.y + 38);
       ctxRef.arc(top.x, top.y + 38, hw, Math.PI, 0, false);
@@ -1032,7 +1024,7 @@
     if (partId === 'tail') {
       const l = toPartCanvas('tail', { x: 0, y: 0 });
       const r = toPartCanvas('tail', { x: 100, y: 0 });
-      const hh = 72;
+      const hh = TAIL_EDGE_Y * TAIL_BOARD_Y;
       ctxRef.beginPath();
       ctxRef.moveTo(l.x, l.y - hh);
       ctxRef.lineTo(r.x, r.y - hh);
@@ -1205,7 +1197,7 @@
           const isLeft = side < 0;
           const irisSrc = (isLeft ? pal.irisLeft : pal.irisRight) || pal.iris;
           const pupilSrc = (isLeft ? pal.pupilLeft : pal.pupilRight) || pal.pupil;
-          const e = toPartCanvas('head', { x: side * 16.5, y: -5 });
+          const e = toPartCanvas('head', { x: side * 17.2, y: -2 }); // renderer eye centre
           ctx.fillStyle = irisSrc ? rgbaCss(irisSrc, 0.9) : 'rgba(210, 232, 58, 0.88)';
           ctx.beginPath();
           ctx.ellipse(e.x, e.y, 9.2 * hs, 8.2 * hs, 0, 0, Math.PI * 2);
@@ -1448,8 +1440,8 @@
       }
     }
 
-    if (raw.marks.length + toAdd.length > 256) {
-      if (api) api.showToast('花纹笔触已达 256 条上限，可用橡皮擦清理后再画');
+    if (raw.marks.length + toAdd.length > Spec.MAX_MARKS) {
+      if (api) api.showToast(`花纹笔触已达 ${Spec.MAX_MARKS} 条上限，可用橡皮擦清理后再画`);
       return;
     }
 
@@ -1762,7 +1754,7 @@
       // 0b. Clicked inside a closed hand-drawn brush loop -> fill interior while keeping the outline on top
       const loopIdx = findEnclosingStrokeLoopIndex(raw.marks, spaces, mapped);
       if (loopIdx !== -1) {
-        if (raw.marks.length < 256) {
+        if (raw.marks.length < Spec.MAX_MARKS) {
           const loopMark = raw.marks[loopIdx];
           const fillPoly = {
             space: loopMark.space,
@@ -1772,7 +1764,7 @@
           };
           if (brushAlpha < 0.999) fillPoly.alpha = round2(brushAlpha);
           raw.marks.splice(loopIdx, 0, fillPoly);
-          if (mirrorEnabled && PART_BY_ID[partId] && PART_BY_ID[partId].canMirror && raw.marks.length < 256) {
+          if (mirrorEnabled && PART_BY_ID[partId] && PART_BY_ID[partId].canMirror && raw.marks.length < Spec.MAX_MARKS) {
             const mir = mirrorSpaceAndPts(mapped.space, [mapped]);
             if (mir) {
               const mirSpaces = mir.space === 'head' ? ['head', 'skull'] : [mir.space];

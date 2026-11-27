@@ -611,6 +611,11 @@ textarea {
   color: var(--err-ink);
 }
 
+.validation-pill.warn {
+  background: #FEF3C7;
+  color: var(--accent-ink);
+}
+
 .page-heading-bar {
   display: flex;
   align-items: baseline;
@@ -1095,6 +1100,47 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.turn-check:not([hidden]) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.turn-check figure {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-soft);
+  overflow: hidden;
+}
+
+.turn-check canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.turn-check figcaption {
+  padding: 4px 0 6px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.canvas-overlay-badge.skull-banner {
+  top: 10px;
+  bottom: auto;
+}
+
+@media (max-width: 560px) {
+  .canvas-overlay-badge.skull-banner {
+    flex-wrap: wrap;
+    gap: 6px;
+    line-height: 1.35;
+  }
 }
 
 .pen-banner-actions {

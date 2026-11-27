@@ -128,11 +128,23 @@
     const kb = (new Blob([jsonStr]).size / 1024).toFixed(1);
 
     if (check.ok) {
-      validationPill.className = 'validation-pill ok';
-      validationPill.textContent = `✓ 符合 v1 规范 · ${kb} KB`;
+      // Which desktop release can show this skin, and why (hover); web-only looks get a warning instead.
+      const req = Spec.requiredAppVersion(exportObj);
+      if (req.webOnly.length) {
+        validationPill.className = 'validation-pill warn';
+        validationPill.textContent = `⚠ 桌宠暂不支持「${req.webOnly.join('、')}」造型 · ${kb} KB`;
+        validationPill.title = '这个造型目前只有网页能画，导进桌宠会显示成普通小猫';
+      } else {
+        validationPill.className = 'validation-pill ok';
+        validationPill.textContent = `✓ 桌宠 ${req.version}+ 可用 · ${kb} KB`;
+        validationPill.title = req.reasons.length
+          ? `需要 KuroCat ${req.version} 或更新版本：${[...new Set(req.reasons.filter((r) => r.version === req.version).map((r) => r.what))].join('、')}`
+          : '所有支持皮肤的 KuroCat 版本（1.4.0 起）都能用';
+      }
     } else {
       validationPill.className = 'validation-pill err';
       validationPill.textContent = `✕ ${check.error}`;
+      validationPill.title = check.error;
     }
 
     const jsonPre = document.getElementById('json-preview');
@@ -140,6 +152,8 @@
     const jsonNote = document.getElementById('json-size-note');
     if (jsonNote) jsonNote.textContent = `${kb} KB（导出时将附带 preview 缩略图）`;
 
+    updateSkullBanner();
+    renderTurnCheck();
     renderPaletteUI();
     renderShapeUI();
     renderRegionsAndMarksUI();
@@ -150,6 +164,34 @@
       window.KuroExplodedStudio.onSkinSynced();
     }
   }
+
+  // --- Legacy `skull` patterns: they stay put while the head turns (the eyes slide out of them) ---
+  // The pen no longer offers 头壳; skins made before (or imported) get one banner per skin offering to convert.
+  const skullBanner = document.getElementById('skull-banner');
+  let skullBannerKeptFor = null;
+
+  function skullBannerKey() {
+    return `${rawSkin.name || ''}|${Spec.countSkullItems(rawSkin)}`;
+  }
+
+  function updateSkullBanner() {
+    const n = Spec.countSkullItems(rawSkin);
+    skullBanner.hidden = n === 0 || skullBannerKeptFor === skullBannerKey();
+    if (!skullBanner.hidden) {
+      document.getElementById('skull-banner-text').textContent = `有 ${n} 个头部花纹画在「头壳」上，转头时不会跟着转`;
+    }
+  }
+
+  document.getElementById('btn-skull-fix-all').addEventListener('click', () => {
+    const n = Spec.migrateSkullToHead(rawSkin);
+    syncSkin(true);
+    showToast(`已把 ${n} 个花纹改为随转头（正脸外观不变，可撤销）`);
+  });
+
+  document.getElementById('btn-skull-keep').addEventListener('click', () => {
+    skullBannerKeptFor = skullBannerKey();
+    skullBanner.hidden = true;
+  });
 
   // --- Undo / Redo: snapshots of rawSkin, taken once edits have been quiet for a moment ---
   const history = { undo: [], redo: [], current: null, timer: null, restoring: false };
@@ -791,7 +833,7 @@
   // side into an ordinary closed region). 「闭合色块」: draw the outline and click the first anchor to close.
   // Click = corner anchor; press and drag = smooth anchor with mirrored handles. The head and tail hold still
   // while the pen is on so anchors land where they are clicked.
-  const PEN_SPACE_NAMES = { head: '脸部', skull: '头顶', body: '身体', tail: '尾巴' };
+  const PEN_SPACE_NAMES = { head: '头部', skull: '头壳', body: '身体', tail: '尾巴' };
   const penRound = (v) => Spec.round2(Spec.clamp(v, -400, 400));
 
   function penToSpace(pos) {
@@ -969,8 +1011,8 @@
         if (rawPts.length >= 2) {
           rawSkin.marks = rawSkin.marks || [];
           const need = pen.mirror ? 2 : 1;
-          if (rawSkin.marks.length + need > 256) {
-            showToast('最多 256 条条纹，先删掉一些再画');
+          if (rawSkin.marks.length + need > Spec.MAX_MARKS) {
+            showToast(`最多 ${Spec.MAX_MARKS} 条条纹，先删掉一些再画`);
             updatePenPreview();
             return;
           }
@@ -1074,8 +1116,8 @@
   function commitPenMark(anchors) {
     rawSkin.marks = rawSkin.marks || [];
     const need = pen.mirror ? 2 : 1;
-    if (rawSkin.marks.length + need > 256) {
-      showToast('最多 256 条条纹，先删掉一些再画');
+    if (rawSkin.marks.length + need > Spec.MAX_MARKS) {
+      showToast(`最多 ${Spec.MAX_MARKS} 条条纹，先删掉一些再画`);
       return;
     }
     const m = { space: pen.space, kind: 'stroke', color: penColor.toUpperCase(), width: Spec.round2(penWidth), points: strokePoints(anchors) };
@@ -2363,16 +2405,33 @@
 
   // --- Regions & Marks Tab ---
   const SPACE_NAMES = {
-    head: '脸部 head', skull: '头壳 skull', body: '身体 body',
+    head: '脸部 head', skull: '头壳 skull · 不随转头', body: '身体 body',
     tail: '尾巴 tail', leftEar: '左耳', rightEar: '右耳',
     leftArm: '左胳膊', rightArm: '右胳膊'
   };
+
+  function makeSkullFixButton(migrate) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mini-btn';
+    btn.textContent = '改为随转头';
+    btn.title = '头壳花纹转头时不动，眼睛会滑出花纹；改成跟着转头（正脸外观不变）';
+    btn.addEventListener('click', () => {
+      migrate();
+      syncSkin(true);
+      showToast('已改为随转头，可以晃晃鼠标看看');
+    });
+    return btn;
+  }
 
   function renderRegionsAndMarksUI() {
     const regions = rawSkin.regions || (rawSkin.regions = []);
     const marks = rawSkin.marks || (rawSkin.marks = []);
     document.getElementById('regions-count').textContent = `${regions.length} / 64`;
-    document.getElementById('marks-count').textContent = `${marks.length} / 256`;
+    const marksCount = document.getElementById('marks-count');
+    marksCount.textContent = `${marks.length} / ${Spec.MAX_MARKS}`;
+    // Over 256 the skin needs the next desktop release; say so where the count is.
+    if (marks.length > Spec.MARKS_LIMIT_V1) marksCount.textContent += ` · 需 KuroCat ${Spec.NEXT_APP_VERSION}+`;
 
     const rList = document.getElementById('regions-list');
     rList.innerHTML = '';
@@ -2432,6 +2491,12 @@
           });
           acts.appendChild(mirBtn);
         }
+        if (r.space === 'skull') {
+          acts.appendChild(makeSkullFixButton(() => {
+            Spec.migrateSkullRegion(r);
+            if (r._twin) for (const o of regions) if (o !== r && o._twin === r._twin) Spec.migrateSkullRegion(o);
+          }));
+        }
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
         delBtn.className = 'mini-btn danger';
@@ -2481,13 +2546,14 @@
           mir.textContent = '镜像';
           mir.title = '在另一侧加一条左右对称的条纹';
           mir.addEventListener('click', () => {
-            if (marks.length >= 256) { showToast('最多 256 条条纹'); return; }
+            if (marks.length >= Spec.MAX_MARKS) { showToast(`最多 ${Spec.MAX_MARKS} 条条纹`); return; }
             marks.splice(i + 1, 0, Spec.mirrorMark(m));
             syncSkin(true);
             showToast('已加上对称条纹');
           });
           acts.appendChild(mir);
         }
+        if (m.space === 'skull') acts.appendChild(makeSkullFixButton(() => Spec.migrateSkullMark(m)));
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'mini-btn danger';
@@ -3339,6 +3405,45 @@
     btnWhiteOutline.addEventListener('click', () => {
       showWhiteOutline = !showWhiteOutline;
       btnWhiteOutline.classList.toggle('active', showWhiteOutline);
+      renderTurnCheck();
+    });
+  }
+
+  // 转头检查: left turn / front / right turn side by side at the desktop pet's full yaw (headYaw ±1),
+  // so patterns that don't follow the head (e.g. legacy 头壳) show up without wiggling the mouse.
+  // (syncSkin calls renderTurnCheck, possibly before this point runs, so it looks everything up itself.)
+  function renderTurnCheck() {
+    const turnCheck = document.getElementById('turn-check');
+    if (!turnCheck || turnCheck.hidden) return;
+    if (!renderTurnCheck.scratch) {
+      renderTurnCheck.scratch = document.createElement('canvas');
+      renderTurnCheck.scratch.width = 720;
+      renderTurnCheck.scratch.height = 640;
+    }
+    const turnScratch = renderTurnCheck.scratch;
+    const skin = penPreviewSkin || resolvedSkin;
+    const sctx = turnScratch.getContext('2d');
+    turnCheck.querySelectorAll('canvas').forEach((cv, i) => {
+      const yaw = [-1, 0, 1][i];
+      const st = Renderer.createDefaultState();
+      st.headYaw = yaw;
+      st.eyeGazeX = yaw;
+      Renderer.drawScene(sctx, skin, st, { kbTheme, eyeTheme, whiteOutline: showWhiteOutline });
+      const c = cv.getContext('2d');
+      c.clearRect(0, 0, cv.width, cv.height);
+      // Ears to shoulders: logical x 84..284, y 6..206 of the 360×320 scene (rendered at 2×).
+      c.drawImage(turnScratch, 168, 12, 400, 400, 0, 0, cv.width, cv.height);
+    });
+  }
+
+  const turnCheck = document.getElementById('turn-check');
+  const btnTurnCheck = document.getElementById('btn-turn-check');
+  if (btnTurnCheck && turnCheck) {
+    btnTurnCheck.addEventListener('click', () => {
+      turnCheck.hidden = !turnCheck.hidden;
+      btnTurnCheck.classList.toggle('active', !turnCheck.hidden);
+      btnTurnCheck.setAttribute('aria-expanded', String(!turnCheck.hidden));
+      renderTurnCheck();
     });
   }
 

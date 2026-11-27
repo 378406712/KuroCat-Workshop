@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -15,37 +16,17 @@ const COMMUNITY_DIR = path.join(ROOT, 'community');
 const ACCESSORIES_DIR = path.join(ROOT, 'community-accessories');
 const KEYBOARDS_DIR = path.join(ROOT, 'community-keyboards');
 
-const VALID_SPACES = new Set(['head', 'skull', 'body', 'tail', 'leftEar', 'rightEar', 'leftArm', 'rightArm', 'hindLeg']);
-const PALETTE_KEYS = new Set([
-  'body', 'bodyShade', 'belly', 'legs', 'paws', 'pawPads',
-  'hindLeg', 'hindPaw',
-  'earOuter', 'earInner', 'nose', 'mouth',
-  'iris', 'irisLeft', 'irisRight', 'pupil', 'pupilLeft', 'pupilRight',
-  'tail', 'tailTip', 'stripes', 'whiskers', 'crease',
-  'outline', 'points', 'pointsMid'
-]);
+// Skin rules come from the workshop's own spec.js (the same validateRawSkin the editor uses, kept in step with the
+// desktop parser in KuroCat/shared/SkinSpec.hpp), so a limit or a new field only has to change in one place.
+const Spec = (() => {
+  const ctx = { console, atob: (s) => Buffer.from(s, 'base64').toString('binary') };
+  ctx.window = ctx;
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(ROOT, 'spec.js'), 'utf8'), ctx, { filename: 'spec.js' });
+  return ctx.KuroSpec;
+})();
+
 const DECO_ANCHORS = new Set(['headTop', 'face', 'neck', 'tailTip']);
-const SHAPE_RANGES = {
-  bodyWidth: [0.85, 1.35],
-  headScale: [0.90, 1.15],
-  cheekFullness: [0.85, 1.25],
-  neckWidth: [0.65, 1.40],
-  earSize: [0.80, 1.25],
-  earSpacing: [0.65, 1.35],
-  earBaseWidth: [0.65, 1.40],
-  earPointiness: [0.50, 1.50],
-  armSpacing: [0.55, 1.60],
-  armRootY: [-18.0, 18.0],
-  armLength: [0.65, 1.45],
-  hindLegRootX: [-16.0, 16.0],
-  hindLegRootY: [-14.0, 14.0],
-  hindLegWidth: [0.70, 1.45],
-  hindLegReach: [0.75, 1.35],
-  tailLength: [0.70, 1.30],
-  tailThickness: [0.70, 1.50],
-  tailRootY: [-14.0, 14.0],
-  pawStagger: [0.0, 1.0]
-};
 const KB_COLOR_KEYS = ['mouseBody', 'mouseBorder', 'wheel', 'base', 'deck', 'key', 'keyBorder', 'accent'];
 const ALLOWED_PREVIEWS = ['preview.gif', 'preview.webp', 'preview.png', 'preview.jpg', 'preview.jpeg'];
 const MAX_SKIN_BYTES = 2 * 1024 * 1024;
@@ -70,75 +51,14 @@ function checkBase64Png(str) {
 }
 
 export function validateKurocatObject(raw) {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return 'skin.kurocat 最外层必须是 JSON 对象';
-  if (raw.formatVersion !== 1) return 'skin.kurocat 的 formatVersion 必须为 1';
-  const name = typeof raw.name === 'string' ? raw.name.trim() : '';
-  if (!name || name.length > 40) return 'skin.kurocat 的 name 必须为 1–40 字';
-  if (raw.author != null && (typeof raw.author !== 'string' || raw.author.trim().length > 40)) {
-    return 'skin.kurocat 的 author 必须是不超过 40 字的字符串';
-  }
-  if (!raw.palette || typeof raw.palette !== 'object') return 'skin.kurocat 缺少 palette';
-  if (!HEX_RE.test(raw.palette.body || '')) return 'palette.body 必须是 #RRGGBB 或 #RRGGBBAA';
-  for (const [k, v] of Object.entries(raw.palette)) {
-    if (!PALETTE_KEYS.has(k)) continue;
-    if (v != null && !HEX_RE.test(v)) return `palette.${k} 颜色格式无效: ${v}`;
-  }
-  if (raw.shape != null) {
-    if (typeof raw.shape !== 'object' || Array.isArray(raw.shape)) return 'shape 必须是对象';
-    if (raw.shape.build != null && raw.shape.build !== 'standard' && raw.shape.build !== 'sleek') {
-      return 'shape.build 必须是 standard 或 sleek';
-    }
-    for (const [k] of Object.entries(SHAPE_RANGES)) {
-      if (raw.shape[k] !== undefined && (typeof raw.shape[k] !== 'number' || !Number.isFinite(raw.shape[k]))) {
-        return `shape.${k} 必须是数字`;
-      }
-    }
-  }
-  if (raw.headSurface != null && raw.headSurface !== 'dome' && raw.headSurface !== 'plane') {
-    return 'headSurface 必须是 dome 或 plane';
-  }
-  if (raw.idleLegs != null && raw.idleLegs !== 'legs' && raw.idleLegs !== 'chest') {
-    return 'idleLegs 必须是 legs 或 chest';
-  }
-  if (raw.regions != null) {
-    if (!Array.isArray(raw.regions) || raw.regions.length > 64) return 'regions 必须是长度 ≤ 64 的数组';
-    for (let i = 0; i < raw.regions.length; i++) {
-      const r = raw.regions[i];
-      if (!r || !VALID_SPACES.has(r.space)) return `regions[${i}].space 无效`;
-      if (!HEX_RE.test(r.fill || '')) return `regions[${i}].fill 颜色无效`;
-      if (!Array.isArray(r.anchors) || r.anchors.length < 2 || r.anchors.length > 128) {
-        return `regions[${i}].anchors 需要 2–128 个锚点`;
-      }
-      for (const a of r.anchors) {
-        if (!a || typeof a.x !== 'number' || typeof a.y !== 'number') return `regions[${i}] 锚点缺少 x/y`;
-      }
-    }
-  }
-  if (raw.marks != null) {
-    if (!Array.isArray(raw.marks) || raw.marks.length > 256) return 'marks 必须是长度 ≤ 256 的数组';
-    for (let i = 0; i < raw.marks.length; i++) {
-      const m = raw.marks[i];
-      if (!m || !VALID_SPACES.has(m.space)) return `marks[${i}].space 无效`;
-      if (m.kind !== 'polygon' && m.kind !== 'stroke') return `marks[${i}].kind 无效`;
-      if (m.color && !HEX_RE.test(m.color)) return `marks[${i}].color 无效`;
-      if (!m.color && !HEX_RE.test(raw.palette.stripes || '')) return `marks[${i}] 缺少 color 且无 palette.stripes`;
-      const minPts = m.kind === 'stroke' ? 2 : 3;
-      if (!Array.isArray(m.points) || m.points.length < minPts || m.points.length > 512) {
-        return `marks[${i}].points 数量无效`;
-      }
-    }
-  }
-  if (raw.decorations != null) {
-    if (!Array.isArray(raw.decorations) || raw.decorations.length > 8) return 'decorations 最多 8 个贴纸';
-    for (let i = 0; i < raw.decorations.length; i++) {
-      const d = raw.decorations[i];
-      if (!d || typeof d !== 'object') return `decorations[${i}] 必须是对象`;
-      const info = checkBase64Png(d.png);
-      if (!info) return `decorations[${i}].png 必须是有效的 base64 PNG`;
-      if (info.bytes > MAX_ACCESSORY_BYTES || info.width > 1024 || info.height > 1024) {
-        return `decorations[${i}].png 超过 1 MB 或 1024×1024 限制`;
-      }
-      if (!DECO_ANCHORS.has(d.anchor)) return `decorations[${i}].anchor 无效`;
+  const res = Spec.validateRawSkin(raw);
+  if (!res.ok) return `skin.kurocat：${res.error}`;
+  // Plaza-only: sticker and preview images are checked byte-for-byte here.
+  for (let i = 0; i < (raw.decorations || []).length; i++) {
+    const info = checkBase64Png(raw.decorations[i].png);
+    if (!info) return `decorations[${i}].png 必须是有效的 base64 PNG`;
+    if (info.bytes > MAX_ACCESSORY_BYTES || info.width > 1024 || info.height > 1024) {
+      return `decorations[${i}].png 超过 1 MB 或 1024×1024 限制`;
     }
   }
   if (raw.preview != null) {

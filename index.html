@@ -104,7 +104,7 @@
     ]
   }
   </script>
-  <link rel="stylesheet" href="styles.css?v=20261126a" />
+  <link rel="stylesheet" href="styles.css?v=20261127d" />
 </head>
 <body>
   <div class="studio-shell">
@@ -433,6 +433,7 @@
               <div class="stage-header-actions">
                 <button type="button" class="chip btn-skeleton" id="btn-toggle-skeleton" title="在小猫身上直接拖动圆点调整双手间距、手臂根部与长短">调骨架</button>
                 <button type="button" class="chip" id="btn-toggle-white-outline" title="切换桌宠贴纸白边预览（默认隐藏）">白边</button>
+                <button type="button" class="chip" id="btn-turn-check" title="并排看向左转、正脸、向右转，检查花纹是否跟着头走" aria-expanded="false" aria-controls="turn-check">转头检查</button>
                 <div class="backdrop-pills" role="group" aria-label="预览背景">
                   <button type="button" class="chip active" data-bg="cream">暖米</button>
                   <button type="button" class="chip" data-bg="slate">浅灰</button>
@@ -457,10 +458,23 @@
                   <button type="button" id="btn-pen-cancel" class="mini-btn">退出</button>
                 </span>
               </div>
+              <div class="canvas-overlay-badge skull-banner" id="skull-banner" role="status" hidden>
+                <span id="skull-banner-text">有些头部花纹画在「头壳」上，转头时不会跟着转</span>
+                <span class="pen-banner-actions">
+                  <button type="button" id="btn-skull-fix-all" class="mini-btn pen-finish">全部改为随转头</button>
+                  <button type="button" id="btn-skull-keep" class="mini-btn">保持不变</button>
+                </span>
+              </div>
               <div class="canvas-overlay-badge" id="deco-banner" hidden>
                 <span>调整配饰：拖动移动位置 · 拖右下角缩放 · 拖顶部圆点旋转</span>
                 <button type="button" id="btn-exit-deco-edit" class="mini-btn">完成调整</button>
               </div>
+            </div>
+
+            <div class="turn-check" id="turn-check" hidden>
+              <figure><canvas width="400" height="400" aria-label="向左转时的样子"></canvas><figcaption>向左转</figcaption></figure>
+              <figure><canvas width="400" height="400" aria-label="正脸的样子"></canvas><figcaption>正脸</figcaption></figure>
+              <figure><canvas width="400" height="400" aria-label="向右转时的样子"></canvas><figcaption>向右转</figcaption></figure>
             </div>
 
             <!-- Hero Opening Action Bar (visible only before user clicks Start Editing) -->
@@ -746,8 +760,7 @@
                 <div class="pen-row">
                   <span class="pen-label">画在</span>
                   <div class="pill-grid" id="pen-space-pills" role="group" aria-label="画在哪个部位">
-                    <button type="button" class="pill active" data-space="head">脸</button>
-                    <button type="button" class="pill" data-space="skull">头顶</button>
+                    <button type="button" class="pill active" data-space="head" title="脸和头顶都画在这里，花纹会跟着转头">头 / 脸</button>
                     <button type="button" class="pill" data-space="body">身体</button>
                     <button type="button" class="pill" data-space="tail">尾巴</button>
                     <button type="button" class="pill" data-space="leftArm">左胳膊</button>
@@ -852,7 +865,7 @@
                 <div class="section-head">
                   <h2>条纹与图形 (marks)</h2>
                   <div class="inline-actions">
-                    <span class="muted-note tabular" id="marks-count">0 / 256</span>
+                    <span class="muted-note tabular" id="marks-count">0 / 1024</span>
                     <button type="button" class="mini-btn danger" id="btn-clear-marks">清空条纹</button>
                   </div>
                 </div>
@@ -1329,13 +1342,13 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="i18n.js?v=20261125a"></script>
-  <script src="spec.js?v=20261126a"></script>
-  <script src="renderer.js?v=20261126a"></script>
+  <script src="i18n.js?v=20261127e"></script>
+  <script src="spec.js?v=20261127d"></script>
+  <script src="renderer.js?v=20261127d"></script>
   <script src="decorations.js?v=20261125b"></script>
   <script src="photo-analyzer.js?v=20261125b"></script>
-  <script src="app.js?v=20261125o"></script>
-  <script src="exploded-studio.js?v=20261125p"></script>
+  <script src="app.js?v=20261127d"></script>
+  <script src="exploded-studio.js?v=20261127e"></script>
   <script src="plaza.js?v=20261125j"></script>
 </body>
 </html>
