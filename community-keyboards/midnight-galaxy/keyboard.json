@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "午夜星河",
+  "author": "一路向北",
+  "colors": {
+    "mouseBody": "#DDD6F2",
+    "mouseBorder": "#2A3050",
+    "wheel": "#F2C462",
+    "base": "#15182B",
+    "deck": "#242A48",
+    "key": "#353C63",
+    "keyBorder": "#1A1E36",
+    "accent": "#F2C462",
+    "darkText": false
+  }
+}
