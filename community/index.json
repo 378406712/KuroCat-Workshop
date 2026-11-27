@@ -1,7 +1,54 @@
 {
-  "generatedAt": "2026-11-26T15:47:09.404Z",
-  "count": 45,
+  "generatedAt": "2026-11-27T02:42:10.429Z",
+  "count": 47,
   "skins": [
+    {
+      "slug": "lihua-brown-tabby",
+      "title": "狸花猫（中华田园猫棕虎斑）",
+      "author": "cxm",
+      "authorUrl": "",
+      "description": "墩墩（丢丢）",
+      "tags": [
+        "狸花猫",
+        "中华田园猫",
+        "棕虎斑",
+        "原创皮肤"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/lihua-brown-tabby/skin.kurocat",
+      "previewPath": "./community/lihua-brown-tabby/preview.png",
+      "previewType": "png",
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 74396,
+      "paletteSummary": [
+        "#A58155",
+        "#D9AD55"
+      ]
+    },
+    {
+      "slug": "tuxedo-moo-cat",
+      "title": "燕尾服奶牛猫",
+      "author": "一路向北",
+      "authorUrl": "https://github.com/378406712",
+      "description": "海盐味",
+      "tags": [
+        "头饰",
+        "可爱"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/tuxedo-moo-cat/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 2,
+      "regionCount": 1,
+      "sizeBytes": 53362,
+      "paletteSummary": [
+        "#1F2024",
+        "#FAF7F1",
+        "#D6B74E"
+      ]
+    },
     {
       "slug": "baobao-orange-cat",
       "title": "包包",
