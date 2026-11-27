@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-27T04:24:54.573Z",
-  "count": 19,
+  "generatedAt": "2026-11-27T08:41:58.630Z",
+  "count": 22,
   "keyboards": [
     {
       "slug": "blackberry",
@@ -28,6 +28,89 @@
         "darkText": true
       },
       "sizeBytes": 310
+    },
+    {
+      "slug": "celadon-mist-65",
+      "title": "青釉松烟 65%",
+      "author": "378406712",
+      "authorUrl": "https://github.com/378406712",
+      "description": "深松烟底壳配天青釉浅色定位板与宣纸白键帽，青釉鼠标点缀琥珀金滚轮，清爽耐看。",
+      "tags": [
+        "国风",
+        "青瓷",
+        "65%",
+        "浅色键帽",
+        "原创配色"
+      ],
+      "createdAt": "2026-11-27",
+      "keyboardPath": "./community-keyboards/celadon-mist-65/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#6FA6A1",
+        "mouseBorder": "#3A6360",
+        "wheel": "#E8B858",
+        "base": "#273F42",
+        "deck": "#EEF5F3",
+        "key": "#FCFBF7",
+        "keyBorder": "#C5D9D5",
+        "accent": "#5A938E",
+        "darkText": true
+      },
+      "sizeBytes": 322
+    },
+    {
+      "slug": "midnight-galaxy",
+      "title": "午夜星河",
+      "author": "一路向北",
+      "authorUrl": "https://github.com/378406712",
+      "description": "深蓝键帽配金色点缀，和「午夜星河」皮肤同一套配色的键盘与鼠标。",
+      "tags": [
+        "深色",
+        "星空",
+        "金色点缀"
+      ],
+      "createdAt": "2026-11-27",
+      "keyboardPath": "./community-keyboards/midnight-galaxy/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#DDD6F2",
+        "mouseBorder": "#2A3050",
+        "wheel": "#F2C462",
+        "base": "#15182B",
+        "deck": "#242A48",
+        "key": "#353C63",
+        "keyBorder": "#1A1E36",
+        "accent": "#F2C462",
+        "darkText": false
+      },
+      "sizeBytes": 323
+    },
+    {
+      "slug": "soft-meow",
+      "title": "软喵酱",
+      "author": "哇哇",
+      "authorUrl": "",
+      "description": "同事的工位键盘~",
+      "tags": [
+        "浅色键盘",
+        "灰黄",
+        "奶油"
+      ],
+      "createdAt": "2026-11-27",
+      "keyboardPath": "./community-keyboards/soft-meow/keyboard.json",
+      "previewPath": null,
+      "colors": {
+        "mouseBody": "#FFFFFF",
+        "mouseBorder": "#FFFFFF",
+        "wheel": "#EDEDED",
+        "base": "#CFCFCF",
+        "deck": "#C7C7C7",
+        "key": "#FFFFFF",
+        "keyBorder": "#E8E8E8",
+        "accent": "#ECE627",
+        "darkText": true
+      },
+      "sizeBytes": 313
     },
     {
       "slug": "black-and-blue",

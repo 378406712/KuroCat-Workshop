@@ -1,0 +1,16 @@
+{
+  "formatVersion": 1,
+  "name": "软喵酱",
+  "author": "哇哇",
+  "colors": {
+    "mouseBody": "#FFFFFF",
+    "mouseBorder": "#FFFFFF",
+    "wheel": "#EDEDED",
+    "base": "#CFCFCF",
+    "deck": "#C7C7C7",
+    "key": "#FFFFFF",
+    "keyBorder": "#E8E8E8",
+    "accent": "#ECE627",
+    "darkText": true
+  }
+}

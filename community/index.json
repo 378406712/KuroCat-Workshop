@@ -1,7 +1,31 @@
 {
-  "generatedAt": "2026-11-27T04:24:54.573Z",
-  "count": 52,
+  "generatedAt": "2026-11-27T08:41:58.630Z",
+  "count": 59,
   "skins": [
+    {
+      "slug": "binggan",
+      "title": "饼干",
+      "author": "EC·CNC🖤",
+      "authorUrl": "",
+      "description": "隔壁公司养的猫，叫饼干，天天来串门吃猫条。",
+      "tags": [
+        "饼干",
+        "肥",
+        "胖"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/binggan/skin.kurocat",
+      "previewPath": "./community/binggan/preview.png",
+      "previewType": "png",
+      "decorationCount": 4,
+      "regionCount": 6,
+      "sizeBytes": 100876,
+      "paletteSummary": [
+        "#B69776",
+        "#90653D",
+        "#E6B574"
+      ]
+    },
     {
       "slug": "dacchan-orange-white",
       "title": "大馋猫贱贱",
@@ -22,6 +46,53 @@
         "#FAF7F1",
         "#FFFFFF",
         "#E8B64A"
+      ]
+    },
+    {
+      "slug": "diandian-blue-golden",
+      "title": "小点（浅色蓝金渐层）",
+      "author": "十伏特",
+      "authorUrl": "",
+      "description": "照着我家点点样子做的~",
+      "tags": [
+        "英短",
+        "蓝金渐层"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/diandian-blue-golden/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 0,
+      "sizeBytes": 207634,
+      "paletteSummary": [
+        "#F2ECE3",
+        "#DDCDBB",
+        "#D8A155"
+      ]
+    },
+    {
+      "slug": "dongfeng",
+      "title": "虎斑海豹菲佣",
+      "author": "白板遇东风",
+      "authorUrl": "",
+      "description": "虎斑与海豹色暹罗串串的自设",
+      "tags": [
+        "暹罗猫",
+        "重点色",
+        "带配饰"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/dongfeng/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 2,
+      "regionCount": 0,
+      "sizeBytes": 123682,
+      "paletteSummary": [
+        "#E8DBC6",
+        "#F6EDDF",
+        "#4080CA"
       ]
     },
     {
@@ -72,6 +143,31 @@
       ]
     },
     {
+      "slug": "midnight-galaxy",
+      "title": "午夜星河",
+      "author": "一路向北",
+      "authorUrl": "https://github.com/378406712",
+      "description": "深靛蓝的毛色像夜空，淡紫白的肚皮，金色眼睛发亮；头顶一弯月牙和两粒星子，尾巴尖还挂着一颗小星星。",
+      "tags": [
+        "深色猫",
+        "月亮",
+        "星星",
+        "原创"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/midnight-galaxy/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 4,
+      "regionCount": 1,
+      "sizeBytes": 24256,
+      "paletteSummary": [
+        "#2A3050",
+        "#DDD6F2",
+        "#F2C462"
+      ]
+    },
+    {
       "slug": "pipi-pp",
       "title": "PP",
       "author": "刘不能",
@@ -114,6 +210,31 @@
         "#E09A65",
         "#FFF9EB",
         "#FFFFFF"
+      ]
+    },
+    {
+      "slug": "sea-salt-wave-cat",
+      "title": "海盐浪花猫",
+      "author": "378406712",
+      "authorUrl": "https://github.com/378406712",
+      "description": "清爽海盐蓝白配色短毛猫，配冰海蓝瞳、水手领结与奶黄小贝壳发卡，和海盐系桌面绝配。",
+      "tags": [
+        "蓝白",
+        "海盐",
+        "清新",
+        "原创配色",
+        "可爱"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/sea-salt-wave-cat/skin.kurocat",
+      "previewPath": "./community/sea-salt-wave-cat/preview.png",
+      "previewType": "png",
+      "decorationCount": 0,
+      "regionCount": 0,
+      "sizeBytes": 105991,
+      "paletteSummary": [
+        "#FAFDFF",
+        "#3E8CC0"
       ]
     },
     {
@@ -162,6 +283,52 @@
         "#1F2024",
         "#FAF7F1",
         "#D6B74E"
+      ]
+    },
+    {
+      "slug": "xiaoguai",
+      "title": "小怪",
+      "author": "图图",
+      "authorUrl": "",
+      "description": "图图家的小怪，是图图的生日礼物以及宠物，是图图生日时爸爸特地从乡下送来的，会讲人话，会讲人语。普通的小猫都爱吃鱼，它却爱吃青菜而得名\"小怪\"",
+      "tags": [
+        "大耳朵图图"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/xiaoguai/skin.kurocat",
+      "previewPath": "./community/xiaoguai/preview.png",
+      "previewType": "png",
+      "decorationCount": 0,
+      "regionCount": 3,
+      "sizeBytes": 84275,
+      "paletteSummary": [
+        "#F5F5F5",
+        "#BAED78"
+      ]
+    },
+    {
+      "slug": "zhong-dian-se-mi",
+      "title": "重点色咪",
+      "author": "白板遇东风",
+      "authorUrl": "",
+      "description": "重点色狸花串串的自设",
+      "tags": [
+        "重点色",
+        "狸花",
+        "带配饰"
+      ],
+      "createdAt": "2026-11-27",
+      "skinPath": "./community/zhong-dian-se-mi/skin.kurocat",
+      "previewPath": null,
+      "previewType": null,
+      "decorationCount": 1,
+      "regionCount": 0,
+      "sizeBytes": 233975,
+      "paletteSummary": [
+        "#9D8676",
+        "#F3EDE4",
+        "#2F221B",
+        "#ABC8CB"
       ]
     },
     {
